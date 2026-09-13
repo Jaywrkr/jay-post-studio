@@ -52,15 +52,7 @@ const COLORS = [
   "#D9D9D9",
   "#8C8C8C",
 ];
-const FONTS = [
-  "Geist Mono",
-  "IBM Plex Mono",
-  "Space Mono",
-  "Roboto Mono",
-  "Courier New",
-  "Arial",
-  "Helvetica",
-];
+const FONTS = ["Geist Mono"];
 type ElementType = "text" | "rect" | "circle" | "ellipse" | "line" | "plus";
 type Tool =
   | "templates"
@@ -107,6 +99,18 @@ type Effects = {
   noiseOpacity: number;
   noiseScale: number;
   seed: number;
+  scanlines: boolean;
+  scanlineOpacity: number;
+  scanlineSpacing: number;
+  dotField: boolean;
+  dotOpacity: number;
+  dotSpacing: number;
+  dotSize: number;
+  vignette: boolean;
+  vignetteOpacity: number;
+  frame: boolean;
+  frameInset: number;
+  frameOpacity: number;
 };
 type Design = {
   id: string;
@@ -161,7 +165,7 @@ const text = (
     x,
     y,
     width,
-    height: size * 1.35,
+    height: size * 1.35 * Math.max(1, value.split("\n").length),
     fontSize: size,
     fontFamily: "Geist Mono",
     lineHeight: 1.2,
@@ -239,6 +243,18 @@ const make = (
       noiseOpacity: 0.14,
       noiseScale: 2,
       seed: 44,
+      scanlines: false,
+      scanlineOpacity: 0.08,
+      scanlineSpacing: 12,
+      dotField: false,
+      dotOpacity: 0.12,
+      dotSpacing: 48,
+      dotSize: 1.5,
+      vignette: false,
+      vignetteOpacity: 0.16,
+      frame: false,
+      frameInset: 48,
+      frameOpacity: 0.28,
       ...effects,
     },
   },
@@ -297,7 +313,7 @@ const templates: Template[] = [
       fill: "#FFFFFF",
     }),
     text("write the uncomfortable thing", 188, 712, 16, "#FFFFFF", 460),
-  ]),
+  ], { scanlines: true, scanlineOpacity: 0.045, scanlineSpacing: 12, frame: true, frameInset: 86, frameOpacity: 0.13 }),
   make("Quiet Proof", white, [
     ...brand(),
     text(
@@ -512,7 +528,7 @@ const templates: Template[] = [
     segment("Noise strike 2", 115, 476, 740, -15, "#FFFFFF", 3),
     text("NO TODO MERECE\nTU ATENCIÓN.", 105, 746, 37, "#FFFFFF", 540),
     text("elige lo que entra", 105, 866, 17, "#FFFFFF", 300),
-  ]),
+  ], { scanlines: true, scanlineOpacity: 0.035, scanlineSpacing: 10 }),
   make("Stack Overflow", black, [
     ...brand("#FFFFFF"),
     rotated("VOLVER A EMPEZAR", -122, 208, 42, "#FFFFFF", 900, -18, 0.15),
@@ -568,7 +584,7 @@ const templates: Template[] = [
       735,
     ),
     text("no cierres la ventana todavía", 110, 849, 17, "#FFFFFF", 480),
-  ]),
+  ], { dotField: true, dotOpacity: 0.09, dotSpacing: 54, dotSize: 1, vignette: true, vignetteOpacity: 0.09 }),
   make("Center Quote", white, [
     ...brand(),
     text("LA CLARIDAD NO LLEGA\nDE REPENTE.", 210, 455, 48, "#000000", 650),
@@ -890,6 +906,10 @@ const templates: Template[] = [
       noiseOpacity: 0.1,
       noiseScale: 1,
       seed: 91,
+      dotField: true,
+      dotOpacity: 0.06,
+      dotSpacing: 58,
+      dotSize: 1,
     },
   ),
 ];
@@ -911,6 +931,18 @@ const emptyDesign = (): Design => ({
     noiseOpacity: 0.14,
     noiseScale: 2,
     seed: 44,
+    scanlines: false,
+    scanlineOpacity: 0.08,
+    scanlineSpacing: 12,
+    dotField: false,
+    dotOpacity: 0.12,
+    dotSpacing: 48,
+    dotSize: 1.5,
+    vignette: false,
+    vignetteOpacity: 0.16,
+    frame: false,
+    frameInset: 48,
+    frameOpacity: 0.28,
   },
   elements: brand(),
   createdAt: new Date().toISOString(),
@@ -982,7 +1014,7 @@ function DesignPreview({ design }: { design: PreviewDesign }) {
                   x={textX}
                   y={fontSize}
                   fill={item.fill}
-                  fontFamily={item.fontFamily || "Geist Mono"}
+                  fontFamily="Geist Mono"
                   fontSize={fontSize}
                   fontWeight={weight}
                   fontStyle={item.fontStyle === "italic" ? "italic" : "normal"}
@@ -1120,6 +1152,90 @@ function Noise({ effects }: { effects: Effects }) {
       listening={false}
     />
   ) : null;
+}
+
+function PostDetails({
+  effects,
+  background,
+}: {
+  effects: Effects;
+  background: Background;
+}) {
+  const isDark = background.color.toLowerCase() === "#000000";
+  const detailColor = isDark ? "#FFFFFF" : "#000000";
+  const vignetteTone = isDark ? "255,255,255" : "0,0,0";
+  const spacing = Math.max(4, effects.scanlineSpacing || 12);
+  const dotSpacing = Math.max(30, effects.dotSpacing || 48);
+  const dots = Array.from(
+    { length: Math.ceil(SIZE / dotSpacing) },
+    (_, row) =>
+      Array.from(
+        { length: Math.ceil(SIZE / dotSpacing) },
+        (_, column) => ({
+          x: column * dotSpacing + dotSpacing / 2,
+          y: row * dotSpacing + dotSpacing / 2,
+        }),
+      ),
+  ).flat();
+
+  return (
+    <>
+      {effects.dotField &&
+        dots.map((dot, index) => (
+          <KCircle
+            key={`dot-${index}`}
+            x={dot.x}
+            y={dot.y}
+            radius={effects.dotSize || 1.5}
+            fill={detailColor}
+            opacity={effects.dotOpacity || 0.12}
+            listening={false}
+          />
+        ))}
+      {effects.scanlines &&
+        Array.from({ length: Math.ceil(SIZE / spacing) }).map((_, index) => (
+          <Line
+            key={`scanline-${index}`}
+            points={[0, index * spacing, SIZE, index * spacing]}
+            stroke={detailColor}
+            strokeWidth={1}
+            opacity={effects.scanlineOpacity || 0.08}
+            listening={false}
+          />
+        ))}
+      {effects.vignette && (
+        <Rect
+          width={SIZE}
+          height={SIZE}
+          fillRadialGradientStartPoint={{ x: SIZE / 2, y: SIZE / 2 }}
+          fillRadialGradientEndPoint={{ x: SIZE / 2, y: SIZE / 2 }}
+          fillRadialGradientStartRadius={0}
+          fillRadialGradientEndRadius={780}
+          fillRadialGradientColorStops={[
+            0,
+            `rgba(${vignetteTone},0)`,
+            0.68,
+            `rgba(${vignetteTone},0)`,
+            1,
+            `rgba(${vignetteTone},${effects.vignetteOpacity || 0.16})`,
+          ]}
+          listening={false}
+        />
+      )}
+      {effects.frame && (
+        <Rect
+          x={effects.frameInset || 48}
+          y={effects.frameInset || 48}
+          width={SIZE - 2 * (effects.frameInset || 48)}
+          height={SIZE - 2 * (effects.frameInset || 48)}
+          stroke={detailColor}
+          strokeWidth={2}
+          opacity={effects.frameOpacity || 0.28}
+          listening={false}
+        />
+      )}
+    </>
+  );
 }
 
 function StudioCanvas({
@@ -1335,7 +1451,7 @@ function StudioCanvas({
                         width={item.width}
                         height={item.height}
                         fontSize={item.fontSize}
-                        fontFamily={item.fontFamily}
+                        fontFamily="Geist Mono"
                         fontStyle={item.fontStyle}
                         fill={item.fill}
                         align={item.align}
@@ -1420,6 +1536,10 @@ function StudioCanvas({
                 ),
             )}
             <Noise effects={design.effects} />
+            <PostDetails
+              effects={design.effects}
+              background={design.background}
+            />
             {guides.x && (
               <Line
                 points={[guides.x, 0, guides.x, SIZE]}
@@ -1612,6 +1732,88 @@ function EffectsPanel({
         label="Seed"
         value={fx.seed}
         onChange={(seed) => patch({ seed })}
+      />
+      <div className="side-rule" />
+      <h3>Post details</h3>
+      <p className="muted">
+        Small editorial treatments for giving the post a more intentional finish.
+      </p>
+      <label className="toggle">
+        <span>Scanlines</span>
+        <input
+          type="checkbox"
+          checked={fx.scanlines || false}
+          onChange={(e) => patch({ scanlines: e.target.checked })}
+        />
+      </label>
+      <NumberField
+        label="Line opacity"
+        value={fx.scanlineOpacity || 0.08}
+        step={0.01}
+        onChange={(scanlineOpacity) => patch({ scanlineOpacity })}
+      />
+      <NumberField
+        label="Line spacing"
+        value={fx.scanlineSpacing || 12}
+        onChange={(scanlineSpacing) => patch({ scanlineSpacing })}
+      />
+      <label className="toggle">
+        <span>Dot field</span>
+        <input
+          type="checkbox"
+          checked={fx.dotField || false}
+          onChange={(e) => patch({ dotField: e.target.checked })}
+        />
+      </label>
+      <NumberField
+        label="Dot opacity"
+        value={fx.dotOpacity || 0.12}
+        step={0.01}
+        onChange={(dotOpacity) => patch({ dotOpacity })}
+      />
+      <NumberField
+        label="Dot spacing"
+        value={fx.dotSpacing || 48}
+        onChange={(dotSpacing) => patch({ dotSpacing })}
+      />
+      <NumberField
+        label="Dot size"
+        value={fx.dotSize || 1.5}
+        step={0.5}
+        onChange={(dotSize) => patch({ dotSize })}
+      />
+      <label className="toggle">
+        <span>Edge focus</span>
+        <input
+          type="checkbox"
+          checked={fx.vignette || false}
+          onChange={(e) => patch({ vignette: e.target.checked })}
+        />
+      </label>
+      <NumberField
+        label="Edge opacity"
+        value={fx.vignetteOpacity || 0.16}
+        step={0.01}
+        onChange={(vignetteOpacity) => patch({ vignetteOpacity })}
+      />
+      <label className="toggle">
+        <span>Archive frame</span>
+        <input
+          type="checkbox"
+          checked={fx.frame || false}
+          onChange={(e) => patch({ frame: e.target.checked })}
+        />
+      </label>
+      <NumberField
+        label="Frame inset"
+        value={fx.frameInset || 48}
+        onChange={(frameInset) => patch({ frameInset })}
+      />
+      <NumberField
+        label="Frame opacity"
+        value={fx.frameOpacity || 0.28}
+        step={0.01}
+        onChange={(frameOpacity) => patch({ frameOpacity })}
       />
     </>
   );
