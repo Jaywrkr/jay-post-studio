@@ -7,7 +7,7 @@ import type Konva from "konva";
 
 const SIZE = 1080;
 const COLORS = ["#000000", "#FFFFFF", "#F5F5F5", "#EDEDED", "#D9D9D9", "#8C8C8C"];
-const FONTS = ["IBM Plex Mono", "Space Mono", "Roboto Mono", "Courier New", "Arial", "Helvetica"];
+const FONTS = ["Geist Mono", "IBM Plex Mono", "Space Mono", "Roboto Mono", "Courier New", "Arial", "Helvetica"];
 type ElementType = "text" | "rect" | "circle" | "ellipse" | "line" | "plus";
 type Tool = "templates" | "text" | "shapes" | "images" | "background" | "effects" | "layers";
 type StudioElement = { id:string; type:ElementType; name:string; x:number; y:number; width:number; height:number; rotation:number; opacity:number; fill:string; stroke?:string; strokeWidth?:number; radius?:number; text?:string; fontSize?:number; fontFamily?:string; fontStyle?:string; align?:"left"|"center"|"right"; lineHeight?:number; letterSpacing?:number; uppercase?:boolean; visible:boolean; locked:boolean };
@@ -17,7 +17,7 @@ type Design = { id:string; name:string; background:Background; effects:Effects; 
 type Template = { id:string; name:string; subtitle:string; design:Omit<Design,"id"|"name"|"createdAt"|"updatedAt"> };
 const uid=()=>Math.random().toString(36).slice(2,9);
 const base=(type:ElementType, extra:Partial<StudioElement>={}):StudioElement=>({id:uid(),type,name:type==="text"?"Text":type==="plus"?"Cross / Plus":type[0].toUpperCase()+type.slice(1),x:160,y:160,width:360,height:100,rotation:0,opacity:1,fill:"#000000",visible:true,locked:false,...extra});
-const text=(value:string,x:number,y:number,size=38,color="#000000",width=660):StudioElement=>base("text",{name:value.slice(0,24)||"Text",text:value,x,y,width,height:size*1.35,fontSize:size,fontFamily:"IBM Plex Mono",lineHeight:1.2,letterSpacing:0,fill:color,align:"left"});
+const text=(value:string,x:number,y:number,size=38,color="#000000",width=660):StudioElement=>base("text",{name:value.slice(0,24)||"Text",text:value,x,y,width,height:size*1.35,fontSize:size,fontFamily:"Geist Mono",lineHeight:1.2,letterSpacing:0,fill:color,align:"left"});
 const cross=(x:number,y:number,color="#000000",size=23):StudioElement=>base("plus",{x,y,width:size,height:size,fill:color,strokeWidth:2});
 const rotated=(value:string,x:number,y:number,size:number,color:string,width:number,rotation:number,opacity=1)=>({...text(value,x,y,size,color,width),rotation,opacity});
 const brand=(color="#000000")=>[text("@jaywrkr",42,38,18,color,170),cross(529,42,color,18),text("#simple",925,38,18,color,120),text("#simple",42,1015,18,color,120),cross(529,1020,color,18),text("@jaywrkr",882,1015,18,color,170)];
