@@ -149,6 +149,72 @@
   line-height: 1.5;
 }
 
+.idea-input {
+  min-height: 118px !important;
+  resize: vertical;
+}
+
+.idea-generate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  margin: 6px 0 18px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.idea-routes {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.idea-route {
+  padding: 12px;
+  border: 1px solid #d9d9d4;
+  background: #fff;
+}
+
+.idea-kicker {
+  margin: 0 0 7px;
+  color: #777;
+  font-size: 8px;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.idea-route h4 {
+  margin: 0 0 9px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.idea-copy {
+  margin: 0;
+  color: #222;
+  font-size: 10px;
+  line-height: 1.48;
+  white-space: pre-line;
+}
+
+.idea-route button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid #111;
+  background: transparent;
+  font-size: 9px;
+}
+
 @media (max-width: 900px) {
   .design-grid,
   .template-row {

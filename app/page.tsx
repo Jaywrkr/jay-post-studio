@@ -63,6 +63,7 @@ type ElementType =
   | "image";
 type Tool =
   | "templates"
+  | "ideas"
   | "text"
   | "shapes"
   | "images"
@@ -134,6 +135,23 @@ type Template = {
   name: string;
   subtitle: string;
   design: Omit<Design, "id" | "name" | "createdAt" | "updatedAt">;
+};
+type IdeaTension =
+  | "time"
+  | "freedom"
+  | "limits"
+  | "money"
+  | "identity"
+  | "routine"
+  | "other";
+type IdeaRoute = {
+  id: string;
+  title: string;
+  templateId: string;
+  label: string;
+  copy: string;
+  counterpoint?: string;
+  uppercase?: boolean;
 };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const base = (
@@ -1149,6 +1167,92 @@ const cloneTemplate = (template: Template): Design => ({
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
+const ideaFrames: Record<
+  IdeaTension,
+  { label: string; contrast: string; mirror: string }
+> = {
+  time: {
+    label: "tiempo",
+    contrast: "No todo lo urgente merece tu vida.",
+    mirror: "El tiempo también se pierde en lo que toleras.",
+  },
+  freedom: {
+    label: "libertad",
+    contrast: "La libertad no siempre se siente cómoda.",
+    mirror: "Toda libertad importante trae una renuncia.",
+  },
+  limits: {
+    label: "límites",
+    contrast: "Decir que sí también es elegir un costo.",
+    mirror: "Un límite no necesita una defensa larga.",
+  },
+  money: {
+    label: "dinero",
+    contrast: "Ganar más no siempre compra más vida.",
+    mirror: "El dinero resuelve algunos problemas y revela otros.",
+  },
+  identity: {
+    label: "identidad",
+    contrast: "Cambiar incomoda a quien necesitaba que siguieras igual.",
+    mirror: "No tienes que seguir siendo una versión antigua de ti.",
+  },
+  routine: {
+    label: "rutina",
+    contrast: "Lo conocido no siempre es lo correcto.",
+    mirror: "La rutina puede ocultar una decisión que ya no eliges.",
+  },
+  other: {
+    label: "esto",
+    contrast: "No todo necesita más esfuerzo.",
+    mirror: "La parte difícil casi siempre es admitirlo.",
+  },
+};
+const cleanIdea = (input: string) =>
+  input
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[-–—]+\s*/, "")
+    .slice(0, 220);
+const buildIdeaRoutes = (
+  input: string,
+  tension: IdeaTension,
+): IdeaRoute[] => {
+  const idea = cleanIdea(input);
+  const frame = ideaFrames[tension];
+  if (!idea) return [];
+  return [
+    {
+      id: "quiet",
+      title: "Decirlo sin ruido",
+      label: "Quiet Paper · reflexión directa",
+      templateId: "jay-quiet-paper",
+      copy: idea,
+    },
+    {
+      id: "contrast",
+      title: "La pregunta incómoda",
+      label: "Four Sides · tensión y remate",
+      templateId: "jay-four-sides",
+      copy: `${frame.contrast}\n\nQuizá la pregunta no es cómo conseguir más.`,
+      counterpoint: idea,
+    },
+    {
+      id: "mirror",
+      title: "La parte que se repite",
+      label: "Mirror · idea que no puedes ignorar",
+      templateId: "jay-mirror",
+      copy: `${idea}\n\n${frame.mirror}`,
+    },
+    {
+      id: "caps",
+      title: "El recordatorio",
+      label: "Centered Caps · una verdad frontal",
+      templateId: "jay-centered-caps",
+      copy: `${frame.contrast}\n\n${idea}`,
+      uppercase: true,
+    },
+  ];
+};
 const emptyDesign = (): Design => ({
   id: uid(),
   name: "Untitled post",
@@ -2379,6 +2483,9 @@ export default function Home() {
   const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const [shouldPersist, setShouldPersist] = useState(false);
   const [imageMessage, setImageMessage] = useState("");
+  const [ideaInput, setIdeaInput] = useState("");
+  const [ideaTension, setIdeaTension] = useState<IdeaTension>("other");
+  const [ideaRoutes, setIdeaRoutes] = useState<IdeaRoute[]>([]);
   const stageRef = useRef<Konva.Stage>(null);
   useEffect(() => {
     try {
@@ -2459,6 +2566,36 @@ export default function Home() {
     setShouldPersist(false);
     setSaved("Template ready");
     setScreen("editor");
+  };
+  const openIdeaRoute = (route: IdeaRoute) => {
+    const source = templates.find((template) => template.id === route.templateId);
+    if (!source) return;
+    const next = cloneTemplate(source);
+    const copyTargets = next.elements
+      .filter(
+        (item) =>
+          item.type === "text" &&
+          (item.fontSize || 0) >= 28 &&
+          item.text?.toUpperCase() !== "SIMPLE",
+      )
+      .sort((a, b) => a.y - b.y);
+    const rewrite = (item: StudioElement, value: string) => ({
+      ...item,
+      text: value,
+      name: value.slice(0, 24) || item.name,
+      height: (item.fontSize || 36) * 1.35 * Math.max(1, value.split("\n").length),
+      uppercase: route.uppercase || item.uppercase,
+    });
+    next.elements = next.elements.map((item) => {
+      const index = copyTargets.findIndex((target) => target.id === item.id);
+      if (index < 0) return item;
+      if (route.templateId === "jay-four-sides")
+        return rewrite(item, index === 0 ? route.copy : route.counterpoint || route.copy);
+      return rewrite(item, route.copy);
+    });
+    next.name = route.title;
+    newFrom(next);
+    setTool("text");
   };
   const undo = () => {
     const previous = history.at(-1);
@@ -2572,8 +2709,13 @@ export default function Home() {
             <br />
             for the idea.
           </h1>
-          <button onClick={() => newFrom(emptyDesign())}>
-            Start with a blank 1080 × 1080 canvas <Plus size={16} />
+          <button
+            onClick={() => {
+              setTool("ideas");
+              newFrom(emptyDesign());
+            }}
+          >
+            Turn an idea into a post <Sparkles size={16} />
           </button>
         </section>
         <section className={myDesigns.length ? "design-grid" : "design-empty"}>
@@ -2688,6 +2830,7 @@ export default function Home() {
             {(
               [
                 { id: "templates", icon: Grid2X2, label: "Templates" },
+                { id: "ideas", icon: Sparkles, label: "Idea" },
                 { id: "text", icon: Type, label: "Text" },
                 { id: "shapes", icon: Shapes, label: "Shapes" },
                 { id: "images", icon: ImagePlus, label: "Images" },
@@ -2724,6 +2867,61 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
+              </>
+            )}
+            {tool === "ideas" && (
+              <>
+                <h3>From an idea</h3>
+                <p className="muted">
+                  Write the raw thought first. The studio will turn it into
+                  four JAY directions you can edit.
+                </p>
+                <label className="field">
+                  <span>Your raw thought</span>
+                  <textarea
+                    className="idea-input"
+                    value={ideaInput}
+                    placeholder="I am making more money but have less control of my time."
+                    onChange={(event) => setIdeaInput(event.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span>What is underneath it?</span>
+                  <select
+                    value={ideaTension}
+                    onChange={(event) => setIdeaTension(event.target.value as IdeaTension)}
+                  >
+                    <option value="time">Time</option>
+                    <option value="freedom">Freedom</option>
+                    <option value="limits">Limits</option>
+                    <option value="money">Money</option>
+                    <option value="identity">Identity</option>
+                    <option value="routine">Routine</option>
+                    <option value="other">Something else</option>
+                  </select>
+                </label>
+                <button
+                  className="idea-generate"
+                  disabled={!cleanIdea(ideaInput)}
+                  onClick={() => setIdeaRoutes(buildIdeaRoutes(ideaInput, ideaTension))}
+                >
+                  <Sparkles size={15} />
+                  Create directions
+                </button>
+                {ideaRoutes.length > 0 && (
+                  <div className="idea-routes">
+                    {ideaRoutes.map((route) => (
+                      <article className="idea-route" key={route.id}>
+                        <p className="idea-kicker">{route.label}</p>
+                        <h4>{route.title}</h4>
+                        <p className="idea-copy">{route.copy}</p>
+                        <button onClick={() => openIdeaRoute(route)}>
+                          Open this direction <Plus size={13} />
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </>
             )}
             {tool === "text" && (
