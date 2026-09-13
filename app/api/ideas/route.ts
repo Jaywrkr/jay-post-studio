@@ -1,4 +1,5 @@
 import { generateText } from "ai";
+import { anthropic } from "@ai-sdk/anthropic";
 
 type Tension =
   | "time"
@@ -25,6 +26,9 @@ const templateIds = new Set([
   "jay-mirror",
   "jay-centered-caps",
 ]);
+const requestWindows = new Map<string, { count: number; resetAt: number }>();
+const requestLimit = 8;
+const requestWindowMs = 10 * 60 * 1000;
 
 const frames: Record<Tension, { contrast: string; mirror: string }> = {
   time: {
@@ -138,6 +142,19 @@ const parseDirections = (text: string): Direction[] | null => {
   }
 };
 
+const canGenerate = (request: Request) => {
+  const now = Date.now();
+  const client = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const current = requestWindows.get(client);
+  if (!current || current.resetAt <= now) {
+    requestWindows.set(client, { count: 1, resetAt: now + requestWindowMs });
+    return true;
+  }
+  if (current.count >= requestLimit) return false;
+  current.count += 1;
+  return true;
+};
+
 export async function POST(request: Request) {
   let body: { idea?: unknown; tension?: unknown; angle?: unknown };
   try {
@@ -156,13 +173,16 @@ export async function POST(request: Request) {
   if (!idea) return Response.json({ error: "An idea is required." }, { status: 400 });
 
   const editorialRoutes = fallback(idea, tension, angle);
-  if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ routes: editorialRoutes, source: "editorial" });
+  }
+  if (!canGenerate(request)) {
+    return Response.json({ error: "Try again in a few minutes." }, { status: 429 });
   }
 
   try {
     const { text } = await generateText({
-      model: "anthropic/claude-sonnet-5",
+      model: anthropic("claude-sonnet-5"),
       maxOutputTokens: 900,
       system:
         "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. " +
