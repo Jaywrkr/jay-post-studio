@@ -100,6 +100,36 @@
   outline-offset: 2px;
 }
 
+.image-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin-top: 20px;
+  min-height: 48px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.image-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.image-note {
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 @media (max-width: 900px) {
   .design-grid,
   .template-row {

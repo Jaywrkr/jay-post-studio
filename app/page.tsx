@@ -53,7 +53,14 @@ const COLORS = [
   "#8C8C8C",
 ];
 const FONTS = ["Geist Mono"];
-type ElementType = "text" | "rect" | "circle" | "ellipse" | "line" | "plus";
+type ElementType =
+  | "text"
+  | "rect"
+  | "circle"
+  | "ellipse"
+  | "line"
+  | "plus"
+  | "image";
 type Tool =
   | "templates"
   | "text"
@@ -84,6 +91,7 @@ type StudioElement = {
   lineHeight?: number;
   letterSpacing?: number;
   uppercase?: boolean;
+  src?: string;
   visible: boolean;
   locked: boolean;
 };
@@ -217,14 +225,43 @@ const rotated = (
   rotation: number,
   opacity = 1,
 ) => ({ ...text(value, x, y, size, color, width), rotation, opacity });
-const brand = (color = "#000000") => [
-  text("@jaywrkr", 42, 38, 18, color, 170),
-  cross(529, 42, color, 18),
-  text("#simple", 925, 38, 18, color, 120),
-  text("#simple", 42, 1015, 18, color, 120),
-  cross(529, 1020, color, 18),
-  text("@jaywrkr", 882, 1015, 18, color, 170),
+const label = (
+  value: string,
+  x: number,
+  y: number,
+  color = "#8C8C8C",
+  align: "left" | "center" | "right" = "left",
+  width = 130,
+): StudioElement => ({
+  ...text(value, x, y, 15, color, width),
+  align,
+  lineHeight: 1,
+  fontStyle: "normal",
+});
+const brand = (color = "#8C8C8C") => [
+  label("@jaywrkr", 38, 31, color),
+  cross(529, 29, color, 23),
+  label("#simple", 912, 31, color, "right"),
+  label("#simple", 38, 1027, color),
+  cross(529, 1026, color, 23),
+  label("@jaywrkr", 912, 1027, color, "right"),
 ];
+const sideBrand = (color = "#8C8C8C") => [
+  rotated("#simple", 28, 48, 15, color, 110, 90),
+  rotated("@jaywrkr", 1032, 48, 15, color, 130, 90),
+  cross(28, 529, color, 23),
+  cross(1029, 529, color, 23),
+  rotated("@jaywrkr", 28, 930, 15, color, 130, 90),
+  rotated("#simple", 1032, 930, 15, color, 110, 90),
+];
+const postImage = (
+  src: string,
+  name = "Photo",
+  x = 0,
+  y = 0,
+  width = SIZE,
+  height = SIZE,
+): StudioElement => base("image", { name, src, x, y, width, height });
 const make = (
   name: string,
   background: Background,
@@ -272,6 +309,197 @@ const black: Background = {
   angle: 0,
 };
 const templates: Template[] = [
+  make("JAY / Quiet Paper", white, [
+    ...brand(),
+    text(
+      "No todas las metas necesitan más esfuerzo. Algunas\nnecesitan una pregunta incómoda: ¿por qué quiero\nesto?",
+      128,
+      484,
+      33,
+      "#000000",
+      825,
+    ),
+  ]),
+  make("JAY / Quiet Ink", black, [
+    ...brand("#8C8C8C"),
+    text(
+      "La libertad también exige\nrenuncias.",
+      516,
+      232,
+      35,
+      "#FFFFFF",
+      450,
+    ),
+  ]),
+  make("JAY / Centered Caps", white, [
+    ...brand(),
+    {
+      ...text(
+        "REPETIR UNA ELECCIÓN\nTAMBIÉN ES ELEGIR",
+        130,
+        493,
+        35,
+        "#000000",
+        820,
+      ),
+      align: "center",
+      fontStyle: "bold",
+      letterSpacing: 1,
+      uppercase: true,
+    },
+  ]),
+  make("JAY / SIMPLE Paper", white, [
+    ...brand(),
+    { ...text("SIMPLE", 516, 159, 35, "#000000", 420), fontStyle: "bold" },
+    text(
+      "La gente dice que el tiempo\nvuela. No vuela. Se acumula\nsilenciosamente hasta que un\ndía miras atrás y ya fueron\ndiez años.",
+      516,
+      231,
+      31,
+      "#000000",
+      480,
+    ),
+  ]),
+  make("JAY / SIMPLE Ink", black, [
+    ...brand("#8C8C8C"),
+    { ...text("SIMPLE", 516, 159, 35, "#FFFFFF", 420), fontStyle: "bold" },
+    text(
+      "Que algo haya sido\ndifícil no significa que\nhaya sido bueno.",
+      516,
+      231,
+      35,
+      "#FFFFFF",
+      470,
+    ),
+  ]),
+  make("JAY / Mirror", black, [
+    ...brand("#8C8C8C"),
+    text(
+      "La rutina es peligrosa precisamente porque\npuede convertir decisiones extraordinarias\nen cosas que dejas de cuestionar.",
+      43,
+      171,
+      33,
+      "#FFFFFF",
+      930,
+    ),
+    rotated(
+      "La rutina es peligrosa precisamente porque\npuede convertir decisiones extraordinarias\nen cosas que dejas de cuestionar.",
+      42,
+      811,
+      33,
+      "#FFFFFF",
+      930,
+      180,
+    ),
+  ]),
+  make("JAY / Four Sides", black, [
+    ...sideBrand("#FFFFFF"),
+    text(
+      "Hay personas que no cambian\nporque su sufrimiento actual al\nmenos les resulta conocido.",
+      230,
+      195,
+      34,
+      "#FFFFFF",
+      600,
+    ),
+    text(
+      "La incertidumbre les asusta más\nque seguir mal. Simple.",
+      230,
+      817,
+      34,
+      "#FFFFFF",
+      600,
+    ),
+  ]),
+  make("JAY / Circle Quote", black, [
+    ...brand("#8C8C8C"),
+    base("circle", {
+      name: "Orbit",
+      x: 119,
+      y: 120,
+      width: 842,
+      height: 842,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 3,
+    }),
+    text(
+      "Puedes agradecer\nprofundamente una\netapa y no querer\nregresar jamás.",
+      384,
+      471,
+      33,
+      "#FFFFFF",
+      370,
+    ),
+  ]),
+  make("JAY / Venn", white, [
+    ...brand(),
+    base("ellipse", { name: "Outer orbit", x: 121, y: 120, width: 838, height: 840, fill: "transparent", stroke: "#000000", strokeWidth: 3 }),
+    base("ellipse", { name: "Middle orbit", x: 121, y: 370, width: 838, height: 330, fill: "transparent", stroke: "#000000", strokeWidth: 3 }),
+    base("circle", { name: "Choice", x: 380, y: 643, width: 320, height: 320, fill: "transparent", stroke: "#000000", strokeWidth: 3 }),
+    text("Hay gente", 457, 232, 31, "#000000", 250),
+    { ...text("exitosa\nviviendo vidas", 310, 494, 31, "#000000", 460), align: "center" },
+    { ...text("que no\nquieres", 414, 790, 31, "#000000", 250), align: "center" },
+  ]),
+  make("JAY / Repeater", black, [
+    ...brand("#8C8C8C"),
+    ...[
+      [452, 110], [90, 260], [800, 216], [-34, 379], [590, 375], [835, 618],
+      [-22, 640], [356, 750], [628, 869], [195, 947],
+    ].map(([x, y]) =>
+      text("LA MUERTE MEJORA MUCHAS PRIORIDADES.", x, y, 20, "#555555", 530),
+    ),
+    text("LA MUERTE MEJORA MUCHAS PRIORIDADES.", 195, 540, 30, "#FFFFFF", 720),
+  ]),
+  make("JAY / Grain Left", {
+    type: "linear", color: "#FFFFFF", colorB: "#1A1A1A", angle: 0,
+  }, [
+    ...brand("#8C8C8C"),
+    text(
+      "Puedes estar ganando más dinero que\nnunca y tener menos control sobre tu\ntiempo que cuando ganabas la mitad.",
+      45,
+      484,
+      33,
+      "#000000",
+      790,
+    ),
+  ], { noise: true, noiseAmount: 78, noiseOpacity: 0.13, noiseScale: 2 }),
+  make("JAY / Grain Right", {
+    type: "linear", color: "#080808", colorB: "#F1F1F1", angle: 0,
+  }, [
+    ...brand("#8C8C8C"),
+    text(
+      "A veces no tienes miedo de tomar la\ndecisión equivocada. Tienes miedo de\nser responsable de haber decidido.",
+      45,
+      494,
+      33,
+      "#EDEDED",
+      770,
+    ),
+  ], { noise: true, noiseAmount: 78, noiseOpacity: 0.13, noiseScale: 2 }),
+  make("JAY / Message", white, [
+    ...brand(),
+    label("Hoy a las 11:11", 408, 753, "#8C8C8C", "left", 250),
+    base("rect", { name: "Message bubble", x: 386, y: 790, width: 675, height: 210, fill: "#EFEFEF", radius: 58 }),
+    text(
+      "Algunas personas necesitan que\nsigas siendo quien eras porque\ntu cambio obliga a cuestionar\nquiénes siguen siendo ellas.",
+      427,
+      820,
+      31,
+      "#222222",
+      580,
+    ),
+    label("Visto", 976, 1024, "#8C8C8C", "right", 70),
+  ]),
+  make("JAY / Reminder", white, [
+    ...brand(),
+    { ...text("EL FUTURO", 220, 151, 31, "#000000", 640), align: "center", letterSpacing: 1 },
+    { ...text("NO\nRESPETA", 350, 494, 31, "#000000", 380), align: "center", letterSpacing: 1 },
+    { ...text("TUS\nEXCUSAS", 350, 888, 31, "#000000", 380), align: "center", letterSpacing: 1 },
+  ]),
+  make("JAY / Photo Reference", black, [
+    postImage("/reference/jay-shadow.png", "JAY shadow reference"),
+  ]),
   make("Open Tab", black, [
     ...brand("#FFFFFF"),
     base("rect", {
@@ -1034,6 +1262,14 @@ function DesignPreview({ design }: { design: PreviewDesign }) {
                     ))}
                 </text>
               )}
+              {item.type === "image" && item.src && (
+                <image
+                  href={item.src}
+                  width={item.width}
+                  height={item.height}
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              )}
               {item.type === "rect" && (
                 <rect
                   width={item.width}
@@ -1236,6 +1472,23 @@ function PostDetails({
       )}
     </>
   );
+}
+
+function CanvasImage({ item }: { item: StudioElement }) {
+  const [bitmap, setBitmap] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    if (!item.src) {
+      setBitmap(null);
+      return;
+    }
+    const next = new window.Image();
+    next.onload = () => setBitmap(next);
+    next.src = item.src;
+    return () => {
+      next.onload = null;
+    };
+  }, [item.src]);
+  return bitmap ? <KImage image={bitmap} width={item.width} height={item.height} /> : null;
 }
 
 function StudioCanvas({
@@ -1459,6 +1712,7 @@ function StudioCanvas({
                         letterSpacing={item.letterSpacing}
                       />
                     )}
+                    {item.type === "image" && <CanvasImage item={item} />}
                     {item.type === "rect" && (
                       <Rect
                         width={item.width}
@@ -1870,11 +2124,15 @@ function Properties({
   update,
   deleteItem,
   duplicate,
+  sendToBack,
+  bringToFront,
 }: {
   item: StudioElement;
   update: (p: Partial<StudioElement>) => void;
   deleteItem: () => void;
   duplicate: () => void;
+  sendToBack: () => void;
+  bringToFront: () => void;
 }) {
   return (
     <>
@@ -1980,6 +2238,11 @@ function Properties({
             />
           </label>
         </section>
+      ) : item.type === "image" ? (
+        <section className="property-section">
+          <h3>Image</h3>
+          <p className="muted">Drag, resize or replace this photo from Images.</p>
+        </section>
       ) : (
         <section className="property-section">
           <h3>Appearance</h3>
@@ -2062,6 +2325,8 @@ function Properties({
           <Copy size={15} />
           Duplicate
         </button>
+        <button onClick={sendToBack}>To back</button>
+        <button onClick={bringToFront}>To front</button>
       </div>
     </>
   );
@@ -2122,6 +2387,13 @@ export default function Home() {
   const add = (item: StudioElement) => {
     updateElements((items) => [...items, item]);
     setSelected([item.id]);
+  };
+  const addImageFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      add(postImage(String(reader.result), file.name, 120, 120, 720, 720));
+    };
+    reader.readAsDataURL(file);
   };
   const selectedItem =
     selected.length === 1
@@ -2546,8 +2818,25 @@ export default function Home() {
               <>
                 <h3>Images</h3>
                 <p className="muted">
-                  Image placement is ready for the next version. This first
-                  release keeps the system deliberately type-first.
+                  Add your own photo, then move, crop and layer it behind your
+                  words.
+                </p>
+                <label className="image-upload">
+                  <ImagePlus size={18} />
+                  Add photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) addImageFile(file);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+                <p className="muted image-note">
+                  Your image stays in this design on this browser. Select it
+                  to send it behind text or bring it forward.
                 </p>
               </>
             )}
@@ -2673,6 +2962,22 @@ export default function Home() {
                   x: selectedItem.x + 24,
                   y: selectedItem.y + 24,
                   name: `${selectedItem.name} copy`,
+                })
+              }
+              sendToBack={() =>
+                updateElements((items) => {
+                  const chosen = items.find((item) => item.id === selectedItem.id);
+                  return chosen
+                    ? [chosen, ...items.filter((item) => item.id !== chosen.id)]
+                    : items;
+                })
+              }
+              bringToFront={() =>
+                updateElements((items) => {
+                  const chosen = items.find((item) => item.id === selectedItem.id);
+                  return chosen
+                    ? [...items.filter((item) => item.id !== chosen.id), chosen]
+                    : items;
                 })
               }
             />
