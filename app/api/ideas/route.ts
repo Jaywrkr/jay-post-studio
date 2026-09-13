@@ -162,7 +162,7 @@ export async function POST(request: Request) {
 
   try {
     const { text } = await generateText({
-      model: "openai/gpt-5.4",
+      model: "anthropic/claude-sonnet-5",
       maxOutputTokens: 900,
       system:
         "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. " +
