@@ -1,78 +1,2489 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlignCenter, AlignLeft, AlignRight, Circle, Copy, Download, Eye, EyeOff, FilePlus2, Grid2X2, ImagePlus, Layers3, Lock, LockOpen, Minus, MousePointer2, Palette, Plus, Redo2, Save, Shapes, Sparkles, Square, Trash2, Type, Undo2 } from "lucide-react";
-import { Circle as KCircle, Ellipse, Group, Image as KImage, Layer, Line, Rect, Stage, Text as KText, Transformer } from "react-konva";
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  Circle,
+  Copy,
+  Download,
+  Eye,
+  EyeOff,
+  FilePlus2,
+  Grid2X2,
+  ImagePlus,
+  Layers3,
+  Lock,
+  LockOpen,
+  Minus,
+  MousePointer2,
+  Palette,
+  Plus,
+  Redo2,
+  Save,
+  Shapes,
+  Sparkles,
+  Square,
+  Trash2,
+  Type,
+  Undo2,
+} from "lucide-react";
+import {
+  Circle as KCircle,
+  Ellipse,
+  Group,
+  Image as KImage,
+  Layer,
+  Line,
+  Rect,
+  Stage,
+  Text as KText,
+  Transformer,
+} from "react-konva";
 import type Konva from "konva";
 
 const SIZE = 1080;
-const COLORS = ["#000000", "#FFFFFF", "#F5F5F5", "#EDEDED", "#D9D9D9", "#8C8C8C"];
-const FONTS = ["Geist Mono", "IBM Plex Mono", "Space Mono", "Roboto Mono", "Courier New", "Arial", "Helvetica"];
-type ElementType = "text" | "rect" | "circle" | "ellipse" | "line" | "plus";
-type Tool = "templates" | "text" | "shapes" | "images" | "background" | "effects" | "layers";
-type StudioElement = { id:string; type:ElementType; name:string; x:number; y:number; width:number; height:number; rotation:number; opacity:number; fill:string; stroke?:string; strokeWidth?:number; radius?:number; text?:string; fontSize?:number; fontFamily?:string; fontStyle?:string; align?:"left"|"center"|"right"; lineHeight?:number; letterSpacing?:number; uppercase?:boolean; visible:boolean; locked:boolean };
-type Background = { type:"solid"|"linear"|"radial"; color:string; colorB:string; angle:number };
-type Effects = { noise:boolean; noiseAmount:number; noiseOpacity:number; noiseScale:number; seed:number };
-type Design = { id:string; name:string; background:Background; effects:Effects; elements:StudioElement[]; createdAt:string; updatedAt:string };
-type Template = { id:string; name:string; subtitle:string; design:Omit<Design,"id"|"name"|"createdAt"|"updatedAt"> };
-const uid=()=>Math.random().toString(36).slice(2,9);
-const base=(type:ElementType, extra:Partial<StudioElement>={}):StudioElement=>({id:uid(),type,name:type==="text"?"Text":type==="plus"?"Cross / Plus":type[0].toUpperCase()+type.slice(1),x:160,y:160,width:360,height:100,rotation:0,opacity:1,fill:"#000000",visible:true,locked:false,...extra});
-const text=(value:string,x:number,y:number,size=38,color="#000000",width=660):StudioElement=>base("text",{name:value.slice(0,24)||"Text",text:value,x,y,width,height:size*1.35,fontSize:size,fontFamily:"Geist Mono",lineHeight:1.2,letterSpacing:0,fill:color,align:"left"});
-const cross=(x:number,y:number,color="#000000",size=23):StudioElement=>base("plus",{x,y,width:size,height:size,fill:color,strokeWidth:2});
-const segment=(name:string,x:number,y:number,width:number,rotation=0,color="#000000",strokeWidth=3):StudioElement=>base("line",{name,x,y,width,height:2,rotation,fill:color,stroke:color,strokeWidth});
-const rotated=(value:string,x:number,y:number,size:number,color:string,width:number,rotation:number,opacity=1)=>({...text(value,x,y,size,color,width),rotation,opacity});
-const brand=(color="#000000")=>[text("@jaywrkr",42,38,18,color,170),cross(529,42,color,18),text("#simple",925,38,18,color,120),text("#simple",42,1015,18,color,120),cross(529,1020,color,18),text("@jaywrkr",882,1015,18,color,170)];
-const make=(name:string,background:Background,elements:StudioElement[],effects:Partial<Effects>={}):Template=>({id:name.toLowerCase().replace(/[^a-z0-9]+/g,"-"),name,subtitle:"JAY visual system",design:{background,elements,effects:{noise:false,noiseAmount:55,noiseOpacity:.14,noiseScale:2,seed:44,...effects}}});
-const white:Background={type:"solid",color:"#FFFFFF",colorB:"#FFFFFF",angle:0}; const black:Background={type:"solid",color:"#000000",colorB:"#000000",angle:0};
-const templates:Template[]=[
- make("Open Tab",black,[...brand("#FFFFFF"),base("rect",{name:"Open tab",x:86,y:164,width:908,height:704,fill:"transparent",stroke:"#FFFFFF",strokeWidth:2,radius:10}),base("rect",{name:"Browser bar",x:86,y:164,width:908,height:62,fill:"#FFFFFF",radius:10}),cross(123,187,"#000000",16),text("JAY / OPEN TAB",159,186,16,"#000000",300),text("LO QUE SIGUES\nPOSPONIENDO\nTAMBIÉN TE ESTÁ\nDISEÑANDO.",142,294,52,"#FFFFFF",690),base("rect",{name:"Active cursor",x:145,y:695,width:18,height:57,fill:"#FFFFFF"}),text("write the uncomfortable thing",188,712,16,"#FFFFFF",460)]),
- make("Quiet Proof",white,[...brand(),text("NO NECESITAS\nPARECER OCUPADO.\nNECESITAS\nESTAR HACIENDO\nALGO REAL.",113,177,48,"#000000",710),segment("Proof rule",114,632,492,0,"#000000",3),text("EL SILENCIO TAMBIÉN PUEDE SER PRUEBA.",114,671,16,"#000000",570),base("rect",{name:"Proof mark",x:847,y:681,width:115,height:115,fill:"#000000",radius:58}),text("01",875,725,21,"#FFFFFF",70)]),
- make("Read Receipt",white,[...brand(),text("mensaje no enviado",135,223,17,"#000000",280),base("rect",{name:"Incoming message",x:128,y:275,width:580,height:173,fill:"#E9E9E6",radius:34}),text("NO TODO LO QUE\nSIENTES NECESITA\nSER PUBLICADO.",169,321,29,"#000000",460),text("11:11",172,474,15,"#777777",90),base("rect",{name:"Typing field",x:128,y:617,width:824,height:85,fill:"transparent",stroke:"#000000",strokeWidth:2,radius:42}),text("escribe algo que sí importe",171,647,18,"#777777",490),cross(887,648,"#000000",24),text("leído",128,746,15,"#777777",90)]),
- make("The Gap",white,[...brand(),text("ENTRE\nQUIEN ERES\nY QUIEN\nQUIERES SER",105,178,59,"#000000",540),segment("Gap divider",657,178,570,90,"#000000",3),text("hay una práctica\nque no estás haciendo",714,463,25,"#000000",255),text("NO ES FALTA DE TALENTO.",105,883,17,"#000000",420),text("ES FRICCIÓN SIN NOMBRE.",105,917,17,"#000000",450)]),
- make("Orbit of One",black,[...brand("#FFFFFF"),base("circle",{name:"Outer orbit",x:134,y:178,width:812,height:812,fill:"transparent",stroke:"#FFFFFF",strokeWidth:2}),base("circle",{name:"Inner orbit",x:337,y:382,width:406,height:406,fill:"transparent",stroke:"#FFFFFF",strokeWidth:2}),base("circle",{name:"Now",x:502,y:546,width:78,height:78,fill:"#FFFFFF"}),text("UNA COSA.\nPOR EL TIEMPO\nSUFICIENTE.",244,302,37,"#FFFFFF",590),text("NO MÁS / NO MENOS",420,842,16,"#FFFFFF",290),segment("Orbit pointer",540,178,82,90,"#FFFFFF",4)]),
- make("Friction Field",white,[...brand(),rotated("NO TODO DEBE SENTIRSE FÁCIL.",-112,426,38,"#000000",900,-28,.12),segment("Friction axis",126,819,824,0,"#000000",3),base("circle",{name:"Friction point",x:489,y:774,width:92,height:92,fill:"#000000"}),text("LA RESISTENCIA\nNO SIEMPRE ES\nUNA SEÑAL PARA\nDETENERTE.",125,208,50,"#000000",670),text("A VECES ES LA PUERTA.",125,861,18,"#000000",450)],{noise:true,noiseAmount:35,noiseOpacity:.08,noiseScale:1,seed:13}),
- make("Unsent Note",black,[...brand("#FFFFFF"),base("rect",{name:"Note frame",x:118,y:182,width:844,height:707,fill:"transparent",stroke:"#FFFFFF",strokeWidth:2}),text("NOTES / 003",152,220,16,"#FFFFFF",240),text("NO QUIERO\nUNA VIDA QUE\nSE VEA BIEN.\nQUIERO UNA QUE\nSE SIENTA MÍA.",153,324,50,"#FFFFFF",650),base("rect",{name:"Selection",x:148,y:694,width:507,height:62,fill:"#FFFFFF"}),text("este es el punto",171,714,19,"#000000",300),text("draft / never sent",153,832,16,"#FFFFFF",260)]),
- make("One Thing",white,[...brand(),text("UNA",85,257,160,"#000000",820),text("COSA",85,413,160,"#000000",820),text("A LA VEZ.",85,569,160,"#000000",820),base("rect",{name:"One thing counter",x:818,y:711,width:136,height:136,fill:"#000000",radius:68}),text("01",850,758,27,"#FFFFFF",80),text("la atención no es infinita",85,889,18,"#000000",420)]),
- make("Signal / Noise",black,[...brand("#FFFFFF"),text("SEÑAL",105,228,86,"#FFFFFF",620),text("RUIDO",390,442,86,"#FFFFFF",620),segment("Noise strike 1",93,418,868,-15,"#FFFFFF",3),segment("Noise strike 2",115,476,740,-15,"#FFFFFF",3),text("NO TODO MERECE\nTU ATENCIÓN.",105,746,37,"#FFFFFF",540),text("elige lo que entra",105,866,17,"#FFFFFF",300)]),
- make("Stack Overflow",black,[...brand("#FFFFFF"),rotated("VOLVER A EMPEZAR",-122,208,42,"#FFFFFF",900,-18,.15),rotated("VOLVER A EMPEZAR",-90,326,42,"#FFFFFF",900,-18,.24),rotated("VOLVER A EMPEZAR",-56,444,42,"#FFFFFF",900,-18,.35),text("VOLVER\nA EMPEZAR.",133,625,68,"#FFFFFF",720),text("NO ES RETROCEDER.",137,838,18,"#FFFFFF",430),text("ES ELEGIR DE NUEVO.",137,875,18,"#FFFFFF",450)]),
- make("Corner Thesis",white,[rotated("@jaywrkr",38,215,18,"#000000",170,-90),rotated("#simple",1022,877,18,"#000000",120,90),cross(67,535,"#000000",19),cross(993,535,"#000000",19),text("LAS COSAS\nQUE CAMBIAN\nTU VIDA\nRARAS VECES\nSE VEN URGENTES.",198,208,53,"#000000",665),text("PERO PIDEN QUE VUELVAS.",198,810,17,"#000000",510)]),
- make("Buffering",black,[...brand("#FFFFFF"),text("BUFFERING",110,198,18,"#FFFFFF",280),base("rect",{name:"Buffer outline",x:110,y:278,width:860,height:62,fill:"transparent",stroke:"#FFFFFF",strokeWidth:2}),base("rect",{name:"Buffer progress",x:110,y:278,width:314,height:62,fill:"#FFFFFF"}),text("36%",445,296,18,"#FFFFFF",80),text("TU VIDA NO ESTÁ\nEN PAUSA.\nESTÁ CARGANDO\nLO QUE REPITES.",110,446,57,"#FFFFFF",735),text("no cierres la ventana todavía",110,849,17,"#FFFFFF",480)]),
- make("Center Quote",white,[...brand(),text("LA CLARIDAD NO LLEGA\nDE REPENTE.",210,455,48,"#000000",650)]),
- make("Centered Caps",white,[...brand(),text("REPETIR UNA ELECCIÓN\nTAMBIÉN ES ELEGIR",145,475,44,"#000000",790)]),
- make("Black Simple",black,[...brand("#FFFFFF"),text("SIMPLE",570,255,18,"#FFFFFF",350),text("HACER MENOS\nPERO MEJOR.",570,310,48,"#FFFFFF",420)]),
- make("Circle Quote",black,[...brand("#FFFFFF"),base("circle",{name:"Circle",x:125,y:155,width:830,height:830,fill:"transparent",stroke:"#FFFFFF",strokeWidth:3}),text("TODO CAMBIA\nCUANDO CAMBIAS\nLO QUE REPITES.",275,450,38,"#FFFFFF",550)]),
- make("Mirror Text",black,[...brand("#FFFFFF"),text("NADIE VA A\nHACERLO POR TI.",110,260,48,"#FFFFFF",540),rotated("NADIE VA A\nHACERLO POR TI.",430,650,48,"#FFFFFF",540,180)]),
- make("Two Statements",black,[...brand("#FFFFFF"),text("SI ES IMPORTANTE,\nENCUENTRA ESPACIO.",110,245,38,"#FFFFFF",570),text("SI NO,\nENCUENTRA UNA EXCUSA.",420,720,38,"#FFFFFF",520)]),
- make("Large Empty Space",white,[...brand(),text("LA PAUSA\nTAMBIÉN ES PARTE\nDEL TRABAJO.",100,170,27,"#000000",430)]),
- make("Message Bubble",white,[...brand(),text("Hoy a las 11:11",160,335,20,"#000000",350),base("rect",{name:"Message",x:145,y:385,width:690,height:200,fill:"#EDEDED",radius:38}),text("NO TODO LO QUE PIENSAS\nNECESITA UNA RESPUESTA.",195,445,30,"#000000",560),text("Visto",160,620,18,"#8C8C8C",100)]),
- make("Reminder",white,[...brand(),base("rect",{name:"Reminder Card",x:125,y:710,width:830,height:215,fill:"#EDEDED",radius:34}),base("circle",{name:"Reminder Icon",x:165,y:765,width:68,height:68,fill:"#000000"}),text("Recordatorio",270,755,26,"#000000",500),text("no olvidar lo que ya sabes",270,805,20,"#000000",500)]),
- make("Word Stack",white,[...brand(),text("EL FUTURO",100,240,60,"#000000",720),text("NO\nRESPETA",380,455,60,"#000000",550),text("TUS\nEXCUSAS",100,720,60,"#000000",620)]),
- make("Venn / Geometry",white,[...brand(),base("ellipse",{name:"Ellipse A",x:140,y:270,width:520,height:390,fill:"transparent",stroke:"#000000",strokeWidth:3}),base("ellipse",{name:"Ellipse B",x:420,y:410,width:520,height:390,fill:"transparent",stroke:"#000000",strokeWidth:3}),text("LO QUE\nQUIERES",225,405,27,"#000000",200),text("LO QUE\nHACES",630,590,27,"#000000",200),text("AHORA",472,540,25,"#000000",160)]),
- make("Repeated Text",black,[...brand("#FFFFFF"),text("EL TIEMPO\nES AHORA",190,450,65,"#FFFFFF",700),rotated("EL TIEMPO ES AHORA",-120,150,28,"#FFFFFF",650,-18,.18),rotated("EL TIEMPO ES AHORA",350,860,28,"#FFFFFF",700,-18,.18)]),
- make("Grain Gradient",{type:"linear",color:"#FFFFFF",colorB:"#000000",angle:38},[...brand("#FFFFFF"),text("EL CONTRASTE\nTAMBIÉN HABLA.",120,470,54,"#FFFFFF",720)],{noise:true,noiseAmount:74,noiseOpacity:.24,noiseScale:2,seed:77}),
- make("Rotated Corners",white,[rotated("@jaywrkr",38,180,18,"#000000",170,-90),rotated("#simple",1020,900,18,"#000000",120,90),cross(70,530),cross(990,530),text("NO NECESITAS\nMÁS RUIDO.",190,450,54,"#000000",700)]),
- make("Large Quote",white,[...brand(),text("SER CONSISTENTE\nNO ES HACER MÁS.\nES VOLVER.",90,365,64,"#000000",820)]),
- make("Slow Signal",black,[...brand("#FFFFFF"),text("LA SEÑAL\nLLEGA LENTO.",105,190,66,"#FFFFFF",650),segment("Signal step 1",110,795,140,0,"#FFFFFF",5),segment("Signal rise 1",250,775,20,90,"#FFFFFF",5),segment("Signal step 2",250,775,140,0,"#FFFFFF",5),segment("Signal rise 2",390,735,40,90,"#FFFFFF",5),segment("Signal step 3",390,735,140,0,"#FFFFFF",5),segment("Signal rise 3",530,650,85,90,"#FFFFFF",5),segment("Signal step 4",530,650,140,0,"#FFFFFF",5),segment("Signal rise 4",670,505,145,90,"#FFFFFF",5),segment("Signal step 5",670,505,150,0,"#FFFFFF",5),segment("Signal rise 5",820,270,235,90,"#FFFFFF",5),segment("Signal step 6",820,270,135,0,"#FFFFFF",5),text("constancia > intensidad",110,860,17,"#FFFFFF",430)]),
- make("Attention Window",white,[...brand(),base("rect",{name:"Attention window",x:105,y:228,width:870,height:585,fill:"#000000",radius:8}),base("rect",{name:"Window header",x:105,y:228,width:870,height:56,fill:"#EDEDED",radius:8}),cross(151,247,"#000000",16),text("ATTENTION.EXE",188,246,16,"#000000",300),text("TU ATENCIÓN\nES TU OBRA.",165,395,62,"#FFFFFF",650),text("running / no distractions found",165,700,16,"#FFFFFF",520)]),
- make("Pressure Map",black,[...brand("#FFFFFF"),base("circle",{name:"Pressure radius",x:180,y:182,width:720,height:720,fill:"transparent",stroke:"#FFFFFF",strokeWidth:2}),base("circle",{name:"Pressure core",x:485,y:487,width:110,height:110,fill:"#FFFFFF"}),segment("Pressure trajectory 1",120,720,150,-21,"#FFFFFF",3),segment("Pressure trajectory 2",260,665,128,-33,"#FFFFFF",3),segment("Pressure trajectory 3",365,595,131,-24,"#FFFFFF",3),segment("Pressure trajectory 4",485,542,144,-28,"#FFFFFF",3),segment("Pressure trajectory 5",610,475,171,-28,"#FFFFFF",3),segment("Pressure trajectory 6",760,390,218,-32,"#FFFFFF",3),text("PRESIÓN",105,135,18,"#FFFFFF",220),text("LO QUE EVITAS\nTAMBIÉN TE ENTRENA.",205,758,30,"#FFFFFF",560)]),
- make("Private Error",white,[...brand(),text("SYSTEM MESSAGE",118,222,17,"#000000",300),base("rect",{name:"Error frame",x:105,y:275,width:870,height:415,fill:"transparent",stroke:"#000000",strokeWidth:3}),base("rect",{name:"Error status",x:105,y:275,width:870,height:69,fill:"#000000"}),text("ERROR 001 / SELF-ABANDONMENT",135,297,17,"#FFFFFF",600),text("NO ESTÁS\nBLOQUEADO.",145,395,61,"#000000",580),text("ESTÁS LEJOS DE LA COSA\nQUE DIJISTE QUE IMPORTABA.",145,567,24,"#000000",630)]),
- make("Ritual Loop",white,[...brand(),text("RITUAL",108,164,17,"#000000",220),base("circle",{name:"Ritual orbit",x:155,y:257,width:770,height:770,fill:"transparent",stroke:"#000000",strokeWidth:3}),base("circle",{name:"Ritual now",x:504,y:606,width:72,height:72,fill:"#000000"}),text("VOLVER\nA LA COSA.",330,425,49,"#000000",420),text("empezar · sostener · volver",330,725,17,"#000000",410),segment("Ritual marker",539,257,63,90,"#000000",5)]),
- make("Noise Audit",black,[...brand("#FFFFFF"),text("TODO LO QUE\nMIRAS TE\nDISEÑA.",100,235,69,"#FFFFFF",730),text("01 / ELIGE TUS INPUTS",105,830,18,"#FFFFFF",370),text("02 / PROTEGE TU ATENCIÓN",105,875,18,"#FFFFFF",470),text("03 / HAZ ESPACIO",105,920,18,"#FFFFFF",330),segment("Audit rule",105,790,870,0,"#FFFFFF",2)],{noise:true,noiseAmount:42,noiseOpacity:.1,noiseScale:1,seed:91}),
+const COLORS = [
+  "#000000",
+  "#FFFFFF",
+  "#F5F5F5",
+  "#EDEDED",
+  "#D9D9D9",
+  "#8C8C8C",
 ];
-const cloneTemplate=(template:Template):Design=>({...template.design,id:uid(),name:template.name,elements:template.design.elements.map(e=>({...e,id:uid()})),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
-const emptyDesign=():Design=>({id:uid(),name:"Untitled post",background:{...white},effects:{noise:false,noiseAmount:55,noiseOpacity:.14,noiseScale:2,seed:44},elements:brand(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+const FONTS = [
+  "Geist Mono",
+  "IBM Plex Mono",
+  "Space Mono",
+  "Roboto Mono",
+  "Courier New",
+  "Arial",
+  "Helvetica",
+];
+type ElementType = "text" | "rect" | "circle" | "ellipse" | "line" | "plus";
+type Tool =
+  | "templates"
+  | "text"
+  | "shapes"
+  | "images"
+  | "background"
+  | "effects"
+  | "layers";
+type StudioElement = {
+  id: string;
+  type: ElementType;
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  opacity: number;
+  fill: string;
+  stroke?: string;
+  strokeWidth?: number;
+  radius?: number;
+  text?: string;
+  fontSize?: number;
+  fontFamily?: string;
+  fontStyle?: string;
+  align?: "left" | "center" | "right";
+  lineHeight?: number;
+  letterSpacing?: number;
+  uppercase?: boolean;
+  visible: boolean;
+  locked: boolean;
+};
+type Background = {
+  type: "solid" | "linear" | "radial";
+  color: string;
+  colorB: string;
+  angle: number;
+};
+type Effects = {
+  noise: boolean;
+  noiseAmount: number;
+  noiseOpacity: number;
+  noiseScale: number;
+  seed: number;
+};
+type Design = {
+  id: string;
+  name: string;
+  background: Background;
+  effects: Effects;
+  elements: StudioElement[];
+  createdAt: string;
+  updatedAt: string;
+};
+type Template = {
+  id: string;
+  name: string;
+  subtitle: string;
+  design: Omit<Design, "id" | "name" | "createdAt" | "updatedAt">;
+};
+const uid = () => Math.random().toString(36).slice(2, 9);
+const base = (
+  type: ElementType,
+  extra: Partial<StudioElement> = {},
+): StudioElement => ({
+  id: uid(),
+  type,
+  name:
+    type === "text"
+      ? "Text"
+      : type === "plus"
+        ? "Cross / Plus"
+        : type[0].toUpperCase() + type.slice(1),
+  x: 160,
+  y: 160,
+  width: 360,
+  height: 100,
+  rotation: 0,
+  opacity: 1,
+  fill: "#000000",
+  visible: true,
+  locked: false,
+  ...extra,
+});
+const text = (
+  value: string,
+  x: number,
+  y: number,
+  size = 38,
+  color = "#000000",
+  width = 660,
+): StudioElement =>
+  base("text", {
+    name: value.slice(0, 24) || "Text",
+    text: value,
+    x,
+    y,
+    width,
+    height: size * 1.35,
+    fontSize: size,
+    fontFamily: "Geist Mono",
+    lineHeight: 1.2,
+    letterSpacing: 0,
+    fill: color,
+    align: "left",
+  });
+const cross = (
+  x: number,
+  y: number,
+  color = "#000000",
+  size = 23,
+): StudioElement =>
+  base("plus", {
+    x,
+    y,
+    width: size,
+    height: size,
+    fill: color,
+    strokeWidth: 2,
+  });
+const segment = (
+  name: string,
+  x: number,
+  y: number,
+  width: number,
+  rotation = 0,
+  color = "#000000",
+  strokeWidth = 3,
+): StudioElement =>
+  base("line", {
+    name,
+    x,
+    y,
+    width,
+    height: 2,
+    rotation,
+    fill: color,
+    stroke: color,
+    strokeWidth,
+  });
+const rotated = (
+  value: string,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  width: number,
+  rotation: number,
+  opacity = 1,
+) => ({ ...text(value, x, y, size, color, width), rotation, opacity });
+const brand = (color = "#000000") => [
+  text("@jaywrkr", 42, 38, 18, color, 170),
+  cross(529, 42, color, 18),
+  text("#simple", 925, 38, 18, color, 120),
+  text("#simple", 42, 1015, 18, color, 120),
+  cross(529, 1020, color, 18),
+  text("@jaywrkr", 882, 1015, 18, color, 170),
+];
+const make = (
+  name: string,
+  background: Background,
+  elements: StudioElement[],
+  effects: Partial<Effects> = {},
+): Template => ({
+  id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+  name,
+  subtitle: "JAY visual system",
+  design: {
+    background,
+    elements,
+    effects: {
+      noise: false,
+      noiseAmount: 55,
+      noiseOpacity: 0.14,
+      noiseScale: 2,
+      seed: 44,
+      ...effects,
+    },
+  },
+});
+const white: Background = {
+  type: "solid",
+  color: "#FFFFFF",
+  colorB: "#FFFFFF",
+  angle: 0,
+};
+const black: Background = {
+  type: "solid",
+  color: "#000000",
+  colorB: "#000000",
+  angle: 0,
+};
+const templates: Template[] = [
+  make("Open Tab", black, [
+    ...brand("#FFFFFF"),
+    base("rect", {
+      name: "Open tab",
+      x: 86,
+      y: 164,
+      width: 908,
+      height: 704,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 2,
+      radius: 10,
+    }),
+    base("rect", {
+      name: "Browser bar",
+      x: 86,
+      y: 164,
+      width: 908,
+      height: 62,
+      fill: "#FFFFFF",
+      radius: 10,
+    }),
+    cross(123, 187, "#000000", 16),
+    text("JAY / OPEN TAB", 159, 186, 16, "#000000", 300),
+    text(
+      "LO QUE SIGUES\nPOSPONIENDO\nTAMBIÉN TE ESTÁ\nDISEÑANDO.",
+      142,
+      294,
+      52,
+      "#FFFFFF",
+      690,
+    ),
+    base("rect", {
+      name: "Active cursor",
+      x: 145,
+      y: 695,
+      width: 18,
+      height: 57,
+      fill: "#FFFFFF",
+    }),
+    text("write the uncomfortable thing", 188, 712, 16, "#FFFFFF", 460),
+  ]),
+  make("Quiet Proof", white, [
+    ...brand(),
+    text(
+      "NO NECESITAS\nPARECER OCUPADO.\nNECESITAS\nESTAR HACIENDO\nALGO REAL.",
+      113,
+      177,
+      48,
+      "#000000",
+      710,
+    ),
+    segment("Proof rule", 114, 632, 492, 0, "#000000", 3),
+    text("EL SILENCIO TAMBIÉN PUEDE SER PRUEBA.", 114, 671, 16, "#000000", 570),
+    base("rect", {
+      name: "Proof mark",
+      x: 847,
+      y: 681,
+      width: 115,
+      height: 115,
+      fill: "#000000",
+      radius: 58,
+    }),
+    text("01", 875, 725, 21, "#FFFFFF", 70),
+  ]),
+  make("Read Receipt", white, [
+    ...brand(),
+    text("mensaje no enviado", 135, 223, 17, "#000000", 280),
+    base("rect", {
+      name: "Incoming message",
+      x: 128,
+      y: 275,
+      width: 580,
+      height: 173,
+      fill: "#E9E9E6",
+      radius: 34,
+    }),
+    text(
+      "NO TODO LO QUE\nSIENTES NECESITA\nSER PUBLICADO.",
+      169,
+      321,
+      29,
+      "#000000",
+      460,
+    ),
+    text("11:11", 172, 474, 15, "#777777", 90),
+    base("rect", {
+      name: "Typing field",
+      x: 128,
+      y: 617,
+      width: 824,
+      height: 85,
+      fill: "transparent",
+      stroke: "#000000",
+      strokeWidth: 2,
+      radius: 42,
+    }),
+    text("escribe algo que sí importe", 171, 647, 18, "#777777", 490),
+    cross(887, 648, "#000000", 24),
+    text("leído", 128, 746, 15, "#777777", 90),
+  ]),
+  make("The Gap", white, [
+    ...brand(),
+    text(
+      "ENTRE\nQUIEN ERES\nY QUIEN\nQUIERES SER",
+      105,
+      178,
+      59,
+      "#000000",
+      540,
+    ),
+    segment("Gap divider", 657, 178, 570, 90, "#000000", 3),
+    text(
+      "hay una práctica\nque no estás haciendo",
+      714,
+      463,
+      25,
+      "#000000",
+      255,
+    ),
+    text("NO ES FALTA DE TALENTO.", 105, 883, 17, "#000000", 420),
+    text("ES FRICCIÓN SIN NOMBRE.", 105, 917, 17, "#000000", 450),
+  ]),
+  make("Orbit of One", black, [
+    ...brand("#FFFFFF"),
+    base("circle", {
+      name: "Outer orbit",
+      x: 134,
+      y: 178,
+      width: 812,
+      height: 812,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 2,
+    }),
+    base("circle", {
+      name: "Inner orbit",
+      x: 337,
+      y: 382,
+      width: 406,
+      height: 406,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 2,
+    }),
+    base("circle", {
+      name: "Now",
+      x: 502,
+      y: 546,
+      width: 78,
+      height: 78,
+      fill: "#FFFFFF",
+    }),
+    text("UNA COSA.\nPOR EL TIEMPO\nSUFICIENTE.", 244, 302, 37, "#FFFFFF", 590),
+    text("NO MÁS / NO MENOS", 420, 842, 16, "#FFFFFF", 290),
+    segment("Orbit pointer", 540, 178, 82, 90, "#FFFFFF", 4),
+  ]),
+  make(
+    "Friction Field",
+    white,
+    [
+      ...brand(),
+      rotated(
+        "NO TODO DEBE SENTIRSE FÁCIL.",
+        -112,
+        426,
+        38,
+        "#000000",
+        900,
+        -28,
+        0.12,
+      ),
+      segment("Friction axis", 126, 819, 824, 0, "#000000", 3),
+      base("circle", {
+        name: "Friction point",
+        x: 489,
+        y: 774,
+        width: 92,
+        height: 92,
+        fill: "#000000",
+      }),
+      text(
+        "LA RESISTENCIA\nNO SIEMPRE ES\nUNA SEÑAL PARA\nDETENERTE.",
+        125,
+        208,
+        50,
+        "#000000",
+        670,
+      ),
+      text("A VECES ES LA PUERTA.", 125, 861, 18, "#000000", 450),
+    ],
+    {
+      noise: true,
+      noiseAmount: 35,
+      noiseOpacity: 0.08,
+      noiseScale: 1,
+      seed: 13,
+    },
+  ),
+  make("Unsent Note", black, [
+    ...brand("#FFFFFF"),
+    base("rect", {
+      name: "Note frame",
+      x: 118,
+      y: 182,
+      width: 844,
+      height: 707,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 2,
+    }),
+    text("NOTES / 003", 152, 220, 16, "#FFFFFF", 240),
+    text(
+      "NO QUIERO\nUNA VIDA QUE\nSE VEA BIEN.\nQUIERO UNA QUE\nSE SIENTA MÍA.",
+      153,
+      324,
+      50,
+      "#FFFFFF",
+      650,
+    ),
+    base("rect", {
+      name: "Selection",
+      x: 148,
+      y: 694,
+      width: 507,
+      height: 62,
+      fill: "#FFFFFF",
+    }),
+    text("este es el punto", 171, 714, 19, "#000000", 300),
+    text("draft / never sent", 153, 832, 16, "#FFFFFF", 260),
+  ]),
+  make("One Thing", white, [
+    ...brand(),
+    text("UNA", 85, 257, 160, "#000000", 820),
+    text("COSA", 85, 413, 160, "#000000", 820),
+    text("A LA VEZ.", 85, 569, 160, "#000000", 820),
+    base("rect", {
+      name: "One thing counter",
+      x: 818,
+      y: 711,
+      width: 136,
+      height: 136,
+      fill: "#000000",
+      radius: 68,
+    }),
+    text("01", 850, 758, 27, "#FFFFFF", 80),
+    text("la atención no es infinita", 85, 889, 18, "#000000", 420),
+  ]),
+  make("Signal / Noise", black, [
+    ...brand("#FFFFFF"),
+    text("SEÑAL", 105, 228, 86, "#FFFFFF", 620),
+    text("RUIDO", 390, 442, 86, "#FFFFFF", 620),
+    segment("Noise strike 1", 93, 418, 868, -15, "#FFFFFF", 3),
+    segment("Noise strike 2", 115, 476, 740, -15, "#FFFFFF", 3),
+    text("NO TODO MERECE\nTU ATENCIÓN.", 105, 746, 37, "#FFFFFF", 540),
+    text("elige lo que entra", 105, 866, 17, "#FFFFFF", 300),
+  ]),
+  make("Stack Overflow", black, [
+    ...brand("#FFFFFF"),
+    rotated("VOLVER A EMPEZAR", -122, 208, 42, "#FFFFFF", 900, -18, 0.15),
+    rotated("VOLVER A EMPEZAR", -90, 326, 42, "#FFFFFF", 900, -18, 0.24),
+    rotated("VOLVER A EMPEZAR", -56, 444, 42, "#FFFFFF", 900, -18, 0.35),
+    text("VOLVER\nA EMPEZAR.", 133, 625, 68, "#FFFFFF", 720),
+    text("NO ES RETROCEDER.", 137, 838, 18, "#FFFFFF", 430),
+    text("ES ELEGIR DE NUEVO.", 137, 875, 18, "#FFFFFF", 450),
+  ]),
+  make("Corner Thesis", white, [
+    rotated("@jaywrkr", 38, 215, 18, "#000000", 170, -90),
+    rotated("#simple", 1022, 877, 18, "#000000", 120, 90),
+    cross(67, 535, "#000000", 19),
+    cross(993, 535, "#000000", 19),
+    text(
+      "LAS COSAS\nQUE CAMBIAN\nTU VIDA\nRARAS VECES\nSE VEN URGENTES.",
+      198,
+      208,
+      53,
+      "#000000",
+      665,
+    ),
+    text("PERO PIDEN QUE VUELVAS.", 198, 810, 17, "#000000", 510),
+  ]),
+  make("Buffering", black, [
+    ...brand("#FFFFFF"),
+    text("BUFFERING", 110, 198, 18, "#FFFFFF", 280),
+    base("rect", {
+      name: "Buffer outline",
+      x: 110,
+      y: 278,
+      width: 860,
+      height: 62,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 2,
+    }),
+    base("rect", {
+      name: "Buffer progress",
+      x: 110,
+      y: 278,
+      width: 314,
+      height: 62,
+      fill: "#FFFFFF",
+    }),
+    text("36%", 445, 296, 18, "#FFFFFF", 80),
+    text(
+      "TU VIDA NO ESTÁ\nEN PAUSA.\nESTÁ CARGANDO\nLO QUE REPITES.",
+      110,
+      446,
+      57,
+      "#FFFFFF",
+      735,
+    ),
+    text("no cierres la ventana todavía", 110, 849, 17, "#FFFFFF", 480),
+  ]),
+  make("Center Quote", white, [
+    ...brand(),
+    text("LA CLARIDAD NO LLEGA\nDE REPENTE.", 210, 455, 48, "#000000", 650),
+  ]),
+  make("Centered Caps", white, [
+    ...brand(),
+    text(
+      "REPETIR UNA ELECCIÓN\nTAMBIÉN ES ELEGIR",
+      145,
+      475,
+      44,
+      "#000000",
+      790,
+    ),
+  ]),
+  make("Black Simple", black, [
+    ...brand("#FFFFFF"),
+    text("SIMPLE", 570, 255, 18, "#FFFFFF", 350),
+    text("HACER MENOS\nPERO MEJOR.", 570, 310, 48, "#FFFFFF", 420),
+  ]),
+  make("Circle Quote", black, [
+    ...brand("#FFFFFF"),
+    base("circle", {
+      name: "Circle",
+      x: 125,
+      y: 155,
+      width: 830,
+      height: 830,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 3,
+    }),
+    text(
+      "TODO CAMBIA\nCUANDO CAMBIAS\nLO QUE REPITES.",
+      275,
+      450,
+      38,
+      "#FFFFFF",
+      550,
+    ),
+  ]),
+  make("Mirror Text", black, [
+    ...brand("#FFFFFF"),
+    text("NADIE VA A\nHACERLO POR TI.", 110, 260, 48, "#FFFFFF", 540),
+    rotated("NADIE VA A\nHACERLO POR TI.", 430, 650, 48, "#FFFFFF", 540, 180),
+  ]),
+  make("Two Statements", black, [
+    ...brand("#FFFFFF"),
+    text("SI ES IMPORTANTE,\nENCUENTRA ESPACIO.", 110, 245, 38, "#FFFFFF", 570),
+    text("SI NO,\nENCUENTRA UNA EXCUSA.", 420, 720, 38, "#FFFFFF", 520),
+  ]),
+  make("Large Empty Space", white, [
+    ...brand(),
+    text(
+      "LA PAUSA\nTAMBIÉN ES PARTE\nDEL TRABAJO.",
+      100,
+      170,
+      27,
+      "#000000",
+      430,
+    ),
+  ]),
+  make("Message Bubble", white, [
+    ...brand(),
+    text("Hoy a las 11:11", 160, 335, 20, "#000000", 350),
+    base("rect", {
+      name: "Message",
+      x: 145,
+      y: 385,
+      width: 690,
+      height: 200,
+      fill: "#EDEDED",
+      radius: 38,
+    }),
+    text(
+      "NO TODO LO QUE PIENSAS\nNECESITA UNA RESPUESTA.",
+      195,
+      445,
+      30,
+      "#000000",
+      560,
+    ),
+    text("Visto", 160, 620, 18, "#8C8C8C", 100),
+  ]),
+  make("Reminder", white, [
+    ...brand(),
+    base("rect", {
+      name: "Reminder Card",
+      x: 125,
+      y: 710,
+      width: 830,
+      height: 215,
+      fill: "#EDEDED",
+      radius: 34,
+    }),
+    base("circle", {
+      name: "Reminder Icon",
+      x: 165,
+      y: 765,
+      width: 68,
+      height: 68,
+      fill: "#000000",
+    }),
+    text("Recordatorio", 270, 755, 26, "#000000", 500),
+    text("no olvidar lo que ya sabes", 270, 805, 20, "#000000", 500),
+  ]),
+  make("Word Stack", white, [
+    ...brand(),
+    text("EL FUTURO", 100, 240, 60, "#000000", 720),
+    text("NO\nRESPETA", 380, 455, 60, "#000000", 550),
+    text("TUS\nEXCUSAS", 100, 720, 60, "#000000", 620),
+  ]),
+  make("Venn / Geometry", white, [
+    ...brand(),
+    base("ellipse", {
+      name: "Ellipse A",
+      x: 140,
+      y: 270,
+      width: 520,
+      height: 390,
+      fill: "transparent",
+      stroke: "#000000",
+      strokeWidth: 3,
+    }),
+    base("ellipse", {
+      name: "Ellipse B",
+      x: 420,
+      y: 410,
+      width: 520,
+      height: 390,
+      fill: "transparent",
+      stroke: "#000000",
+      strokeWidth: 3,
+    }),
+    text("LO QUE\nQUIERES", 225, 405, 27, "#000000", 200),
+    text("LO QUE\nHACES", 630, 590, 27, "#000000", 200),
+    text("AHORA", 472, 540, 25, "#000000", 160),
+  ]),
+  make("Repeated Text", black, [
+    ...brand("#FFFFFF"),
+    text("EL TIEMPO\nES AHORA", 190, 450, 65, "#FFFFFF", 700),
+    rotated("EL TIEMPO ES AHORA", -120, 150, 28, "#FFFFFF", 650, -18, 0.18),
+    rotated("EL TIEMPO ES AHORA", 350, 860, 28, "#FFFFFF", 700, -18, 0.18),
+  ]),
+  make(
+    "Grain Gradient",
+    { type: "linear", color: "#FFFFFF", colorB: "#000000", angle: 38 },
+    [
+      ...brand("#FFFFFF"),
+      text("EL CONTRASTE\nTAMBIÉN HABLA.", 120, 470, 54, "#FFFFFF", 720),
+    ],
+    {
+      noise: true,
+      noiseAmount: 74,
+      noiseOpacity: 0.24,
+      noiseScale: 2,
+      seed: 77,
+    },
+  ),
+  make("Rotated Corners", white, [
+    rotated("@jaywrkr", 38, 180, 18, "#000000", 170, -90),
+    rotated("#simple", 1020, 900, 18, "#000000", 120, 90),
+    cross(70, 530),
+    cross(990, 530),
+    text("NO NECESITAS\nMÁS RUIDO.", 190, 450, 54, "#000000", 700),
+  ]),
+  make("Large Quote", white, [
+    ...brand(),
+    text(
+      "SER CONSISTENTE\nNO ES HACER MÁS.\nES VOLVER.",
+      90,
+      365,
+      64,
+      "#000000",
+      820,
+    ),
+  ]),
+  make("Slow Signal", black, [
+    ...brand("#FFFFFF"),
+    text("LA SEÑAL\nLLEGA LENTO.", 105, 190, 66, "#FFFFFF", 650),
+    segment("Signal step 1", 110, 795, 140, 0, "#FFFFFF", 5),
+    segment("Signal rise 1", 250, 775, 20, 90, "#FFFFFF", 5),
+    segment("Signal step 2", 250, 775, 140, 0, "#FFFFFF", 5),
+    segment("Signal rise 2", 390, 735, 40, 90, "#FFFFFF", 5),
+    segment("Signal step 3", 390, 735, 140, 0, "#FFFFFF", 5),
+    segment("Signal rise 3", 530, 650, 85, 90, "#FFFFFF", 5),
+    segment("Signal step 4", 530, 650, 140, 0, "#FFFFFF", 5),
+    segment("Signal rise 4", 670, 505, 145, 90, "#FFFFFF", 5),
+    segment("Signal step 5", 670, 505, 150, 0, "#FFFFFF", 5),
+    segment("Signal rise 5", 820, 270, 235, 90, "#FFFFFF", 5),
+    segment("Signal step 6", 820, 270, 135, 0, "#FFFFFF", 5),
+    text("constancia > intensidad", 110, 860, 17, "#FFFFFF", 430),
+  ]),
+  make("Attention Window", white, [
+    ...brand(),
+    base("rect", {
+      name: "Attention window",
+      x: 105,
+      y: 228,
+      width: 870,
+      height: 585,
+      fill: "#000000",
+      radius: 8,
+    }),
+    base("rect", {
+      name: "Window header",
+      x: 105,
+      y: 228,
+      width: 870,
+      height: 56,
+      fill: "#EDEDED",
+      radius: 8,
+    }),
+    cross(151, 247, "#000000", 16),
+    text("ATTENTION.EXE", 188, 246, 16, "#000000", 300),
+    text("TU ATENCIÓN\nES TU OBRA.", 165, 395, 62, "#FFFFFF", 650),
+    text("running / no distractions found", 165, 700, 16, "#FFFFFF", 520),
+  ]),
+  make("Pressure Map", black, [
+    ...brand("#FFFFFF"),
+    base("circle", {
+      name: "Pressure radius",
+      x: 180,
+      y: 182,
+      width: 720,
+      height: 720,
+      fill: "transparent",
+      stroke: "#FFFFFF",
+      strokeWidth: 2,
+    }),
+    base("circle", {
+      name: "Pressure core",
+      x: 485,
+      y: 487,
+      width: 110,
+      height: 110,
+      fill: "#FFFFFF",
+    }),
+    segment("Pressure trajectory 1", 120, 720, 150, -21, "#FFFFFF", 3),
+    segment("Pressure trajectory 2", 260, 665, 128, -33, "#FFFFFF", 3),
+    segment("Pressure trajectory 3", 365, 595, 131, -24, "#FFFFFF", 3),
+    segment("Pressure trajectory 4", 485, 542, 144, -28, "#FFFFFF", 3),
+    segment("Pressure trajectory 5", 610, 475, 171, -28, "#FFFFFF", 3),
+    segment("Pressure trajectory 6", 760, 390, 218, -32, "#FFFFFF", 3),
+    text("PRESIÓN", 105, 135, 18, "#FFFFFF", 220),
+    text("LO QUE EVITAS\nTAMBIÉN TE ENTRENA.", 205, 758, 30, "#FFFFFF", 560),
+  ]),
+  make("Private Error", white, [
+    ...brand(),
+    text("SYSTEM MESSAGE", 118, 222, 17, "#000000", 300),
+    base("rect", {
+      name: "Error frame",
+      x: 105,
+      y: 275,
+      width: 870,
+      height: 415,
+      fill: "transparent",
+      stroke: "#000000",
+      strokeWidth: 3,
+    }),
+    base("rect", {
+      name: "Error status",
+      x: 105,
+      y: 275,
+      width: 870,
+      height: 69,
+      fill: "#000000",
+    }),
+    text("ERROR 001 / SELF-ABANDONMENT", 135, 297, 17, "#FFFFFF", 600),
+    text("NO ESTÁS\nBLOQUEADO.", 145, 395, 61, "#000000", 580),
+    text(
+      "ESTÁS LEJOS DE LA COSA\nQUE DIJISTE QUE IMPORTABA.",
+      145,
+      567,
+      24,
+      "#000000",
+      630,
+    ),
+  ]),
+  make("Ritual Loop", white, [
+    ...brand(),
+    text("RITUAL", 108, 164, 17, "#000000", 220),
+    base("circle", {
+      name: "Ritual orbit",
+      x: 155,
+      y: 257,
+      width: 770,
+      height: 770,
+      fill: "transparent",
+      stroke: "#000000",
+      strokeWidth: 3,
+    }),
+    base("circle", {
+      name: "Ritual now",
+      x: 504,
+      y: 606,
+      width: 72,
+      height: 72,
+      fill: "#000000",
+    }),
+    text("VOLVER\nA LA COSA.", 330, 425, 49, "#000000", 420),
+    text("empezar · sostener · volver", 330, 725, 17, "#000000", 410),
+    segment("Ritual marker", 539, 257, 63, 90, "#000000", 5),
+  ]),
+  make(
+    "Noise Audit",
+    black,
+    [
+      ...brand("#FFFFFF"),
+      text("TODO LO QUE\nMIRAS TE\nDISEÑA.", 100, 235, 69, "#FFFFFF", 730),
+      text("01 / ELIGE TUS INPUTS", 105, 830, 18, "#FFFFFF", 370),
+      text("02 / PROTEGE TU ATENCIÓN", 105, 875, 18, "#FFFFFF", 470),
+      text("03 / HAZ ESPACIO", 105, 920, 18, "#FFFFFF", 330),
+      segment("Audit rule", 105, 790, 870, 0, "#FFFFFF", 2),
+    ],
+    {
+      noise: true,
+      noiseAmount: 42,
+      noiseOpacity: 0.1,
+      noiseScale: 1,
+      seed: 91,
+    },
+  ),
+];
+const cloneTemplate = (template: Template): Design => ({
+  ...template.design,
+  id: uid(),
+  name: template.name,
+  elements: template.design.elements.map((e) => ({ ...e, id: uid() })),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+});
+const emptyDesign = (): Design => ({
+  id: uid(),
+  name: "Untitled post",
+  background: { ...white },
+  effects: {
+    noise: false,
+    noiseAmount: 55,
+    noiseOpacity: 0.14,
+    noiseScale: 2,
+    seed: 44,
+  },
+  elements: brand(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+});
 
-function MiniPreview({template}:{template:Template}){const {background,elements}=template.design;return <div className="mini" style={{background:background.type==="solid"?background.color:`linear-gradient(${background.angle}deg, ${background.color}, ${background.colorB})`}}>{elements.filter(e=>e.type==="text").slice(0,3).map(e=><span key={e.id} style={{left:`${e.x/10.8}%`,top:`${e.y/10.8}%`,width:`${e.width/10.8}%`,fontSize:`${Math.max(5,(e.fontSize||20)/10.8)}px`,color:e.fill,transform:`rotate(${e.rotation}deg)`,opacity:e.opacity}}>{e.text}</span>)}{elements.filter(e=>e.type!=="text").slice(0,2).map(e=><i key={e.id} style={{left:`${e.x/10.8}%`,top:`${e.y/10.8}%`,width:`${e.width/10.8}%`,height:`${e.height/10.8}%`,border:`${Math.max(1,(e.strokeWidth||1)/8)}px solid ${e.stroke||e.fill}`,borderRadius:e.type==="circle"||e.type==="ellipse"?"50%":`${(e.radius||0)/10}px`}}/> )}</div>}
+type PreviewDesign = Pick<Design, "background" | "elements">;
 
-function Noise({effects}:{effects:Effects}){const [image,setImage]=useState<HTMLCanvasElement|null>(null);useEffect(()=>{if(!effects.noise){setImage(null);return;}const canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d");if(!ctx)return;const data=ctx.createImageData(SIZE,SIZE);let seed=effects.seed||1;const random=()=>{seed=(seed*9301+49297)%233280;return seed/233280};const step=Math.max(1,Math.round(effects.noiseScale));for(let y=0;y<SIZE;y+=step)for(let x=0;x<SIZE;x+=step){const v=Math.round(random()*255);for(let sy=0;sy<step;sy++)for(let sx=0;sx<step;sx++){const p=((y+sy)*SIZE+x+sx)*4;if(p<data.data.length){data.data[p]=v;data.data[p+1]=v;data.data[p+2]=v;data.data[p+3]=effects.noiseAmount}}}ctx.putImageData(data,0,0);setImage(canvas)},[effects]);return image?<KImage image={image} width={SIZE} height={SIZE} opacity={effects.noiseOpacity} listening={false}/>:null}
+function DesignPreview({ design }: { design: PreviewDesign }) {
+  const { background, elements } = design;
+  const backgroundFill =
+    background.type === "solid"
+      ? background.color
+      : background.type === "linear"
+        ? "url(#preview-linear)"
+        : "url(#preview-radial)";
 
-function StudioCanvas({design,selected,setSelected,updateElements,snap,zoom,stageRef}:{design:Design;selected:string[];setSelected:(ids:string[])=>void;updateElements:(fn:(items:StudioElement[])=>StudioElement[])=>void;snap:boolean;zoom:number;stageRef:React.RefObject<Konva.Stage|null>}){const wrap=useRef<HTMLDivElement>(null);const transformer=useRef<Konva.Transformer>(null);const [fit,setFit]=useState(.55);const [guides,setGuides]=useState<{x?:number;y?:number}>({});useEffect(()=>{const resize=()=>{if(wrap.current)setFit(Math.min((wrap.current.clientWidth-64)/SIZE,(wrap.current.clientHeight-64)/SIZE))};resize();const observer=new ResizeObserver(resize);if(wrap.current)observer.observe(wrap.current);return()=>observer.disconnect()},[]);useEffect(()=>{if(!transformer.current||!stageRef.current)return;transformer.current.nodes(selected.map(id=>stageRef.current!.findOne(`#${id}`)).filter(Boolean) as Konva.Node[]);transformer.current.getLayer()?.batchDraw()},[selected,design.elements,stageRef]);const scale=zoom===0?fit:zoom;const select=(event:Konva.KonvaEventObject<MouseEvent>,item:StudioElement)=>{event.cancelBubble=true;setSelected(event.evt.shiftKey?(selected.includes(item.id)?selected.filter(id=>id!==item.id):[...selected,item.id]):[item.id])};const transformEnd=(e:Konva.KonvaEventObject<Event>,item:StudioElement)=>{const node=e.target;const sx=node.scaleX(),sy=node.scaleY();node.scaleX(1);node.scaleY(1);updateElements(items=>items.map(i=>i.id===item.id?{...i,x:node.x(),y:node.y(),rotation:node.rotation(),width:Math.max(12,item.width*sx),height:Math.max(12,item.height*sy)}:i))};const dragEnd=(e:Konva.KonvaEventObject<DragEvent>,item:StudioElement)=>{let x=e.target.x(),y=e.target.y();const g:{x?:number;y?:number}={};if(Math.abs(x+item.width/2-540)<10){x=540-item.width/2;g.x=540}if(Math.abs(y+item.height/2-540)<10){y=540-item.height/2;g.y=540}setGuides({});updateElements(items=>items.map(i=>i.id===item.id?{...i,x:snap?Math.round(x):x,y:snap?Math.round(y):y}:i))};return <div className="canvas-wrap" ref={wrap}><div className="canvas-shell" style={{width:SIZE*scale,height:SIZE*scale}}><Stage ref={stageRef} width={SIZE} height={SIZE} scaleX={scale} scaleY={scale} onMouseDown={e=>{if(e.target===e.target.getStage())setSelected([])}}><Layer><Rect width={SIZE} height={SIZE} fill={design.background.type==="solid"?design.background.color:undefined} fillLinearGradientStartPoint={design.background.type==="linear"?{x:0,y:0}:undefined} fillLinearGradientEndPoint={design.background.type==="linear"?{x:SIZE*Math.cos(design.background.angle*Math.PI/180),y:SIZE*Math.sin(design.background.angle*Math.PI/180)}:undefined} fillLinearGradientColorStops={design.background.type==="linear"?[0,design.background.color,1,design.background.colorB]:undefined} fillRadialGradientStartPoint={design.background.type==="radial"?{x:SIZE/2,y:SIZE/2}:undefined} fillRadialGradientEndPoint={design.background.type==="radial"?{x:SIZE/2,y:SIZE/2}:undefined} fillRadialGradientStartRadius={design.background.type==="radial"?0:undefined} fillRadialGradientEndRadius={design.background.type==="radial"?760:undefined} fillRadialGradientColorStops={design.background.type==="radial"?[0,design.background.color,1,design.background.colorB]:undefined}/>{design.elements.map(item=>item.visible&&<Group key={item.id} id={item.id} x={item.x} y={item.y} rotation={item.rotation} opacity={item.opacity} draggable={!item.locked} onClick={e=>select(e,item)} onTap={e=>select(e as unknown as Konva.KonvaEventObject<MouseEvent>,item)} onDragMove={e=>{const x=e.target.x()+item.width/2,y=e.target.y()+item.height/2;setGuides({x:Math.abs(x-540)<10?540:undefined,y:Math.abs(y-540)<10?540:undefined})}} onDragEnd={e=>dragEnd(e,item)} onTransformEnd={e=>transformEnd(e,item)}>{item.type==="text"&&<KText text={item.uppercase?(item.text||"").toUpperCase():item.text} width={item.width} height={item.height} fontSize={item.fontSize} fontFamily={item.fontFamily} fontStyle={item.fontStyle} fill={item.fill} align={item.align} lineHeight={item.lineHeight} letterSpacing={item.letterSpacing}/>}{item.type==="rect"&&<Rect width={item.width} height={item.height} fill={item.fill==="transparent"?undefined:item.fill} stroke={item.stroke} strokeWidth={item.strokeWidth} cornerRadius={item.radius||0}/>}{item.type==="circle"&&<KCircle x={item.width/2} y={item.height/2} radius={Math.min(item.width,item.height)/2} fill={item.fill==="transparent"?undefined:item.fill} stroke={item.stroke} strokeWidth={item.strokeWidth}/>}{item.type==="ellipse"&&<Ellipse x={item.width/2} y={item.height/2} radiusX={item.width/2} radiusY={item.height/2} fill={item.fill==="transparent"?undefined:item.fill} stroke={item.stroke} strokeWidth={item.strokeWidth}/>}{item.type==="line"&&<Line points={[0,item.height/2,item.width,item.height/2]} stroke={item.stroke||item.fill} strokeWidth={item.strokeWidth||2}/>}{item.type==="plus"&&<Group><Line points={[item.width/2,0,item.width/2,item.height]} stroke={item.fill} strokeWidth={item.strokeWidth||2}/><Line points={[0,item.height/2,item.width,item.height/2]} stroke={item.fill} strokeWidth={item.strokeWidth||2}/></Group>}</Group>)}<Noise effects={design.effects}/>{guides.x&&<Line points={[guides.x,0,guides.x,SIZE]} stroke="#008BFF" strokeWidth={1} dash={[8,6]} listening={false}/>}{guides.y&&<Line points={[0,guides.y,SIZE,guides.y]} stroke="#008BFF" strokeWidth={1} dash={[8,6]} listening={false}/>}<Transformer ref={transformer} rotateEnabled enabledAnchors={["top-left","top-right","bottom-left","bottom-right"]} borderStroke="#008BFF" anchorFill="#FFFFFF" anchorStroke="#008BFF" anchorSize={9}/></Layer></Stage></div></div>}
+  return (
+    <div className="mini" aria-hidden="true">
+      <svg className="mini-svg" viewBox={`0 0 ${SIZE} ${SIZE}`}>
+        <defs>
+          <linearGradient
+            id="preview-linear"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+            gradientTransform={`rotate(${background.angle} .5 .5)`}
+          >
+            <stop offset="0%" stopColor={background.color} />
+            <stop offset="100%" stopColor={background.colorB} />
+          </linearGradient>
+          <radialGradient id="preview-radial">
+            <stop offset="0%" stopColor={background.color} />
+            <stop offset="100%" stopColor={background.colorB} />
+          </radialGradient>
+        </defs>
+        <rect width={SIZE} height={SIZE} fill={backgroundFill} />
+        {elements.filter((item) => item.visible).map((item) => {
+          const stroke = item.stroke || item.fill;
+          const fontSize = item.fontSize || 24;
+          const textX =
+            item.align === "center"
+              ? item.width / 2
+              : item.align === "right"
+                ? item.width
+                : 0;
+          const textAnchor =
+            item.align === "center"
+              ? "middle"
+              : item.align === "right"
+                ? "end"
+                : "start";
+          const weight =
+            item.fontStyle === "normal"
+              ? 400
+              : item.fontStyle === "bold"
+                ? 700
+                : item.fontStyle || 400;
 
-function ColorInput({value,onChange,label}:{value:string;onChange:(v:string)=>void;label:string}){return <label className="field color-field"><span>{label}</span><input type="color" value={value==="transparent"?"#FFFFFF":value} onChange={e=>onChange(e.target.value)}/><input value={value} onChange={e=>onChange(e.target.value)}/></label>}
-function NumberField({label,value,onChange,step=1}:{label:string;value:number;onChange:(v:number)=>void;step?:number}){return <label className="field"><span>{label}</span><input type="number" step={step} value={Number.isFinite(value)?value:0} onChange={e=>onChange(Number(e.target.value))}/></label>}
-function BackgroundPanel({design,setDesign}:{design:Design;setDesign:(d:Design)=>void}){const bg=design.background;return <><h3>Background</h3><div className="segmented">{(["solid","linear","radial"] as const).map(type=><button key={type} className={bg.type===type?"selected":""} onClick={()=>setDesign({...design,background:{...bg,type}})}>{type}</button>)}</div><ColorInput label="Color A" value={bg.color} onChange={color=>setDesign({...design,background:{...bg,color}})}/>{bg.type!=="solid"&&<><ColorInput label="Color B" value={bg.colorB} onChange={colorB=>setDesign({...design,background:{...bg,colorB}})}/><NumberField label="Angle" value={bg.angle} onChange={angle=>setDesign({...design,background:{...bg,angle}})}/></>}<div className="quick-colors">{COLORS.map(color=><button key={color} aria-label={color} style={{backgroundColor:color}} onClick={()=>setDesign({...design,background:{...bg,color}})}/>)}</div></>}
-function EffectsPanel({design,setDesign}:{design:Design;setDesign:(d:Design)=>void}){const fx=design.effects;const patch=(p:Partial<Effects>)=>setDesign({...design,effects:{...fx,...p}});return <><h3>Effects</h3><label className="toggle"><span>Noise / grain</span><input type="checkbox" checked={fx.noise} onChange={e=>patch({noise:e.target.checked})}/></label><p className="muted">Procedural texture; it is included in exported PNG files.</p><NumberField label="Noise amount" value={fx.noiseAmount} onChange={noiseAmount=>patch({noiseAmount})}/><NumberField label="Noise opacity" value={fx.noiseOpacity} step={.01} onChange={noiseOpacity=>patch({noiseOpacity})}/><NumberField label="Grain scale" value={fx.noiseScale} step={.5} onChange={noiseScale=>patch({noiseScale})}/><NumberField label="Seed" value={fx.seed} onChange={seed=>patch({seed})}/></>}
-function DocumentPanel({design,setDesign,snap,setSnap}:{design:Design;setDesign:(d:Design)=>void;snap:boolean;setSnap:(v:boolean)=>void}){return <><p className="panel-kicker">DOCUMENT</p><h2>Instagram Square</h2><div className="document-size">1080 <span>×</span> 1080 <small>px</small></div><div className="side-rule"/><label className="toggle"><span>Snap to guides</span><input type="checkbox" checked={snap} onChange={e=>setSnap(e.target.checked)}/></label><label className="toggle"><span>Grain effect</span><input type="checkbox" checked={design.effects.noise} onChange={e=>setDesign({...design,effects:{...design.effects,noise:e.target.checked}})}/></label><div className="side-rule"/><p className="muted">Select an element to edit its typography, color and position.</p></>}
-function Properties({item,update,deleteItem,duplicate}:{item:StudioElement;update:(p:Partial<StudioElement>)=>void;deleteItem:()=>void;duplicate:()=>void}){return <><div className="property-head"><div><p className="panel-kicker">{item.type.toUpperCase()}</p><h2>{item.name}</h2></div><button onClick={deleteItem}><Trash2 size={17}/></button></div>{item.type==="text"?<section className="property-section"><h3>Text</h3><label className="field"><span>Content</span><textarea value={item.text||""} onChange={e=>update({text:e.target.value,name:e.target.value.slice(0,24)||"Text"})}/></label><label className="field"><span>Font</span><select value={item.fontFamily} onChange={e=>update({fontFamily:e.target.value})}>{FONTS.map(font=><option key={font}>{font}</option>)}</select></label><div className="field-row"><NumberField label="Size" value={item.fontSize||0} onChange={fontSize=>update({fontSize})}/><label className="field"><span>Weight</span><select value={item.fontStyle||"normal"} onChange={e=>update({fontStyle:e.target.value})}><option value="100">Thin</option><option value="200">Extra Light</option><option value="300">Light</option><option value="normal">Regular</option><option value="500">Medium</option><option value="600">SemiBold</option><option value="bold">Bold</option><option value="800">ExtraBold</option><option value="900">Black</option><option value="italic">Italic</option></select></label></div><div className="field-row"><NumberField label="Line height" value={item.lineHeight||1} step={.1} onChange={lineHeight=>update({lineHeight})}/><NumberField label="Tracking" value={item.letterSpacing||0} onChange={letterSpacing=>update({letterSpacing})}/></div><div className="align-control"><button className={item.align==="left"?"selected":""} onClick={()=>update({align:"left"})}><AlignLeft size={17}/></button><button className={item.align==="center"?"selected":""} onClick={()=>update({align:"center"})}><AlignCenter size={17}/></button><button className={item.align==="right"?"selected":""} onClick={()=>update({align:"right"})}><AlignRight size={17}/></button></div><label className="toggle"><span>Uppercase</span><input type="checkbox" checked={item.uppercase||false} onChange={e=>update({uppercase:e.target.checked})}/></label></section>:<section className="property-section"><h3>Appearance</h3><ColorInput label="Fill" value={item.fill} onChange={fill=>update({fill})}/>{item.type!=="plus"&&<ColorInput label="Stroke" value={item.stroke||"#000000"} onChange={stroke=>update({stroke})}/>}<NumberField label="Stroke width" value={item.strokeWidth||0} onChange={strokeWidth=>update({strokeWidth})}/>{item.type==="rect"&&<NumberField label="Corner radius" value={item.radius||0} onChange={radius=>update({radius})}/>}</section>}<section className="property-section"><h3>Position</h3><div className="position-grid"><NumberField label="X" value={Math.round(item.x)} onChange={x=>update({x})}/><NumberField label="Y" value={Math.round(item.y)} onChange={y=>update({y})}/><NumberField label="W" value={Math.round(item.width)} onChange={width=>update({width})}/><NumberField label="H" value={Math.round(item.height)} onChange={height=>update({height})}/><NumberField label="Rotation" value={Math.round(item.rotation)} onChange={rotation=>update({rotation})}/><NumberField label="Opacity" value={item.opacity} step={.05} onChange={opacity=>update({opacity})}/></div></section><div className="property-actions"><button onClick={()=>update({x:0})}><AlignLeft size={15}/>Canvas left</button><button onClick={()=>update({x:(SIZE-item.width)/2})}><AlignCenter size={15}/>Center</button><button onClick={()=>update({x:SIZE-item.width})}><AlignRight size={15}/>Canvas right</button><button onClick={duplicate}><Copy size={15}/>Duplicate</button></div></>}
+          return (
+            <g
+              key={item.id}
+              transform={`translate(${item.x} ${item.y}) rotate(${item.rotation})`}
+              opacity={item.opacity}
+            >
+              {item.type === "text" && (
+                <text
+                  x={textX}
+                  y={fontSize}
+                  fill={item.fill}
+                  fontFamily={item.fontFamily || "Geist Mono"}
+                  fontSize={fontSize}
+                  fontWeight={weight}
+                  fontStyle={item.fontStyle === "italic" ? "italic" : "normal"}
+                  letterSpacing={item.letterSpacing || 0}
+                  textAnchor={textAnchor}
+                >
+                  {(item.uppercase ? (item.text || "").toUpperCase() : item.text || "")
+                    .split("\n")
+                    .map((line, index) => (
+                      <tspan
+                        key={`${item.id}-${index}`}
+                        x={textX}
+                        dy={index === 0 ? 0 : fontSize * (item.lineHeight || 1.2)}
+                      >
+                        {line}
+                      </tspan>
+                    ))}
+                </text>
+              )}
+              {item.type === "rect" && (
+                <rect
+                  width={item.width}
+                  height={item.height}
+                  fill={item.fill}
+                  stroke={item.stroke}
+                  strokeWidth={item.strokeWidth}
+                  rx={item.radius || 0}
+                />
+              )}
+              {item.type === "circle" && (
+                <circle
+                  cx={item.width / 2}
+                  cy={item.height / 2}
+                  r={Math.min(item.width, item.height) / 2}
+                  fill={item.fill}
+                  stroke={item.stroke}
+                  strokeWidth={item.strokeWidth}
+                />
+              )}
+              {item.type === "ellipse" && (
+                <ellipse
+                  cx={item.width / 2}
+                  cy={item.height / 2}
+                  rx={item.width / 2}
+                  ry={item.height / 2}
+                  fill={item.fill}
+                  stroke={item.stroke}
+                  strokeWidth={item.strokeWidth}
+                />
+              )}
+              {item.type === "line" && (
+                <line
+                  x1="0"
+                  y1={item.height / 2}
+                  x2={item.width}
+                  y2={item.height / 2}
+                  stroke={stroke}
+                  strokeWidth={item.strokeWidth || 2}
+                />
+              )}
+              {item.type === "plus" && (
+                <>
+                  <line
+                    x1={item.width / 2}
+                    y1="0"
+                    x2={item.width / 2}
+                    y2={item.height}
+                    stroke={item.fill}
+                    strokeWidth={item.strokeWidth || 2}
+                  />
+                  <line
+                    x1="0"
+                    y1={item.height / 2}
+                    x2={item.width}
+                    y2={item.height / 2}
+                    stroke={item.fill}
+                    strokeWidth={item.strokeWidth || 2}
+                  />
+                </>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
 
-export default function Home(){const [design,setDesign]=useState<Design>(()=>cloneTemplate(templates[0]));const [screen,setScreen]=useState<"library"|"editor">("library");const [tool,setTool]=useState<Tool>("templates");const [selected,setSelected]=useState<string[]>([]);const [zoom,setZoom]=useState(0);const [snap,setSnap]=useState(true);const [saved,setSaved]=useState("Saved");const [history,setHistory]=useState<Design[]>([]);const [future,setFuture]=useState<Design[]>([]);const [myDesigns,setMyDesigns]=useState<Design[]>([]);const [myTemplates,setMyTemplates]=useState<Template[]>([]);const stageRef=useRef<Konva.Stage>(null);useEffect(()=>{try{setMyDesigns(JSON.parse(localStorage.getItem("jay-post-designs")||"[]"));setMyTemplates(JSON.parse(localStorage.getItem("jay-post-templates")||"[]"))}catch{}},[]);const persist=useCallback((value:Design)=>{const updated={...value,updatedAt:new Date().toISOString()};setMyDesigns(existing=>{const next=[updated,...existing.filter(d=>d.id!==updated.id)].slice(0,30);localStorage.setItem("jay-post-designs",JSON.stringify(next));return next});setSaved("Saved")},[]);useEffect(()=>{if(screen!=="editor")return;const timer=window.setTimeout(()=>persist(design),1200);setSaved("Saving…");return()=>window.clearTimeout(timer)},[design,persist,screen]);const commit=(next:Design)=>{setHistory(h=>[...h.slice(-39),design]);setFuture([]);setDesign(next)};const updateElements=(fn:(items:StudioElement[])=>StudioElement[])=>commit({...design,elements:fn(design.elements)});const add=(item:StudioElement)=>{updateElements(items=>[...items,item]);setSelected([item.id])};const selectedItem=selected.length===1?design.elements.find(item=>item.id===selected[0]):undefined;const updateSelected=(patch:Partial<StudioElement>)=>selectedItem&&updateElements(items=>items.map(item=>item.id===selectedItem.id?{...item,...patch}:item));const newFrom=(d:Design)=>{setDesign(d);setSelected([]);setHistory([]);setFuture([]);setScreen("editor")};const undo=()=>{const previous=history.at(-1);if(!previous)return;setFuture(f=>[design,...f]);setHistory(h=>h.slice(0,-1));setDesign(previous)};const redo=()=>{const next=future[0];if(!next)return;setHistory(h=>[...h,design]);setFuture(f=>f.slice(1));setDesign(next)};const exportPng=()=>{if(!stageRef.current)return;setSelected([]);setTimeout(()=>{const a=document.createElement("a");a.download=`${design.name.toLowerCase().replace(/[^a-z0-9]+/g,"-")||"jay-post"}.png`;a.href=stageRef.current!.toDataURL({pixelRatio:1});a.click()},40)};const saveTemplate=()=>{const template:Template={id:uid(),name:design.name,subtitle:"My template",design:{background:design.background,effects:design.effects,elements:design.elements.map(e=>({...e,id:uid()}))}};setMyTemplates(list=>{const next=[template,...list];localStorage.setItem("jay-post-templates",JSON.stringify(next));return next})};useEffect(()=>{const key=(event:KeyboardEvent)=>{const mod=event.metaKey||event.ctrlKey;if((event.key==="Backspace"||event.key==="Delete")&&selected.length){event.preventDefault();updateElements(items=>items.filter(i=>!selected.includes(i.id)));setSelected([])}if(mod&&event.key.toLowerCase()==="z"){event.preventDefault();event.shiftKey?redo():undo()}if(mod&&event.key.toLowerCase()==="d"&&selectedItem){event.preventDefault();add({...selectedItem,id:uid(),x:selectedItem.x+30,y:selectedItem.y+30,name:`${selectedItem.name} copy`})}if(event.key==="Escape")setSelected([]);if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key)&&selected.length){event.preventDefault();const n=event.shiftKey?10:1,dx=event.key==="ArrowLeft"?-n:event.key==="ArrowRight"?n:0,dy=event.key==="ArrowUp"?-n:event.key==="ArrowDown"?n:0;updateElements(items=>items.map(i=>selected.includes(i.id)?{...i,x:i.x+dx,y:i.y+dy}:i))}};window.addEventListener("keydown",key);return()=>window.removeEventListener("keydown",key)});const templateList=[...templates,...myTemplates];if(screen==="library")return <main className="library"><header className="library-head"><div className="wordmark">JAY <span>POST STUDIO</span></div><button className="primary" onClick={()=>newFrom(emptyDesign())}><Plus size={16}/>New design</button></header><section className="library-hero"><p>MY DESIGNS <em>{myDesigns.length.toString().padStart(2,"0")}</em></p><h1>Make room<br/>for the idea.</h1><button onClick={()=>newFrom(emptyDesign())}>Start with a blank 1080 × 1080 canvas <Plus size={16}/></button></section><section className="design-grid">{myDesigns.length?myDesigns.map(item=><button className="design-card" key={item.id} onClick={()=>newFrom(item)}><div style={{background:item.background.type==="solid"?item.background.color:`linear-gradient(${item.background.angle}deg, ${item.background.color}, ${item.background.colorB})`}}><span>{item.elements.find(e=>e.type==="text"&&!e.text?.includes("jaywrkr"))?.text}</span></div><strong>{item.name}</strong><small>1080 × 1080</small></button>):<div className="empty-card"><Grid2X2 size={26}/><p>Your saved posts will live here.</p></div>}</section><section className="template-library"><div><p>TEMPLATE LIBRARY</p><h2>Built for your visual language.</h2></div><div className="template-row">{templateList.slice(0,6).map(template=><button key={template.id} className="template-card" onClick={()=>newFrom(cloneTemplate(template))}><MiniPreview template={template}/><span>{template.name}</span></button>)}</div></section></main>;return <main className="studio"><header className="topbar"><button className="wordmark" onClick={()=>setScreen("library")}>JAY <span>POST STUDIO</span></button><label className="design-name"><input value={design.name} onChange={e=>setDesign({...design,name:e.target.value})}/><small>{saved}</small></label><div className="top-actions"><button title="Undo" onClick={undo} disabled={!history.length}><Undo2 size={17}/></button><button title="Redo" onClick={redo} disabled={!future.length}><Redo2 size={17}/></button><button onClick={()=>newFrom(emptyDesign())}><FilePlus2 size={16}/>New</button><button onClick={()=>persist(design)}><Save size={16}/>Save</button><button onClick={()=>newFrom({...design,id:uid(),name:`${design.name} copy`})}><Copy size={16}/>Duplicate</button><button onClick={saveTemplate}><Sparkles size={16}/>Template</button><button className="export" onClick={exportPng}><Download size={16}/>Export PNG</button></div></header><div className="workspace"><aside className="leftbar"><nav>{([{id:"templates",icon:Grid2X2,label:"Templates"},{id:"text",icon:Type,label:"Text"},{id:"shapes",icon:Shapes,label:"Shapes"},{id:"images",icon:ImagePlus,label:"Images"},{id:"background",icon:Palette,label:"Background"},{id:"effects",icon:Sparkles,label:"Effects"},{id:"layers",icon:Layers3,label:"Layers"}] as {id:Tool;icon:typeof Type;label:string}[]).map(({id,icon:Icon,label})=><button key={id} className={tool===id?"active":""} onClick={()=>setTool(id)}><Icon size={19}/><span>{label}</span></button>)}</nav><section className="left-content">{tool==="templates"&&<><h3>Templates</h3><p className="muted">Use a composition. You will edit a new copy.</p><div className="template-grid">{templateList.map(template=><button key={template.id} onClick={()=>newFrom(cloneTemplate(template))}><MiniPreview template={template}/><span>{template.name}</span></button>)}</div></>}{tool==="text"&&<><h3>Text</h3><div className="add-list"><button onClick={()=>add(text("HEADLINE",160,300,64))}><Type/>Add headline</button><button onClick={()=>add(text("Body text goes here.",160,300,30))}><Type/>Add body</button><button onClick={()=>add(text("SMALL LABEL",160,300,18))}><Type/>Add small label</button><button onClick={()=>add(text("A MONO QUOTE\nWITH INTENTION.",160,300,42))}><Type/>Add mono quote</button></div><button className="brand-button" onClick={()=>updateElements(items=>[...items,...brand().map(item=>({...item,id:uid()}))])}>+ Add brand frame</button></>}{tool==="shapes"&&<><h3>Shapes</h3><div className="shape-grid"><button onClick={()=>add(base("rect",{name:"Rectangle",width:260,height:180,fill:"#000000"}))}><Square/>Rectangle</button><button onClick={()=>add(base("rect",{name:"Rounded rectangle",width:260,height:180,fill:"#EDEDED",radius:28}))}><Square/>Rounded</button><button onClick={()=>add(base("circle",{width:260,height:260,fill:"transparent",stroke:"#000000",strokeWidth:3}))}><Circle/>Circle</button><button onClick={()=>add(base("ellipse",{width:320,height:200,fill:"transparent",stroke:"#000000",strokeWidth:3}))}><Circle/>Ellipse</button><button onClick={()=>add(base("line",{width:300,height:2,stroke:"#000000",strokeWidth:3}))}><Minus/>Line</button><button onClick={()=>add(cross(160,160,"#000000",56))}><Plus/>Cross / Plus</button></div></>}{tool==="images"&&<><h3>Images</h3><p className="muted">Image placement is ready for the next version. This first release keeps the system deliberately type-first.</p></>}{tool==="background"&&<BackgroundPanel design={design} setDesign={commit}/>} {tool==="effects"&&<EffectsPanel design={design} setDesign={commit}/>} {tool==="layers"&&<><h3>Layers</h3><div className="layers">{[...design.elements].reverse().map(item=><div key={item.id} className={selected.includes(item.id)?"layer active":"layer"} onClick={()=>setSelected([item.id])}><span>{item.type==="text"?<Type size={14}/>:item.type==="plus"?<Plus size={14}/>:<Shapes size={14}/>}</span><label>{item.name}</label><button onClick={e=>{e.stopPropagation();updateElements(items=>items.map(i=>i.id===item.id?{...i,visible:!i.visible}:i))}}>{item.visible?<Eye size={14}/>:<EyeOff size={14}/>}</button><button onClick={e=>{e.stopPropagation();updateElements(items=>items.map(i=>i.id===item.id?{...i,locked:!i.locked}:i))}}>{item.locked?<Lock size={13}/>:<LockOpen size={13}/>}</button></div>)}</div></>}</section></aside><section className="center"><div className="canvas-toolbar"><span>1080 × 1080</span><div><button className={snap?"on":""} onClick={()=>setSnap(!snap)}><MousePointer2 size={14}/>Snap {snap?"on":"off"}</button><select value={zoom} onChange={e=>setZoom(Number(e.target.value))}><option value={0}>Fit</option><option value={.25}>25%</option><option value={.5}>50%</option><option value={.75}>75%</option><option value={1}>100%</option></select></div></div><StudioCanvas design={design} selected={selected} setSelected={setSelected} updateElements={updateElements} snap={snap} zoom={zoom} stageRef={stageRef}/></section><aside className="rightbar">{selectedItem?<Properties item={selectedItem} update={updateSelected} deleteItem={()=>{updateElements(items=>items.filter(i=>i.id!==selectedItem.id));setSelected([])}} duplicate={()=>add({...selectedItem,id:uid(),x:selectedItem.x+24,y:selectedItem.y+24,name:`${selectedItem.name} copy`})}/>:<DocumentPanel design={design} setDesign={commit} snap={snap} setSnap={setSnap}/>}</aside></div></main>}
+function MiniPreview({ template }: { template: Template }) {
+  return <DesignPreview design={template.design} />;
+}
+
+function Noise({ effects }: { effects: Effects }) {
+  const [image, setImage] = useState<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    if (!effects.noise) {
+      setImage(null);
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const data = ctx.createImageData(SIZE, SIZE);
+    let seed = effects.seed || 1;
+    const random = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+    const step = Math.max(1, Math.round(effects.noiseScale));
+    for (let y = 0; y < SIZE; y += step)
+      for (let x = 0; x < SIZE; x += step) {
+        const v = Math.round(random() * 255);
+        for (let sy = 0; sy < step; sy++)
+          for (let sx = 0; sx < step; sx++) {
+            const p = ((y + sy) * SIZE + x + sx) * 4;
+            if (p < data.data.length) {
+              data.data[p] = v;
+              data.data[p + 1] = v;
+              data.data[p + 2] = v;
+              data.data[p + 3] = effects.noiseAmount;
+            }
+          }
+      }
+    ctx.putImageData(data, 0, 0);
+    setImage(canvas);
+  }, [effects]);
+  return image ? (
+    <KImage
+      image={image}
+      width={SIZE}
+      height={SIZE}
+      opacity={effects.noiseOpacity}
+      listening={false}
+    />
+  ) : null;
+}
+
+function StudioCanvas({
+  design,
+  selected,
+  setSelected,
+  updateElements,
+  snap,
+  zoom,
+  stageRef,
+}: {
+  design: Design;
+  selected: string[];
+  setSelected: (ids: string[]) => void;
+  updateElements: (fn: (items: StudioElement[]) => StudioElement[]) => void;
+  snap: boolean;
+  zoom: number;
+  stageRef: React.RefObject<Konva.Stage | null>;
+}) {
+  const wrap = useRef<HTMLDivElement>(null);
+  const transformer = useRef<Konva.Transformer>(null);
+  const [fit, setFit] = useState(0.55);
+  const [guides, setGuides] = useState<{ x?: number; y?: number }>({});
+  useEffect(() => {
+    const resize = () => {
+      if (wrap.current)
+        setFit(
+          Math.min(
+            (wrap.current.clientWidth - 64) / SIZE,
+            (wrap.current.clientHeight - 64) / SIZE,
+          ),
+        );
+    };
+    resize();
+    const observer = new ResizeObserver(resize);
+    if (wrap.current) observer.observe(wrap.current);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!transformer.current || !stageRef.current) return;
+    transformer.current.nodes(
+      selected
+        .map((id) => stageRef.current!.findOne(`#${id}`))
+        .filter(Boolean) as Konva.Node[],
+    );
+    transformer.current.getLayer()?.batchDraw();
+  }, [selected, design.elements, stageRef]);
+  const scale = zoom === 0 ? fit : zoom;
+  const select = (
+    event: Konva.KonvaEventObject<MouseEvent>,
+    item: StudioElement,
+  ) => {
+    event.cancelBubble = true;
+    setSelected(
+      event.evt.shiftKey
+        ? selected.includes(item.id)
+          ? selected.filter((id) => id !== item.id)
+          : [...selected, item.id]
+        : [item.id],
+    );
+  };
+  const transformEnd = (
+    e: Konva.KonvaEventObject<Event>,
+    item: StudioElement,
+  ) => {
+    const node = e.target;
+    const sx = node.scaleX(),
+      sy = node.scaleY();
+    node.scaleX(1);
+    node.scaleY(1);
+    updateElements((items) =>
+      items.map((i) =>
+        i.id === item.id
+          ? {
+              ...i,
+              x: node.x(),
+              y: node.y(),
+              rotation: node.rotation(),
+              width: Math.max(12, item.width * sx),
+              height: Math.max(12, item.height * sy),
+            }
+          : i,
+      ),
+    );
+  };
+  const dragEnd = (
+    e: Konva.KonvaEventObject<DragEvent>,
+    item: StudioElement,
+  ) => {
+    let x = e.target.x(),
+      y = e.target.y();
+    const g: { x?: number; y?: number } = {};
+    if (Math.abs(x + item.width / 2 - 540) < 10) {
+      x = 540 - item.width / 2;
+      g.x = 540;
+    }
+    if (Math.abs(y + item.height / 2 - 540) < 10) {
+      y = 540 - item.height / 2;
+      g.y = 540;
+    }
+    setGuides({});
+    updateElements((items) =>
+      items.map((i) =>
+        i.id === item.id
+          ? { ...i, x: snap ? Math.round(x) : x, y: snap ? Math.round(y) : y }
+          : i,
+      ),
+    );
+  };
+  return (
+    <div className="canvas-wrap" ref={wrap}>
+      <div
+        className="canvas-shell"
+        style={{ width: SIZE * scale, height: SIZE * scale }}
+      >
+        <Stage
+          ref={stageRef}
+          width={SIZE}
+          height={SIZE}
+          scaleX={scale}
+          scaleY={scale}
+          onMouseDown={(e) => {
+            if (e.target === e.target.getStage()) setSelected([]);
+          }}
+        >
+          <Layer>
+            <Rect
+              width={SIZE}
+              height={SIZE}
+              fill={
+                design.background.type === "solid"
+                  ? design.background.color
+                  : undefined
+              }
+              fillLinearGradientStartPoint={
+                design.background.type === "linear" ? { x: 0, y: 0 } : undefined
+              }
+              fillLinearGradientEndPoint={
+                design.background.type === "linear"
+                  ? {
+                      x:
+                        SIZE *
+                        Math.cos((design.background.angle * Math.PI) / 180),
+                      y:
+                        SIZE *
+                        Math.sin((design.background.angle * Math.PI) / 180),
+                    }
+                  : undefined
+              }
+              fillLinearGradientColorStops={
+                design.background.type === "linear"
+                  ? [0, design.background.color, 1, design.background.colorB]
+                  : undefined
+              }
+              fillRadialGradientStartPoint={
+                design.background.type === "radial"
+                  ? { x: SIZE / 2, y: SIZE / 2 }
+                  : undefined
+              }
+              fillRadialGradientEndPoint={
+                design.background.type === "radial"
+                  ? { x: SIZE / 2, y: SIZE / 2 }
+                  : undefined
+              }
+              fillRadialGradientStartRadius={
+                design.background.type === "radial" ? 0 : undefined
+              }
+              fillRadialGradientEndRadius={
+                design.background.type === "radial" ? 760 : undefined
+              }
+              fillRadialGradientColorStops={
+                design.background.type === "radial"
+                  ? [0, design.background.color, 1, design.background.colorB]
+                  : undefined
+              }
+            />
+            {design.elements.map(
+              (item) =>
+                item.visible && (
+                  <Group
+                    key={item.id}
+                    id={item.id}
+                    x={item.x}
+                    y={item.y}
+                    rotation={item.rotation}
+                    opacity={item.opacity}
+                    draggable={!item.locked}
+                    onClick={(e) => select(e, item)}
+                    onTap={(e) =>
+                      select(
+                        e as unknown as Konva.KonvaEventObject<MouseEvent>,
+                        item,
+                      )
+                    }
+                    onDragMove={(e) => {
+                      const x = e.target.x() + item.width / 2,
+                        y = e.target.y() + item.height / 2;
+                      setGuides({
+                        x: Math.abs(x - 540) < 10 ? 540 : undefined,
+                        y: Math.abs(y - 540) < 10 ? 540 : undefined,
+                      });
+                    }}
+                    onDragEnd={(e) => dragEnd(e, item)}
+                    onTransformEnd={(e) => transformEnd(e, item)}
+                  >
+                    {item.type === "text" && (
+                      <KText
+                        text={
+                          item.uppercase
+                            ? (item.text || "").toUpperCase()
+                            : item.text
+                        }
+                        width={item.width}
+                        height={item.height}
+                        fontSize={item.fontSize}
+                        fontFamily={item.fontFamily}
+                        fontStyle={item.fontStyle}
+                        fill={item.fill}
+                        align={item.align}
+                        lineHeight={item.lineHeight}
+                        letterSpacing={item.letterSpacing}
+                      />
+                    )}
+                    {item.type === "rect" && (
+                      <Rect
+                        width={item.width}
+                        height={item.height}
+                        fill={
+                          item.fill === "transparent" ? undefined : item.fill
+                        }
+                        stroke={item.stroke}
+                        strokeWidth={item.strokeWidth}
+                        cornerRadius={item.radius || 0}
+                      />
+                    )}
+                    {item.type === "circle" && (
+                      <KCircle
+                        x={item.width / 2}
+                        y={item.height / 2}
+                        radius={Math.min(item.width, item.height) / 2}
+                        fill={
+                          item.fill === "transparent" ? undefined : item.fill
+                        }
+                        stroke={item.stroke}
+                        strokeWidth={item.strokeWidth}
+                      />
+                    )}
+                    {item.type === "ellipse" && (
+                      <Ellipse
+                        x={item.width / 2}
+                        y={item.height / 2}
+                        radiusX={item.width / 2}
+                        radiusY={item.height / 2}
+                        fill={
+                          item.fill === "transparent" ? undefined : item.fill
+                        }
+                        stroke={item.stroke}
+                        strokeWidth={item.strokeWidth}
+                      />
+                    )}
+                    {item.type === "line" && (
+                      <Line
+                        points={[
+                          0,
+                          item.height / 2,
+                          item.width,
+                          item.height / 2,
+                        ]}
+                        stroke={item.stroke || item.fill}
+                        strokeWidth={item.strokeWidth || 2}
+                      />
+                    )}
+                    {item.type === "plus" && (
+                      <Group>
+                        <Line
+                          points={[
+                            item.width / 2,
+                            0,
+                            item.width / 2,
+                            item.height,
+                          ]}
+                          stroke={item.fill}
+                          strokeWidth={item.strokeWidth || 2}
+                        />
+                        <Line
+                          points={[
+                            0,
+                            item.height / 2,
+                            item.width,
+                            item.height / 2,
+                          ]}
+                          stroke={item.fill}
+                          strokeWidth={item.strokeWidth || 2}
+                        />
+                      </Group>
+                    )}
+                  </Group>
+                ),
+            )}
+            <Noise effects={design.effects} />
+            {guides.x && (
+              <Line
+                points={[guides.x, 0, guides.x, SIZE]}
+                stroke="#008BFF"
+                strokeWidth={1}
+                dash={[8, 6]}
+                listening={false}
+              />
+            )}
+            {guides.y && (
+              <Line
+                points={[0, guides.y, SIZE, guides.y]}
+                stroke="#008BFF"
+                strokeWidth={1}
+                dash={[8, 6]}
+                listening={false}
+              />
+            )}
+            <Transformer
+              ref={transformer}
+              rotateEnabled
+              enabledAnchors={[
+                "top-left",
+                "top-right",
+                "bottom-left",
+                "bottom-right",
+              ]}
+              borderStroke="#008BFF"
+              anchorFill="#FFFFFF"
+              anchorStroke="#008BFF"
+              anchorSize={9}
+            />
+          </Layer>
+        </Stage>
+      </div>
+    </div>
+  );
+}
+
+function ColorInput({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+}) {
+  return (
+    <label className="field color-field">
+      <span>{label}</span>
+      <input
+        type="color"
+        value={value === "transparent" ? "#FFFFFF" : value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <input value={value} onChange={(e) => onChange(e.target.value)} />
+    </label>
+  );
+}
+function NumberField({
+  label,
+  value,
+  onChange,
+  step = 1,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  step?: number;
+}) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <input
+        type="number"
+        step={step}
+        value={Number.isFinite(value) ? value : 0}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </label>
+  );
+}
+function BackgroundPanel({
+  design,
+  setDesign,
+}: {
+  design: Design;
+  setDesign: (d: Design) => void;
+}) {
+  const bg = design.background;
+  return (
+    <>
+      <h3>Background</h3>
+      <div className="segmented">
+        {(["solid", "linear", "radial"] as const).map((type) => (
+          <button
+            key={type}
+            className={bg.type === type ? "selected" : ""}
+            onClick={() =>
+              setDesign({ ...design, background: { ...bg, type } })
+            }
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+      <ColorInput
+        label="Color A"
+        value={bg.color}
+        onChange={(color) =>
+          setDesign({ ...design, background: { ...bg, color } })
+        }
+      />
+      {bg.type !== "solid" && (
+        <>
+          <ColorInput
+            label="Color B"
+            value={bg.colorB}
+            onChange={(colorB) =>
+              setDesign({ ...design, background: { ...bg, colorB } })
+            }
+          />
+          <NumberField
+            label="Angle"
+            value={bg.angle}
+            onChange={(angle) =>
+              setDesign({ ...design, background: { ...bg, angle } })
+            }
+          />
+        </>
+      )}
+      <div className="quick-colors">
+        {COLORS.map((color) => (
+          <button
+            key={color}
+            aria-label={color}
+            style={{ backgroundColor: color }}
+            onClick={() =>
+              setDesign({ ...design, background: { ...bg, color } })
+            }
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+function EffectsPanel({
+  design,
+  setDesign,
+}: {
+  design: Design;
+  setDesign: (d: Design) => void;
+}) {
+  const fx = design.effects;
+  const patch = (p: Partial<Effects>) =>
+    setDesign({ ...design, effects: { ...fx, ...p } });
+  return (
+    <>
+      <h3>Effects</h3>
+      <label className="toggle">
+        <span>Noise / grain</span>
+        <input
+          type="checkbox"
+          checked={fx.noise}
+          onChange={(e) => patch({ noise: e.target.checked })}
+        />
+      </label>
+      <p className="muted">
+        Procedural texture; it is included in exported PNG files.
+      </p>
+      <NumberField
+        label="Noise amount"
+        value={fx.noiseAmount}
+        onChange={(noiseAmount) => patch({ noiseAmount })}
+      />
+      <NumberField
+        label="Noise opacity"
+        value={fx.noiseOpacity}
+        step={0.01}
+        onChange={(noiseOpacity) => patch({ noiseOpacity })}
+      />
+      <NumberField
+        label="Grain scale"
+        value={fx.noiseScale}
+        step={0.5}
+        onChange={(noiseScale) => patch({ noiseScale })}
+      />
+      <NumberField
+        label="Seed"
+        value={fx.seed}
+        onChange={(seed) => patch({ seed })}
+      />
+    </>
+  );
+}
+function DocumentPanel({
+  design,
+  setDesign,
+  snap,
+  setSnap,
+}: {
+  design: Design;
+  setDesign: (d: Design) => void;
+  snap: boolean;
+  setSnap: (v: boolean) => void;
+}) {
+  return (
+    <>
+      <p className="panel-kicker">DOCUMENT</p>
+      <h2>Instagram Square</h2>
+      <div className="document-size">
+        1080 <span>×</span> 1080 <small>px</small>
+      </div>
+      <div className="side-rule" />
+      <label className="toggle">
+        <span>Snap to guides</span>
+        <input
+          type="checkbox"
+          checked={snap}
+          onChange={(e) => setSnap(e.target.checked)}
+        />
+      </label>
+      <label className="toggle">
+        <span>Grain effect</span>
+        <input
+          type="checkbox"
+          checked={design.effects.noise}
+          onChange={(e) =>
+            setDesign({
+              ...design,
+              effects: { ...design.effects, noise: e.target.checked },
+            })
+          }
+        />
+      </label>
+      <div className="side-rule" />
+      <p className="muted">
+        Select an element to edit its typography, color and position.
+      </p>
+    </>
+  );
+}
+function Properties({
+  item,
+  update,
+  deleteItem,
+  duplicate,
+}: {
+  item: StudioElement;
+  update: (p: Partial<StudioElement>) => void;
+  deleteItem: () => void;
+  duplicate: () => void;
+}) {
+  return (
+    <>
+      <div className="property-head">
+        <div>
+          <p className="panel-kicker">{item.type.toUpperCase()}</p>
+          <h2>{item.name}</h2>
+        </div>
+        <button onClick={deleteItem}>
+          <Trash2 size={17} />
+        </button>
+      </div>
+      {item.type === "text" ? (
+        <section className="property-section">
+          <h3>Text</h3>
+          <label className="field">
+            <span>Content</span>
+            <textarea
+              value={item.text || ""}
+              onChange={(e) =>
+                update({
+                  text: e.target.value,
+                  name: e.target.value.slice(0, 24) || "Text",
+                })
+              }
+            />
+          </label>
+          <label className="field">
+            <span>Font</span>
+            <select
+              value={item.fontFamily}
+              onChange={(e) => update({ fontFamily: e.target.value })}
+            >
+              {FONTS.map((font) => (
+                <option key={font}>{font}</option>
+              ))}
+            </select>
+          </label>
+          <div className="field-row">
+            <NumberField
+              label="Size"
+              value={item.fontSize || 0}
+              onChange={(fontSize) => update({ fontSize })}
+            />
+            <label className="field">
+              <span>Weight</span>
+              <select
+                value={item.fontStyle || "normal"}
+                onChange={(e) => update({ fontStyle: e.target.value })}
+              >
+                <option value="100">Thin</option>
+                <option value="200">Extra Light</option>
+                <option value="300">Light</option>
+                <option value="normal">Regular</option>
+                <option value="500">Medium</option>
+                <option value="600">SemiBold</option>
+                <option value="bold">Bold</option>
+                <option value="800">ExtraBold</option>
+                <option value="900">Black</option>
+                <option value="italic">Italic</option>
+              </select>
+            </label>
+          </div>
+          <div className="field-row">
+            <NumberField
+              label="Line height"
+              value={item.lineHeight || 1}
+              step={0.1}
+              onChange={(lineHeight) => update({ lineHeight })}
+            />
+            <NumberField
+              label="Tracking"
+              value={item.letterSpacing || 0}
+              onChange={(letterSpacing) => update({ letterSpacing })}
+            />
+          </div>
+          <div className="align-control">
+            <button
+              className={item.align === "left" ? "selected" : ""}
+              onClick={() => update({ align: "left" })}
+            >
+              <AlignLeft size={17} />
+            </button>
+            <button
+              className={item.align === "center" ? "selected" : ""}
+              onClick={() => update({ align: "center" })}
+            >
+              <AlignCenter size={17} />
+            </button>
+            <button
+              className={item.align === "right" ? "selected" : ""}
+              onClick={() => update({ align: "right" })}
+            >
+              <AlignRight size={17} />
+            </button>
+          </div>
+          <label className="toggle">
+            <span>Uppercase</span>
+            <input
+              type="checkbox"
+              checked={item.uppercase || false}
+              onChange={(e) => update({ uppercase: e.target.checked })}
+            />
+          </label>
+        </section>
+      ) : (
+        <section className="property-section">
+          <h3>Appearance</h3>
+          <ColorInput
+            label="Fill"
+            value={item.fill}
+            onChange={(fill) => update({ fill })}
+          />
+          {item.type !== "plus" && (
+            <ColorInput
+              label="Stroke"
+              value={item.stroke || "#000000"}
+              onChange={(stroke) => update({ stroke })}
+            />
+          )}
+          <NumberField
+            label="Stroke width"
+            value={item.strokeWidth || 0}
+            onChange={(strokeWidth) => update({ strokeWidth })}
+          />
+          {item.type === "rect" && (
+            <NumberField
+              label="Corner radius"
+              value={item.radius || 0}
+              onChange={(radius) => update({ radius })}
+            />
+          )}
+        </section>
+      )}
+      <section className="property-section">
+        <h3>Position</h3>
+        <div className="position-grid">
+          <NumberField
+            label="X"
+            value={Math.round(item.x)}
+            onChange={(x) => update({ x })}
+          />
+          <NumberField
+            label="Y"
+            value={Math.round(item.y)}
+            onChange={(y) => update({ y })}
+          />
+          <NumberField
+            label="W"
+            value={Math.round(item.width)}
+            onChange={(width) => update({ width })}
+          />
+          <NumberField
+            label="H"
+            value={Math.round(item.height)}
+            onChange={(height) => update({ height })}
+          />
+          <NumberField
+            label="Rotation"
+            value={Math.round(item.rotation)}
+            onChange={(rotation) => update({ rotation })}
+          />
+          <NumberField
+            label="Opacity"
+            value={item.opacity}
+            step={0.05}
+            onChange={(opacity) => update({ opacity })}
+          />
+        </div>
+      </section>
+      <div className="property-actions">
+        <button onClick={() => update({ x: 0 })}>
+          <AlignLeft size={15} />
+          Canvas left
+        </button>
+        <button onClick={() => update({ x: (SIZE - item.width) / 2 })}>
+          <AlignCenter size={15} />
+          Center
+        </button>
+        <button onClick={() => update({ x: SIZE - item.width })}>
+          <AlignRight size={15} />
+          Canvas right
+        </button>
+        <button onClick={duplicate}>
+          <Copy size={15} />
+          Duplicate
+        </button>
+      </div>
+    </>
+  );
+}
+
+export default function Home() {
+  const [design, setDesign] = useState<Design>(() =>
+    cloneTemplate(templates[0]),
+  );
+  const [screen, setScreen] = useState<"library" | "editor">("library");
+  const [tool, setTool] = useState<Tool>("templates");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [zoom, setZoom] = useState(0);
+  const [snap, setSnap] = useState(true);
+  const [saved, setSaved] = useState("Saved");
+  const [history, setHistory] = useState<Design[]>([]);
+  const [future, setFuture] = useState<Design[]>([]);
+  const [myDesigns, setMyDesigns] = useState<Design[]>([]);
+  const [myTemplates, setMyTemplates] = useState<Template[]>([]);
+  const [shouldPersist, setShouldPersist] = useState(false);
+  const stageRef = useRef<Konva.Stage>(null);
+  useEffect(() => {
+    try {
+      setMyDesigns(
+        JSON.parse(localStorage.getItem("jay-post-designs") || "[]"),
+      );
+      setMyTemplates(
+        JSON.parse(localStorage.getItem("jay-post-templates") || "[]"),
+      );
+    } catch {}
+  }, []);
+  const persist = useCallback((value: Design) => {
+    const updated = { ...value, updatedAt: new Date().toISOString() };
+    setMyDesigns((existing) => {
+      const next = [
+        updated,
+        ...existing.filter((d) => d.id !== updated.id),
+      ].slice(0, 30);
+      localStorage.setItem("jay-post-designs", JSON.stringify(next));
+      return next;
+    });
+    setSaved("Saved");
+  }, []);
+  useEffect(() => {
+    if (screen !== "editor" || !shouldPersist) return;
+    const timer = window.setTimeout(() => persist(design), 1200);
+    setSaved("Saving…");
+    return () => window.clearTimeout(timer);
+  }, [design, persist, screen, shouldPersist]);
+  const commit = (next: Design) => {
+    setHistory((h) => [...h.slice(-39), design]);
+    setFuture([]);
+    setShouldPersist(true);
+    setDesign(next);
+  };
+  const updateElements = (fn: (items: StudioElement[]) => StudioElement[]) =>
+    commit({ ...design, elements: fn(design.elements) });
+  const add = (item: StudioElement) => {
+    updateElements((items) => [...items, item]);
+    setSelected([item.id]);
+  };
+  const selectedItem =
+    selected.length === 1
+      ? design.elements.find((item) => item.id === selected[0])
+      : undefined;
+  const updateSelected = (patch: Partial<StudioElement>) =>
+    selectedItem &&
+    updateElements((items) =>
+      items.map((item) =>
+        item.id === selectedItem.id ? { ...item, ...patch } : item,
+      ),
+    );
+  const newFrom = (d: Design) => {
+    setDesign(d);
+    setSelected([]);
+    setHistory([]);
+    setFuture([]);
+    setShouldPersist(false);
+    setSaved("Template ready");
+    setScreen("editor");
+  };
+  const undo = () => {
+    const previous = history.at(-1);
+    if (!previous) return;
+    setFuture((f) => [design, ...f]);
+    setHistory((h) => h.slice(0, -1));
+    setDesign(previous);
+  };
+  const redo = () => {
+    const next = future[0];
+    if (!next) return;
+    setHistory((h) => [...h, design]);
+    setFuture((f) => f.slice(1));
+    setDesign(next);
+  };
+  const exportPng = () => {
+    if (!stageRef.current) return;
+    setSelected([]);
+    setTimeout(() => {
+      const a = document.createElement("a");
+      a.download = `${design.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "jay-post"}.png`;
+      a.href = stageRef.current!.toDataURL({ pixelRatio: 1 });
+      a.click();
+    }, 40);
+  };
+  const saveTemplate = () => {
+    const template: Template = {
+      id: uid(),
+      name: design.name,
+      subtitle: "My template",
+      design: {
+        background: design.background,
+        effects: design.effects,
+        elements: design.elements.map((e) => ({ ...e, id: uid() })),
+      },
+    };
+    setMyTemplates((list) => {
+      const next = [template, ...list];
+      localStorage.setItem("jay-post-templates", JSON.stringify(next));
+      return next;
+    });
+  };
+  useEffect(() => {
+    const key = (event: KeyboardEvent) => {
+      const mod = event.metaKey || event.ctrlKey;
+      if (
+        (event.key === "Backspace" || event.key === "Delete") &&
+        selected.length
+      ) {
+        event.preventDefault();
+        updateElements((items) =>
+          items.filter((i) => !selected.includes(i.id)),
+        );
+        setSelected([]);
+      }
+      if (mod && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        event.shiftKey ? redo() : undo();
+      }
+      if (mod && event.key.toLowerCase() === "d" && selectedItem) {
+        event.preventDefault();
+        add({
+          ...selectedItem,
+          id: uid(),
+          x: selectedItem.x + 30,
+          y: selectedItem.y + 30,
+          name: `${selectedItem.name} copy`,
+        });
+      }
+      if (event.key === "Escape") setSelected([]);
+      if (
+        ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
+          event.key,
+        ) &&
+        selected.length
+      ) {
+        event.preventDefault();
+        const n = event.shiftKey ? 10 : 1,
+          dx =
+            event.key === "ArrowLeft" ? -n : event.key === "ArrowRight" ? n : 0,
+          dy = event.key === "ArrowUp" ? -n : event.key === "ArrowDown" ? n : 0;
+        updateElements((items) =>
+          items.map((i) =>
+            selected.includes(i.id) ? { ...i, x: i.x + dx, y: i.y + dy } : i,
+          ),
+        );
+      }
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  });
+  const templateList = [...templates, ...myTemplates];
+  if (screen === "library")
+    return (
+      <main className="library">
+        <header className="library-head">
+          <div className="wordmark">
+            JAY <span>POST STUDIO</span>
+          </div>
+          <button className="primary" onClick={() => newFrom(emptyDesign())}>
+            <Plus size={16} />
+            New design
+          </button>
+        </header>
+        <section className="library-hero">
+          <p>
+            MY DESIGNS <em>{myDesigns.length.toString().padStart(2, "0")}</em>
+          </p>
+          <h1>
+            Make room
+            <br />
+            for the idea.
+          </h1>
+          <button onClick={() => newFrom(emptyDesign())}>
+            Start with a blank 1080 × 1080 canvas <Plus size={16} />
+          </button>
+        </section>
+        <section className="design-grid">
+          {myDesigns.length ? (
+            myDesigns.map((item) => (
+              <button
+                className="design-card"
+                key={item.id}
+                onClick={() => newFrom(item)}
+              >
+                <DesignPreview design={item} />
+                <strong>{item.name}</strong>
+                <small>1080 × 1080</small>
+              </button>
+            ))
+          ) : (
+            <div className="empty-card">
+              <Grid2X2 size={26} />
+              <p>Your saved posts will live here.</p>
+            </div>
+          )}
+        </section>
+        <section className="template-library">
+          <div className="template-library-head">
+            <div>
+              <p>TEMPLATE LIBRARY / {templateList.length.toString().padStart(2, "0")} SYSTEMS</p>
+              <h2>Choose the composition first.</h2>
+            </div>
+            <button
+              className="view-library"
+              onClick={() => {
+                setTool("templates");
+                newFrom(emptyDesign());
+              }}
+            >
+              Browse all templates <Plus size={15} />
+            </button>
+          </div>
+          <div className="template-row">
+            {templateList.slice(0, 6).map((template) => (
+              <button
+                key={template.id}
+                className="template-card"
+                onClick={() => newFrom(cloneTemplate(template))}
+              >
+                <MiniPreview template={template} />
+                <span>{template.name}</span>
+                <small>{template.subtitle}</small>
+              </button>
+            ))}
+          </div>
+        </section>
+      </main>
+    );
+  return (
+    <main className="studio">
+      <header className="topbar">
+        <button className="wordmark" onClick={() => setScreen("library")}>
+          JAY <span>POST STUDIO</span>
+        </button>
+        <label className="design-name">
+          <input
+            value={design.name}
+            onChange={(e) => {
+              setShouldPersist(true);
+              setDesign({ ...design, name: e.target.value });
+            }}
+          />
+          <small>{saved}</small>
+        </label>
+        <div className="top-actions">
+          <button title="Undo" onClick={undo} disabled={!history.length}>
+            <Undo2 size={17} />
+          </button>
+          <button title="Redo" onClick={redo} disabled={!future.length}>
+            <Redo2 size={17} />
+          </button>
+          <button onClick={() => newFrom(emptyDesign())}>
+            <FilePlus2 size={16} />
+            New
+          </button>
+          <button
+            onClick={() => {
+              setShouldPersist(true);
+              persist(design);
+            }}
+          >
+            <Save size={16} />
+            Save
+          </button>
+          <button
+            onClick={() =>
+              newFrom({ ...design, id: uid(), name: `${design.name} copy` })
+            }
+          >
+            <Copy size={16} />
+            Duplicate
+          </button>
+          <button onClick={saveTemplate}>
+            <Sparkles size={16} />
+            Template
+          </button>
+          <button className="export" onClick={exportPng}>
+            <Download size={16} />
+            Export PNG
+          </button>
+        </div>
+      </header>
+      <div className="workspace">
+        <aside className="leftbar">
+          <nav>
+            {(
+              [
+                { id: "templates", icon: Grid2X2, label: "Templates" },
+                { id: "text", icon: Type, label: "Text" },
+                { id: "shapes", icon: Shapes, label: "Shapes" },
+                { id: "images", icon: ImagePlus, label: "Images" },
+                { id: "background", icon: Palette, label: "Background" },
+                { id: "effects", icon: Sparkles, label: "Effects" },
+                { id: "layers", icon: Layers3, label: "Layers" },
+              ] as { id: Tool; icon: typeof Type; label: string }[]
+            ).map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                className={tool === id ? "active" : ""}
+                onClick={() => setTool(id)}
+              >
+                <Icon size={19} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </nav>
+          <section className="left-content">
+            {tool === "templates" && (
+              <>
+                <h3>Templates</h3>
+                <p className="muted">
+                  Use a composition. You will edit a new copy.
+                </p>
+                <div className="template-grid">
+                  {templateList.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => newFrom(cloneTemplate(template))}
+                    >
+                      <MiniPreview template={template} />
+                      <span>{template.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            {tool === "text" && (
+              <>
+                <h3>Text</h3>
+                <div className="add-list">
+                  <button onClick={() => add(text("HEADLINE", 160, 300, 64))}>
+                    <Type />
+                    Add headline
+                  </button>
+                  <button
+                    onClick={() =>
+                      add(text("Body text goes here.", 160, 300, 30))
+                    }
+                  >
+                    <Type />
+                    Add body
+                  </button>
+                  <button
+                    onClick={() => add(text("SMALL LABEL", 160, 300, 18))}
+                  >
+                    <Type />
+                    Add small label
+                  </button>
+                  <button
+                    onClick={() =>
+                      add(text("A MONO QUOTE\nWITH INTENTION.", 160, 300, 42))
+                    }
+                  >
+                    <Type />
+                    Add mono quote
+                  </button>
+                </div>
+                <button
+                  className="brand-button"
+                  onClick={() =>
+                    updateElements((items) => [
+                      ...items,
+                      ...brand().map((item) => ({ ...item, id: uid() })),
+                    ])
+                  }
+                >
+                  + Add brand frame
+                </button>
+              </>
+            )}
+            {tool === "shapes" && (
+              <>
+                <h3>Shapes</h3>
+                <div className="shape-grid">
+                  <button
+                    onClick={() =>
+                      add(
+                        base("rect", {
+                          name: "Rectangle",
+                          width: 260,
+                          height: 180,
+                          fill: "#000000",
+                        }),
+                      )
+                    }
+                  >
+                    <Square />
+                    Rectangle
+                  </button>
+                  <button
+                    onClick={() =>
+                      add(
+                        base("rect", {
+                          name: "Rounded rectangle",
+                          width: 260,
+                          height: 180,
+                          fill: "#EDEDED",
+                          radius: 28,
+                        }),
+                      )
+                    }
+                  >
+                    <Square />
+                    Rounded
+                  </button>
+                  <button
+                    onClick={() =>
+                      add(
+                        base("circle", {
+                          width: 260,
+                          height: 260,
+                          fill: "transparent",
+                          stroke: "#000000",
+                          strokeWidth: 3,
+                        }),
+                      )
+                    }
+                  >
+                    <Circle />
+                    Circle
+                  </button>
+                  <button
+                    onClick={() =>
+                      add(
+                        base("ellipse", {
+                          width: 320,
+                          height: 200,
+                          fill: "transparent",
+                          stroke: "#000000",
+                          strokeWidth: 3,
+                        }),
+                      )
+                    }
+                  >
+                    <Circle />
+                    Ellipse
+                  </button>
+                  <button
+                    onClick={() =>
+                      add(
+                        base("line", {
+                          width: 300,
+                          height: 2,
+                          stroke: "#000000",
+                          strokeWidth: 3,
+                        }),
+                      )
+                    }
+                  >
+                    <Minus />
+                    Line
+                  </button>
+                  <button onClick={() => add(cross(160, 160, "#000000", 56))}>
+                    <Plus />
+                    Cross / Plus
+                  </button>
+                </div>
+              </>
+            )}
+            {tool === "images" && (
+              <>
+                <h3>Images</h3>
+                <p className="muted">
+                  Image placement is ready for the next version. This first
+                  release keeps the system deliberately type-first.
+                </p>
+              </>
+            )}
+            {tool === "background" && (
+              <BackgroundPanel design={design} setDesign={commit} />
+            )}{" "}
+            {tool === "effects" && (
+              <EffectsPanel design={design} setDesign={commit} />
+            )}{" "}
+            {tool === "layers" && (
+              <>
+                <h3>Layers</h3>
+                <div className="layers">
+                  {[...design.elements].reverse().map((item) => (
+                    <div
+                      key={item.id}
+                      className={
+                        selected.includes(item.id) ? "layer active" : "layer"
+                      }
+                      onClick={() => setSelected([item.id])}
+                    >
+                      <span>
+                        {item.type === "text" ? (
+                          <Type size={14} />
+                        ) : item.type === "plus" ? (
+                          <Plus size={14} />
+                        ) : (
+                          <Shapes size={14} />
+                        )}
+                      </span>
+                      <label>{item.name}</label>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateElements((items) =>
+                            items.map((i) =>
+                              i.id === item.id
+                                ? { ...i, visible: !i.visible }
+                                : i,
+                            ),
+                          );
+                        }}
+                      >
+                        {item.visible ? (
+                          <Eye size={14} />
+                        ) : (
+                          <EyeOff size={14} />
+                        )}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateElements((items) =>
+                            items.map((i) =>
+                              i.id === item.id
+                                ? { ...i, locked: !i.locked }
+                                : i,
+                            ),
+                          );
+                        }}
+                      >
+                        {item.locked ? (
+                          <Lock size={13} />
+                        ) : (
+                          <LockOpen size={13} />
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+        </aside>
+        <section className="center">
+          <div className="canvas-toolbar">
+            <span>1080 × 1080</span>
+            <div>
+              <button
+                className={snap ? "on" : ""}
+                onClick={() => setSnap(!snap)}
+              >
+                <MousePointer2 size={14} />
+                Snap {snap ? "on" : "off"}
+              </button>
+              <select
+                value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+              >
+                <option value={0}>Fit</option>
+                <option value={0.25}>25%</option>
+                <option value={0.5}>50%</option>
+                <option value={0.75}>75%</option>
+                <option value={1}>100%</option>
+              </select>
+            </div>
+          </div>
+          <StudioCanvas
+            design={design}
+            selected={selected}
+            setSelected={setSelected}
+            updateElements={updateElements}
+            snap={snap}
+            zoom={zoom}
+            stageRef={stageRef}
+          />
+        </section>
+        <aside className="rightbar">
+          {selectedItem ? (
+            <Properties
+              item={selectedItem}
+              update={updateSelected}
+              deleteItem={() => {
+                updateElements((items) =>
+                  items.filter((i) => i.id !== selectedItem.id),
+                );
+                setSelected([]);
+              }}
+              duplicate={() =>
+                add({
+                  ...selectedItem,
+                  id: uid(),
+                  x: selectedItem.x + 24,
+                  y: selectedItem.y + 24,
+                  name: `${selectedItem.name} copy`,
+                })
+              }
+            />
+          ) : (
+            <DocumentPanel
+              design={design}
+              setDesign={commit}
+              snap={snap}
+              setSnap={setSnap}
+            />
+          )}
+        </aside>
+      </div>
+    </main>
+  );
+}

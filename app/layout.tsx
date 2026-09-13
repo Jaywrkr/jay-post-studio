@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "./library-overrides.css";
 
 const geistMono = localFont({
   src: [
