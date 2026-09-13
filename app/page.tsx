@@ -153,6 +153,7 @@ type IdeaRoute = {
   counterpoint?: string;
   uppercase?: boolean;
 };
+type IdeaAngle = "reflective" | "direct" | "contrarian";
 const uid = () => Math.random().toString(36).slice(2, 9);
 const base = (
   type: ElementType,
@@ -2485,7 +2486,10 @@ export default function Home() {
   const [imageMessage, setImageMessage] = useState("");
   const [ideaInput, setIdeaInput] = useState("");
   const [ideaTension, setIdeaTension] = useState<IdeaTension>("other");
+  const [ideaAngle, setIdeaAngle] = useState<IdeaAngle>("reflective");
   const [ideaRoutes, setIdeaRoutes] = useState<IdeaRoute[]>([]);
+  const [ideaGenerating, setIdeaGenerating] = useState(false);
+  const [ideaSource, setIdeaSource] = useState<"ai" | "editorial" | null>(null);
   const stageRef = useRef<Konva.Stage>(null);
   useEffect(() => {
     try {
@@ -2596,6 +2600,31 @@ export default function Home() {
     next.name = route.title;
     newFrom(next);
     setTool("text");
+  };
+  const createIdeaDirections = async () => {
+    const idea = cleanIdea(ideaInput);
+    if (!idea || ideaGenerating) return;
+    setIdeaGenerating(true);
+    try {
+      const response = await fetch("/api/ideas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea, tension: ideaTension, angle: ideaAngle }),
+      });
+      if (!response.ok) throw new Error("Could not create directions");
+      const result = (await response.json()) as {
+        routes?: IdeaRoute[];
+        source?: "ai" | "editorial";
+      };
+      if (!result.routes?.length) throw new Error("No directions returned");
+      setIdeaRoutes(result.routes);
+      setIdeaSource(result.source || "editorial");
+    } catch {
+      setIdeaRoutes(buildIdeaRoutes(idea, ideaTension));
+      setIdeaSource("editorial");
+    } finally {
+      setIdeaGenerating(false);
+    }
   };
   const undo = () => {
     const previous = history.at(-1);
@@ -2900,16 +2929,30 @@ export default function Home() {
                     <option value="other">Something else</option>
                   </select>
                 </label>
+                <label className="field">
+                  <span>How should it land?</span>
+                  <select
+                    value={ideaAngle}
+                    onChange={(event) => setIdeaAngle(event.target.value as IdeaAngle)}
+                  >
+                    <option value="reflective">Reflective</option>
+                    <option value="direct">Direct</option>
+                    <option value="contrarian">Contrarian</option>
+                  </select>
+                </label>
                 <button
                   className="idea-generate"
-                  disabled={!cleanIdea(ideaInput)}
-                  onClick={() => setIdeaRoutes(buildIdeaRoutes(ideaInput, ideaTension))}
+                  disabled={!cleanIdea(ideaInput) || ideaGenerating}
+                  onClick={createIdeaDirections}
                 >
                   <Sparkles size={15} />
-                  Create directions
+                  {ideaGenerating ? "Finding the angle..." : "Create directions"}
                 </button>
                 {ideaRoutes.length > 0 && (
                   <div className="idea-routes">
+                    <p className="idea-source">
+                      {ideaSource === "ai" ? "AI-shaped, JAY-edited" : "JAY editorial engine"}
+                    </p>
                     {ideaRoutes.map((route) => (
                       <article className="idea-route" key={route.id}>
                         <p className="idea-kicker">{route.label}</p>
