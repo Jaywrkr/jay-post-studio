@@ -156,13 +156,13 @@ export async function POST(request: Request) {
   if (!idea) return Response.json({ error: "An idea is required." }, { status: 400 });
 
   const editorialRoutes = fallback(idea, tension, angle);
-  if (!process.env.AI_GATEWAY_API_KEY) {
+  if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
     return Response.json({ routes: editorialRoutes, source: "editorial" });
   }
 
   try {
     const { text } = await generateText({
-      model: "openai/gpt-5.6-terra",
+      model: "openai/gpt-5.4",
       maxOutputTokens: 900,
       system:
         "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. " +
