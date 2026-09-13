@@ -6,6 +6,7 @@ import {
   AlignLeft,
   AlignRight,
   Circle,
+  Check,
   Copy,
   Download,
   Eye,
@@ -64,6 +65,7 @@ type ElementType =
 type Tool =
   | "templates"
   | "ideas"
+  | "queue"
   | "text"
   | "shapes"
   | "images"
@@ -154,6 +156,19 @@ type IdeaRoute = {
   uppercase?: boolean;
 };
 type IdeaAngle = "reflective" | "direct" | "contrarian";
+type QueueStatus = "review" | "approved" | "discarded";
+type QueuePost = {
+  id: string;
+  route: IdeaRoute;
+  status: QueueStatus;
+};
+type ContentBatch = {
+  id: string;
+  topic: string;
+  createdAt: string;
+  source: "ai" | "editorial";
+  posts: QueuePost[];
+};
 const uid = () => Math.random().toString(36).slice(2, 9);
 const base = (
   type: ElementType,
@@ -2490,6 +2505,9 @@ export default function Home() {
   const [ideaRoutes, setIdeaRoutes] = useState<IdeaRoute[]>([]);
   const [ideaGenerating, setIdeaGenerating] = useState(false);
   const [ideaSource, setIdeaSource] = useState<"ai" | "editorial" | null>(null);
+  const [batchTopic, setBatchTopic] = useState("");
+  const [batchGenerating, setBatchGenerating] = useState(false);
+  const [contentBatches, setContentBatches] = useState<ContentBatch[]>([]);
   const stageRef = useRef<Konva.Stage>(null);
   useEffect(() => {
     try {
@@ -2498,6 +2516,9 @@ export default function Home() {
       );
       setMyTemplates(
         JSON.parse(localStorage.getItem("jay-post-templates") || "[]"),
+      );
+      setContentBatches(
+        JSON.parse(localStorage.getItem("jay-content-batches") || "[]"),
       );
     } catch {}
   }, []);
@@ -2625,6 +2646,108 @@ export default function Home() {
     } finally {
       setIdeaGenerating(false);
     }
+  };
+  const updateContentBatches = (change: (batches: ContentBatch[]) => ContentBatch[]) => {
+    setContentBatches((existing) => {
+      const next = change(existing);
+      localStorage.setItem("jay-content-batches", JSON.stringify(next));
+      return next;
+    });
+  };
+  const createWeeklyBatch = async () => {
+    const topic = cleanIdea(batchTopic);
+    if (!topic || batchGenerating) return;
+    setBatchGenerating(true);
+    const passes: IdeaAngle[] = ["reflective", "contrarian"];
+    const results: { routes: IdeaRoute[]; source: "ai" | "editorial" }[] = [];
+    try {
+      for (const angle of passes) {
+        const response = await fetch("/api/ideas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idea: topic, tension: ideaTension, angle }),
+        });
+        if (!response.ok) throw new Error("Could not create weekly batch");
+        const result = (await response.json()) as {
+          routes?: IdeaRoute[];
+          source?: "ai" | "editorial";
+        };
+        if (!result.routes?.length) throw new Error("No batch routes returned");
+        results.push({
+          routes: result.routes,
+          source: result.source || "editorial",
+        });
+      }
+      const batch: ContentBatch = {
+        id: uid(),
+        topic,
+        createdAt: new Date().toISOString(),
+        source: results.every((result) => result.source === "ai") ? "ai" : "editorial",
+        posts: results.flatMap((result, pass) =>
+          result.routes.map((route) => ({
+            id: `${pass}-${route.id}-${uid()}`,
+            route: { ...route, id: `${pass}-${route.id}` },
+            status: "review" as QueueStatus,
+          })),
+        ),
+      };
+      updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
+      setBatchTopic("");
+    } catch {
+      const batch: ContentBatch = {
+        id: uid(),
+        topic,
+        createdAt: new Date().toISOString(),
+        source: "editorial",
+        posts: passes.flatMap((angle, pass) =>
+          buildIdeaRoutes(topic, ideaTension).map((route) => ({
+            id: `${pass}-${route.id}-${uid()}`,
+            route: {
+              ...route,
+              id: `${pass}-${route.id}`,
+              copy:
+                angle === "contrarian"
+                  ? `${ideaFrames[ideaTension].contrast}\n\n${route.copy}`
+                  : route.copy,
+            },
+            status: "review" as QueueStatus,
+          })),
+        ),
+      };
+      updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
+    } finally {
+      setBatchGenerating(false);
+    }
+  };
+  const setQueuePostStatus = (batchId: string, postId: string, status: QueueStatus) => {
+    updateContentBatches((batches) =>
+      batches.map((batch) =>
+        batch.id === batchId
+          ? {
+              ...batch,
+              posts: batch.posts.map((post) =>
+                post.id === postId ? { ...post, status } : post,
+              ),
+            }
+          : batch,
+      ),
+    );
+  };
+  const approveBatch = (batchId: string) => {
+    updateContentBatches((batches) =>
+      batches.map((batch) =>
+        batch.id === batchId
+          ? {
+              ...batch,
+              posts: batch.posts.map((post) =>
+                post.status === "discarded"
+                  ? post
+                  : { ...post, status: "approved" },
+              ),
+            }
+          : batch,
+      ),
+    );
   };
   const undo = () => {
     const previous = history.at(-1);
@@ -2860,6 +2983,7 @@ export default function Home() {
               [
                 { id: "templates", icon: Grid2X2, label: "Templates" },
                 { id: "ideas", icon: Sparkles, label: "Idea" },
+                { id: "queue", icon: Check, label: "Queue" },
                 { id: "text", icon: Type, label: "Text" },
                 { id: "shapes", icon: Shapes, label: "Shapes" },
                 { id: "images", icon: ImagePlus, label: "Images" },
@@ -2965,6 +3089,89 @@ export default function Home() {
                     ))}
                   </div>
                 )}
+              </>
+            )}
+            {tool === "queue" && (
+              <>
+                <h3>Weekly queue</h3>
+                <p className="muted">
+                  Create an 8-post set, review it, then open any post for a final edit.
+                </p>
+                <label className="field">
+                  <span>What is this week about?</span>
+                  <textarea
+                    className="idea-input"
+                    value={batchTopic}
+                    placeholder="Building a life with more freedom and less performance."
+                    onChange={(event) => setBatchTopic(event.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span>Core tension</span>
+                  <select
+                    value={ideaTension}
+                    onChange={(event) => setIdeaTension(event.target.value as IdeaTension)}
+                  >
+                    <option value="time">Time</option>
+                    <option value="freedom">Freedom</option>
+                    <option value="limits">Limits</option>
+                    <option value="money">Money</option>
+                    <option value="identity">Identity</option>
+                    <option value="routine">Routine</option>
+                    <option value="other">Something else</option>
+                  </select>
+                </label>
+                <button
+                  className="idea-generate"
+                  disabled={!cleanIdea(batchTopic) || batchGenerating}
+                  onClick={createWeeklyBatch}
+                >
+                  <Sparkles size={15} />
+                  {batchGenerating ? "Building your set..." : "Create 8-post weekly set"}
+                </button>
+                <p className="queue-note">Two creative passes · eight editable post directions</p>
+                {contentBatches.map((batch) => {
+                  const approved = batch.posts.filter((post) => post.status === "approved").length;
+                  return (
+                    <section className="content-batch" key={batch.id}>
+                      <header>
+                        <div>
+                          <p className="idea-kicker">
+                            {batch.source === "ai" ? "Claude batch" : "JAY editorial batch"}
+                          </p>
+                          <h4>{batch.topic}</h4>
+                        </div>
+                        <button className="queue-approve-all" onClick={() => approveBatch(batch.id)}>
+                          Approve all
+                        </button>
+                      </header>
+                      <p className="queue-count">{approved} approved · {batch.posts.length} posts</p>
+                      <div className="queue-posts">
+                        {batch.posts.map((post, index) => (
+                          <article className={`queue-post ${post.status}`} key={post.id}>
+                            <p className="idea-kicker">{String(index + 1).padStart(2, "0")} · {post.route.label}</p>
+                            <p className="queue-copy">{post.route.copy}</p>
+                            <div className="queue-actions">
+                              <button onClick={() => openIdeaRoute(post.route)}>Edit</button>
+                              <button
+                                className={post.status === "approved" ? "selected" : ""}
+                                onClick={() => setQueuePostStatus(batch.id, post.id, "approved")}
+                              >
+                                <Check size={12} /> Approve
+                              </button>
+                              <button
+                                className={post.status === "discarded" ? "selected" : ""}
+                                onClick={() => setQueuePostStatus(batch.id, post.id, "discarded")}
+                              >
+                                <Trash2 size={12} /> Skip
+                              </button>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
               </>
             )}
             {tool === "text" && (

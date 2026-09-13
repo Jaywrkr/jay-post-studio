@@ -223,6 +223,92 @@
   font-size: 9px;
 }
 
+.queue-note,
+.queue-count {
+  margin: -8px 0 14px;
+  color: #777;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.content-batch {
+  margin: 18px 0;
+  border-top: 1px solid #111;
+  padding-top: 14px;
+}
+
+.content-batch > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.content-batch h4 {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.queue-approve-all {
+  flex: 0 0 auto;
+  border: 0;
+  background: #111;
+  color: #fff;
+  padding: 7px 8px;
+  font-size: 8px;
+}
+
+.queue-posts {
+  display: grid;
+  gap: 8px;
+}
+
+.queue-post {
+  border: 1px solid #d9d9d4;
+  background: #fff;
+  padding: 10px;
+}
+
+.queue-post.approved {
+  border-color: #111;
+}
+
+.queue-post.discarded {
+  opacity: 0.38;
+}
+
+.queue-copy {
+  margin: 0;
+  color: #222;
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.queue-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid #c9c9c5;
+  background: #fff;
+  padding: 5px 6px;
+  font-size: 8px;
+}
+
+.queue-actions button.selected {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
 @media (max-width: 900px) {
   .design-grid,
   .template-row {
