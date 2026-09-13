@@ -1482,13 +1482,34 @@ function CanvasImage({ item }: { item: StudioElement }) {
       return;
     }
     const next = new window.Image();
-    next.onload = () => setBitmap(next);
+    let cancelled = false;
+    next.onload = () => {
+      if (!cancelled) setBitmap(next);
+    };
     next.src = item.src;
     return () => {
+      cancelled = true;
       next.onload = null;
     };
   }, [item.src]);
-  return bitmap ? <KImage image={bitmap} width={item.width} height={item.height} /> : null;
+  if (!bitmap) return null;
+  const sourceRatio = bitmap.width / bitmap.height;
+  const frameRatio = item.width / item.height;
+  const crop =
+    sourceRatio > frameRatio
+      ? {
+          x: (bitmap.width - bitmap.height * frameRatio) / 2,
+          y: 0,
+          width: bitmap.height * frameRatio,
+          height: bitmap.height,
+        }
+      : {
+          x: 0,
+          y: (bitmap.height - bitmap.width / frameRatio) / 2,
+          width: bitmap.width,
+          height: bitmap.width / frameRatio,
+        };
+  return <KImage image={bitmap} width={item.width} height={item.height} crop={crop} />;
 }
 
 function StudioCanvas({
@@ -1512,6 +1533,8 @@ function StudioCanvas({
   const transformer = useRef<Konva.Transformer>(null);
   const [fit, setFit] = useState(0.55);
   const [guides, setGuides] = useState<{ x?: number; y?: number }>({});
+  const [canvasReady, setCanvasReady] = useState(false);
+  useEffect(() => setCanvasReady(true), []);
   useEffect(() => {
     const resize = () => {
       if (wrap.current)
@@ -1528,14 +1551,19 @@ function StudioCanvas({
     return () => observer.disconnect();
   }, []);
   useEffect(() => {
-    if (!transformer.current || !stageRef.current) return;
-    transformer.current.nodes(
-      selected
-        .map((id) => stageRef.current!.findOne(`#${id}`))
-        .filter(Boolean) as Konva.Node[],
-    );
-    transformer.current.getLayer()?.batchDraw();
-  }, [selected, design.elements, stageRef]);
+    if (!canvasReady) return;
+    const frame = window.requestAnimationFrame(() => {
+      const stage = stageRef.current;
+      const control = transformer.current;
+      if (!stage || !control || !control.getLayer()) return;
+      const nodes = selected
+        .map((id) => stage.findOne(`#${id}`))
+        .filter((node): node is Konva.Node => Boolean(node && node.getStage() === stage));
+      control.nodes(nodes);
+      control.getLayer()?.batchDraw();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [canvasReady, selected, design.elements, stageRef]);
   const scale = zoom === 0 ? fit : zoom;
   const select = (
     event: Konva.KonvaEventObject<MouseEvent>,
@@ -1598,6 +1626,8 @@ function StudioCanvas({
       ),
     );
   };
+  if (!canvasReady)
+    return <div className="canvas-wrap"><div className="canvas-loading">Preparing canvas…</div></div>;
   return (
     <div className="canvas-wrap" ref={wrap}>
       <div
@@ -1814,6 +1844,7 @@ function StudioCanvas({
             )}
             <Transformer
               ref={transformer}
+              visible={selected.length > 0}
               rotateEnabled
               enabledAnchors={[
                 "top-left",
@@ -2347,6 +2378,7 @@ export default function Home() {
   const [myDesigns, setMyDesigns] = useState<Design[]>([]);
   const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const [shouldPersist, setShouldPersist] = useState(false);
+  const [imageMessage, setImageMessage] = useState("");
   const stageRef = useRef<Konva.Stage>(null);
   useEffect(() => {
     try {
@@ -2360,15 +2392,19 @@ export default function Home() {
   }, []);
   const persist = useCallback((value: Design) => {
     const updated = { ...value, updatedAt: new Date().toISOString() };
-    setMyDesigns((existing) => {
-      const next = [
-        updated,
-        ...existing.filter((d) => d.id !== updated.id),
-      ].slice(0, 30);
-      localStorage.setItem("jay-post-designs", JSON.stringify(next));
-      return next;
-    });
-    setSaved("Saved");
+    try {
+      setMyDesigns((existing) => {
+        const next = [
+          updated,
+          ...existing.filter((d) => d.id !== updated.id),
+        ].slice(0, 30);
+        localStorage.setItem("jay-post-designs", JSON.stringify(next));
+        return next;
+      });
+      setSaved("Saved");
+    } catch {
+      setSaved("Saved in this session");
+    }
   }, []);
   useEffect(() => {
     if (screen !== "editor" || !shouldPersist) return;
@@ -2389,9 +2425,18 @@ export default function Home() {
     setSelected([item.id]);
   };
   const addImageFile = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setImageMessage("Choose an image file.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setImageMessage("Use a photo under 2 MB so the design can be saved.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       add(postImage(String(reader.result), file.name, 120, 120, 720, 720));
+      setImageMessage("Photo added. Select it to resize or reorder it.");
     };
     reader.readAsDataURL(file);
   };
@@ -2432,12 +2477,12 @@ export default function Home() {
   const exportPng = () => {
     if (!stageRef.current) return;
     setSelected([]);
-    setTimeout(() => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
       const a = document.createElement("a");
       a.download = `${design.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "jay-post"}.png`;
       a.href = stageRef.current!.toDataURL({ pixelRatio: 1 });
       a.click();
-    }, 40);
+    }));
   };
   const saveTemplate = () => {
     const template: Template = {
@@ -2505,7 +2550,7 @@ export default function Home() {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   });
-  const templateList = [...templates, ...myTemplates];
+  const templateList = [...templates.slice(0, 15), ...myTemplates];
   if (screen === "library")
     return (
       <main className="library">
@@ -2531,7 +2576,7 @@ export default function Home() {
             Start with a blank 1080 × 1080 canvas <Plus size={16} />
           </button>
         </section>
-        <section className="design-grid">
+        <section className={myDesigns.length ? "design-grid" : "design-empty"}>
           {myDesigns.length ? (
             myDesigns.map((item) => (
               <button
@@ -2818,8 +2863,8 @@ export default function Home() {
               <>
                 <h3>Images</h3>
                 <p className="muted">
-                  Add your own photo, then move, crop and layer it behind your
-                  words.
+                  Add your own photo. It will cover its frame cleanly when you
+                  resize it.
                 </p>
                 <label className="image-upload">
                   <ImagePlus size={18} />
@@ -2838,6 +2883,7 @@ export default function Home() {
                   Your image stays in this design on this browser. Select it
                   to send it behind text or bring it forward.
                 </p>
+                {imageMessage && <p className="image-note">{imageMessage}</p>}
               </>
             )}
             {tool === "background" && (

@@ -4,6 +4,25 @@
   gap: 24px;
 }
 
+.design-empty {
+  padding: 20px 0 30px;
+}
+
+.design-empty .empty-card {
+  min-height: 72px;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 0 22px;
+}
+
+.canvas-loading {
+  border: 1px solid #c9c9c5;
+  background: #f7f7f5;
+  padding: 15px 18px;
+  color: #777;
+  font-size: 11px;
+}
+
 .design-card,
 .template-card {
   transition: transform 160ms ease;
