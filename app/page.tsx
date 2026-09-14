@@ -190,7 +190,7 @@ type ContentBatch = {
   topic: string;
   createdAt: string;
   source: "ai" | "editorial";
-  schemaVersion?: 6;
+  schemaVersion?: 7;
   posts: QueuePost[];
   arc?: string;
   thesis?: string;
@@ -3025,7 +3025,7 @@ export default function Home() {
         arc: result.week.arc,
         createdAt: new Date().toISOString(),
         source: result.source || "editorial",
-        schemaVersion: 6,
+        schemaVersion: 7,
         posts: result.week.posts.map((post) => ({
           id: uid(),
           route: {
@@ -3547,7 +3547,7 @@ export default function Home() {
                     ))}
                   </section>
                 )}
-                {contentBatches.filter((batch) => batch.schemaVersion === 6).map((batch) => {
+                {contentBatches.filter((batch) => batch.schemaVersion === 7).map((batch) => {
                   const approved = batch.posts.filter((post) => post.status === "approved").length;
                   return (
                     <section className="content-batch" key={batch.id}>
@@ -3638,7 +3638,7 @@ export default function Home() {
                     </section>
                   );
                 })}
-                {contentBatches.some((batch) => batch.schemaVersion !== 6) && (
+                {contentBatches.some((batch) => batch.schemaVersion !== 7) && (
                   <p className="batch-legacy">Los borradores del sistema anterior siguen guardados, pero ya no se mezclan con tus semanas nuevas.</p>
                 )}
               </>

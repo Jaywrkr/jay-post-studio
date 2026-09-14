@@ -40,6 +40,7 @@ const reportGenerationFailure = (error: unknown) => {
   console.error(`[JAY AI] idea generation failed with ${model}. ${detail}`);
 };
 const coreSolutionsPattern = /\b(cliente|clientes|empresa|empresas|equipo|equipos|liderazgo|líder|líderes|salario|ascenso|networking|mentor|mentoría|industria|ventas|marketing|empleabilidad|certificaci[oó]n|freelanc\w*|coaching|roi|impuestos|delegaci[oó]n|carrera profesional|marca personal)\b/i;
+const foreignLeakPattern = /\b(after|before|because|actually|however|though|maybe|still|work|job|business|career|team|client|meeting|deadline|feedback|growth|leadership)\b/i;
 const jayEditorialWorld = "JAY speaks about ordinary life: time and attention; identity and change; comfort and enough; money as margin and freedom; decisions, loss and sunk cost; relationships, parents, children and presence; technology and distraction; ambition, mortality and the quality of an ordinary Tuesday. JAY is not CoreSolutions. Never introduce clients, companies, teams, leadership, salaries, careers, sales, marketing, networking, mentoring, consulting, workplace performance or business productivity unless those subjects are explicitly present in the user's original idea.";
 const jayClarityRule = "Clarity matters more than brevity. Every line must be grammatical, complete and immediately understandable without a caption. Do not delete context to sound minimal. Avoid vague pseudo-profundity and avoid stacking metaphors. Keep one observation, one tension and one consequence.";
 const jayReferenceVoice = "Voice references: 'No necesitas recordar cada día de tu vida para haberlo desperdiciado. De hecho, ese puede ser precisamente el problema.' 'Puedes construir una vida llena de momentos impresionantes y seguir odiando los martes.' 'Una compra no cuesta únicamente dinero. También cuesta las horas de vida necesarias para producir ese dinero.' 'Hay conversaciones que aplazamos durante meses porque no queremos pasar veinte minutos incómodos.'";
@@ -163,7 +164,8 @@ const parseDirections = (text: string, allowProfessional = false): Direction[] |
       const templateId = normalize(item?.templateId, 50);
       const copy = graphicCopy(normalize(item?.copy), copyLimit(templateId));
       const counterpoint = normalize(item?.counterpoint);
-      if (!templateIds.has(templateId) || !copy || (!allowProfessional && coreSolutionsPattern.test(`${item?.title || ""} ${copy} ${counterpoint}`))) return null;
+      const completeRoute = `${item?.title || ""} ${copy} ${counterpoint}`;
+      if (!templateIds.has(templateId) || !copy || foreignLeakPattern.test(completeRoute) || (!allowProfessional && coreSolutionsPattern.test(completeRoute))) return null;
       return {
         id: `ai-${index}`,
         title: normalize(item?.title, 50) || "Nueva dirección",
@@ -230,7 +232,7 @@ export async function POST(request: Request) {
         model: anthropic(model),
         providerOptions: { anthropic: { thinking: { type: "disabled" } } },
         maxOutputTokens: 2100,
-        system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Preserve the exact human truth of the source idea instead of attaching an unrelated aphorism. Create four genuinely different treatments: a developed observation, a clean contrast, a human reframing and a direct claim. Never motivational, therapeutic, clickbait, generic, decorative or salesy. Never use emojis, hashtags or calls to action. Use complete sentences. Keep every route legible on a 1080px post: maximum 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. Return only valid JSON: exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. For jay-four-sides provide a short counterpoint.`,
+        system: `You are the editorial partner for JAY POST STUDIO. Write only in neutral Latin American Spanish using tú forms; never use voseo or insert an English word. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Preserve the exact human truth of the source idea instead of attaching an unrelated aphorism. Create four genuinely different treatments: a developed observation, a clean contrast, a human reframing and a direct claim. Never motivational, therapeutic, clickbait, generic, decorative or salesy. Never use emojis, hashtags or calls to action. Use complete sentences. Keep every route legible on a 1080px post: maximum 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. Return only valid JSON: exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. For jay-four-sides provide a short counterpoint.`,
         prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}.${attempt ? " La respuesta anterior resultó confusa, ajena a JAY o incumplió la estructura. Reescríbela desde cero con más claridad." : ""}`,
       });
       text = result.text;
