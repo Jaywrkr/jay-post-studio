@@ -141,6 +141,21 @@ const completeGraphicCopy = (value: unknown, max: number) => {
   const shortened = clean.slice(0, Math.max(1, max - 1)).replace(/\s+\S*$/, "").replace(/[,:;\-–—]+$/, "").trim();
   return `${shortened}.`;
 };
+const completeLabel = (value: unknown, max: number) => {
+  const clean = normalCaption(value).replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  return clean.slice(0, max).replace(/\s+\S*$/, "").replace(/[,:;\-–—]+$/, "").trim();
+};
+const twoParagraphCaption = (value: unknown) => {
+  const clean = normalCaption(value);
+  if (!clean) return "";
+  const paragraphs = clean.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
+  if (paragraphs.length >= 2) return `${paragraphs[0]}\n\n${paragraphs.slice(1).join(" ")}`;
+  const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map((sentence) => sentence.trim()).filter(Boolean) || [];
+  if (sentences.length < 2) return clean;
+  const splitAt = Math.ceil(sentences.length / 2);
+  return `${sentences.slice(0, splitAt).join(" ")}\n\n${sentences.slice(splitAt).join(" ")}`;
+};
 
 const curatedEditorialThemes: Array<Omit<Theme, "id">> = [
   { title: "El costo de tolerar", thesis: "Lo que toleras no es neutral: también diseña la vida que luego intentas cambiar.", tension: "limits" },
@@ -400,8 +415,8 @@ const parseThemes = (text: string, excluded: string[] = []): Theme[] | null => {
     if (value.length !== 4) return null;
     const themes = value.map((item, index) => ({
       id: `ai-theme-${index}`,
-      title: normalize(item?.title, 55),
-      thesis: normalize(item?.thesis, 240),
+      title: completeLabel(item?.title, 80),
+      thesis: completeGraphicCopy(item?.thesis, 300),
       tension: tensions.has(item?.tension) ? item.tension as Tension : "other",
     }));
     const blocked = new Set(excluded.map((title) => title.toLocaleLowerCase()));
@@ -428,17 +443,21 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
       // Accept that valid shape instead of discarding a complete weekly plan.
       const copySource = normalCaption(item.copy) || (plan.format === "carousel" ? normalCaption(slides?.[0]) : normalize(item.title));
       const copy = completeGraphicCopy(copySource, graphicLimit(plan.format));
-      const caption = normalCaption(item.caption);
+      const caption = twoParagraphCaption(item.caption);
+      const rawPillar = completeLabel(item.pillar, 65);
+      const pillar = !rawPillar || rawPillar.startsWith("jay-") || rawPillar === templateId
+        ? plan.role
+        : rawPillar;
       if (!copy || !caption) return null;
       if (plan.format === "carousel" && (!slides || slides.length < 4)) return null;
       return {
         ...plan,
-        title: normalize(item.title, 55) || plan.role,
-        label: normalize(item.label, 80) || `${plan.format} · ${plan.role}`,
+        title: completeLabel(item.title, 90) || plan.role,
+        label: completeLabel(item.label, 100) || `${plan.format} · ${plan.role}`,
         templateId,
         copy,
         caption,
-        pillar: normalize(item.pillar, 65) || "Idea central",
+        pillar,
         ...(templateId === "jay-four-sides" && normalize(item.counterpoint) ? { counterpoint: completeGraphicCopy(item.counterpoint, 85) } : {}),
         ...(plan.format === "SIMPLE" ? { uppercase: true } : {}),
         ...(slides?.length ? { slides } : {}),
@@ -446,9 +465,9 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
     });
     if (posts.some((post) => !post)) return null;
     return {
-      title: normalize(payload.title, 65) || "Semana JAY",
-      thesis: normalize(payload.thesis, 240),
-      arc: normalize(payload.arc, 180) || "Observar → confrontar → integrar",
+      title: completeLabel(payload.title, 90) || "Semana JAY",
+      thesis: completeGraphicCopy(payload.thesis, 320),
+      arc: completeGraphicCopy(payload.arc, 360) || "Observar → confrontar → integrar",
       posts: posts as WeekPost[],
     };
   } catch { return null; }

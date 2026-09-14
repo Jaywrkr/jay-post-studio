@@ -190,7 +190,7 @@ type ContentBatch = {
   topic: string;
   createdAt: string;
   source: "ai" | "editorial";
-  schemaVersion?: 3;
+  schemaVersion?: 4;
   posts: QueuePost[];
   arc?: string;
   thesis?: string;
@@ -283,8 +283,10 @@ const originalTemplateNameCopy: Record<string, string> = {
   "JAY / Repeater": "JAY / Repetición",
   "JAY / Reminder": "JAY / Recordatorio",
   "JAY / Photo Reference": "JAY / Referencia con foto",
+  "Untitled post": "Post sin título",
 };
 const templateName = (template: Pick<Template, "id" | "name">) => templateNameCopy[template.id] || originalTemplateNameCopy[template.name] || template.name;
+const localizedDesignName = (name: string) => originalTemplateNameCopy[name] || name;
 const templateNameFromId = (id: string) => templateNameCopy[id]?.replace("JAY / ", "") || id.replace("jay-", "").replaceAll("-", " ");
 const localizedRouteLabel = (label: string) => label
   .replace(/Quiet Paper/gi, "Papel sobrio")
@@ -2809,7 +2811,7 @@ export default function Home() {
       ),
     );
   const newFrom = (d: Design) => {
-    setDesign(d);
+    setDesign({ ...d, name: localizedDesignName(d.name) });
     setSelected([]);
     setHistory([]);
     setFuture([]);
@@ -3016,7 +3018,7 @@ export default function Home() {
         arc: result.week.arc,
         createdAt: new Date().toISOString(),
         source: result.source || "editorial",
-        schemaVersion: 3,
+        schemaVersion: 4,
         posts: result.week.posts.map((post) => ({
           id: uid(),
           route: {
@@ -3537,7 +3539,7 @@ export default function Home() {
                     ))}
                   </section>
                 )}
-                {contentBatches.filter((batch) => batch.schemaVersion === 3).map((batch) => {
+                {contentBatches.filter((batch) => batch.schemaVersion === 4).map((batch) => {
                   const approved = batch.posts.filter((post) => post.status === "approved").length;
                   return (
                     <section className="content-batch" key={batch.id}>
@@ -3628,7 +3630,7 @@ export default function Home() {
                     </section>
                   );
                 })}
-                {contentBatches.some((batch) => batch.schemaVersion !== 3) && (
+                {contentBatches.some((batch) => batch.schemaVersion !== 4) && (
                   <p className="batch-legacy">Los borradores del sistema anterior siguen guardados, pero ya no se mezclan con tus semanas nuevas.</p>
                 )}
               </>
