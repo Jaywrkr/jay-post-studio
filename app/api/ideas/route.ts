@@ -29,6 +29,11 @@ const templateIds = new Set([
 const requestWindows = new Map<string, { count: number; resetAt: number }>();
 const requestLimit = 8;
 const requestWindowMs = 10 * 60 * 1000;
+const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
+const reportGenerationFailure = (error: unknown) => {
+  const detail = error instanceof Error ? `${error.name}: ${error.message}` : "Unknown provider error";
+  console.error(`[JAY AI] idea generation failed with ${model}. ${detail}`);
+};
 
 const frames: Record<Tension, { contrast: string; mirror: string; pressure: string }> = {
   time: {
@@ -180,6 +185,7 @@ export async function POST(request: Request) {
 
   const editorialRoutes = fallback(idea, tension, angle);
   if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; using the editorial library.");
     return Response.json({ routes: editorialRoutes, source: "editorial" });
   }
   if (!canGenerate(request)) {
@@ -188,7 +194,7 @@ export async function POST(request: Request) {
 
   try {
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-5"),
+      model: anthropic(model),
       maxOutputTokens: 900,
       system:
         "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. " +
@@ -200,8 +206,10 @@ export async function POST(request: Request) {
       prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}`,
     });
     const routes = parseDirections(text);
+    if (!routes) console.warn("[JAY AI] Idea response could not be parsed; using the editorial library.");
     return Response.json({ routes: routes || editorialRoutes, source: routes ? "ai" : "editorial" });
-  } catch {
+  } catch (error) {
+    reportGenerationFailure(error);
     return Response.json({ routes: editorialRoutes, source: "editorial" });
   }
 }
