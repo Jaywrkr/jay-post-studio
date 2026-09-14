@@ -294,8 +294,16 @@ const text = (
     fill: color,
     align: "left",
   });
-const wrapCanvasCopy = (value: string, width: number, fontSize: number) => {
-  const limit = Math.max(13, Math.floor(width / Math.max(1, fontSize * 0.57)));
+const wrapCanvasCopy = (
+  value: string,
+  width: number,
+  fontSize: number,
+  letterSpacing = 0,
+) => {
+  // Geist Mono is deliberately wide. Leave a little breathing room so the
+  // rendered line never clips at the right edge of the selected box.
+  const characterWidth = fontSize * 0.62 + Math.max(0, letterSpacing);
+  const limit = Math.max(10, Math.floor((width - 10) / Math.max(1, characterWidth)));
   return value
     .trim()
     .split("\n")
@@ -316,6 +324,22 @@ const wrapCanvasCopy = (value: string, width: number, fontSize: number) => {
       return lines;
     })
     .join("\n");
+};
+const fitCanvasText = (item: StudioElement): StudioElement => {
+  if (item.type !== "text") return item;
+  const content = wrapCanvasCopy(
+    item.text || "",
+    Math.max(12, item.width),
+    item.fontSize || 36,
+    item.letterSpacing || 0,
+  );
+  const lines = Math.max(1, content.split("\n").length);
+  return {
+    ...item,
+    text: content,
+    // Extra space keeps descenders and the last line visible in Konva.
+    height: Math.ceil((item.fontSize || 36) * (item.lineHeight || 1.2) * lines + 18),
+  };
 };
 const cross = (
   x: number,
@@ -1281,7 +1305,10 @@ const cloneTemplate = (template: Template): Design => ({
   ...template.design,
   id: uid(),
   name: template.name,
-  elements: template.design.elements.map((e) => ({ ...e, id: uid() })),
+  elements: template.design.elements.map((e) => ({
+    ...(e.type === "text" && (e.fontSize || 0) >= 28 ? fitCanvasText(e) : e),
+    id: uid(),
+  })),
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
@@ -1562,7 +1589,18 @@ function DesignPreview({ design }: { design: PreviewDesign }) {
 }
 
 function MiniPreview({ template }: { template: Template }) {
-  return <DesignPreview design={template.design} />;
+  return (
+    <DesignPreview
+      design={{
+        ...template.design,
+        elements: template.design.elements.map((item) =>
+          item.type === "text" && (item.fontSize || 0) >= 20
+            ? fitCanvasText(item)
+            : item,
+        ),
+      }}
+    />
+  );
 }
 
 function Noise({ effects }: { effects: Effects }) {
@@ -1809,19 +1847,27 @@ function StudioCanvas({
       sy = node.scaleY();
     node.scaleX(1);
     node.scaleY(1);
+    const width = Math.max(12, item.width * sx);
+    const height = Math.max(12, item.height * sy);
+    const widthChanged = Math.abs(width - item.width) > 1;
+    const heightChanged = Math.abs(height - item.height) > 1;
     updateElements((items) =>
-      items.map((i) =>
-        i.id === item.id
-          ? {
-              ...i,
-              x: node.x(),
-              y: node.y(),
-              rotation: node.rotation(),
-              width: Math.max(12, item.width * sx),
-              height: Math.max(12, item.height * sy),
-            }
-          : i,
-      ),
+      items.map((i) => {
+        if (i.id !== item.id) return i;
+        const resized = {
+          ...i,
+          x: node.x(),
+          y: node.y(),
+          rotation: node.rotation(),
+          width,
+          height,
+        };
+        // Pulling a side handle changes only the width, so reflow the text.
+        // Pulling a vertical/corner handle keeps the height the user chose.
+        return resized.type === "text" && widthChanged && !heightChanged
+          ? fitCanvasText(resized)
+          : resized;
+      }),
     );
   };
   const dragEnd = (
@@ -1956,7 +2002,7 @@ function StudioCanvas({
                         width={item.width}
                         height={item.height}
                         fontSize={item.fontSize}
-                        fontFamily="Geist Mono"
+                        fontFamily={item.fontFamily || "Geist Mono"}
                         fontStyle={item.fontStyle}
                         fill={item.fill}
                         align={item.align}
@@ -2070,10 +2116,16 @@ function StudioCanvas({
               rotateEnabled
               enabledAnchors={[
                 "top-left",
+                "top-center",
                 "top-right",
+                "middle-left",
+                "middle-right",
                 "bottom-left",
+                "bottom-center",
                 "bottom-right",
               ]}
+              keepRatio={false}
+              flipEnabled={false}
               borderStroke="#008BFF"
               anchorFill="#FFFFFF"
               anchorStroke="#008BFF"
@@ -2387,6 +2439,27 @@ function Properties({
   sendToBack: () => void;
   bringToFront: () => void;
 }) {
+  const updateText = (patch: Partial<StudioElement>) => {
+    const needsFit =
+      item.type === "text" &&
+      ["text", "fontSize", "lineHeight", "letterSpacing", "width"].some(
+        (key) => key in patch,
+      );
+    if (!needsFit) {
+      update(patch);
+      return;
+    }
+    const next = fitCanvasText({ ...item, ...patch } as StudioElement);
+    update({
+      ...patch,
+      text: next.text,
+      height: next.height,
+      name:
+        patch.text !== undefined
+          ? String(patch.text).trim().slice(0, 24) || "Texto"
+          : item.name,
+    });
+  };
   return (
     <>
       <div className="property-head">
@@ -2405,12 +2478,7 @@ function Properties({
               <span>Texto</span>
             <textarea
               value={item.text || ""}
-              onChange={(e) =>
-                update({
-                  text: e.target.value,
-                  name: e.target.value.slice(0, 24) || "Text",
-                })
-              }
+              onChange={(e) => updateText({ text: e.target.value })}
             />
           </label>
           <label className="field">
@@ -2428,7 +2496,7 @@ function Properties({
             <NumberField
                 label="Tamaño"
               value={item.fontSize || 0}
-              onChange={(fontSize) => update({ fontSize })}
+              onChange={(fontSize) => updateText({ fontSize })}
             />
             <label className="field">
                 <span>Peso</span>
@@ -2454,12 +2522,12 @@ function Properties({
                 label="Interlineado"
               value={item.lineHeight || 1}
               step={0.1}
-              onChange={(lineHeight) => update({ lineHeight })}
+              onChange={(lineHeight) => updateText({ lineHeight })}
             />
             <NumberField
                 label="Espaciado"
               value={item.letterSpacing || 0}
-              onChange={(letterSpacing) => update({ letterSpacing })}
+              onChange={(letterSpacing) => updateText({ letterSpacing })}
             />
           </div>
           <div className="align-control">
@@ -2541,7 +2609,7 @@ function Properties({
           <NumberField
             label="W"
             value={Math.round(item.width)}
-            onChange={(width) => update({ width })}
+            onChange={(width) => updateText({ width})}
           />
           <NumberField
             label="H"
@@ -2611,6 +2679,7 @@ export default function Home() {
   const [batchGenerating, setBatchGenerating] = useState(false);
   const [themeIdeas, setThemeIdeas] = useState<WeeklyTheme[]>([]);
   const [themeSearching, setThemeSearching] = useState(false);
+  const [usedThemeTitles, setUsedThemeTitles] = useState<string[]>([]);
   const [contentBatches, setContentBatches] = useState<ContentBatch[]>([]);
   const [carouselPreview, setCarouselPreview] = useState<CarouselPreview | null>(null);
   const stageRef = useRef<Konva.Stage>(null);
@@ -2623,9 +2692,13 @@ export default function Home() {
       setMyTemplates(
         JSON.parse(localStorage.getItem("jay-post-templates") || "[]"),
       );
-      setContentBatches(
-        JSON.parse(localStorage.getItem("jay-content-batches") || "[]"),
-      );
+      const batches = JSON.parse(localStorage.getItem("jay-content-batches") || "[]") as ContentBatch[];
+      const rememberedThemes = JSON.parse(localStorage.getItem("jay-used-weekly-themes") || "[]") as string[];
+      setContentBatches(batches);
+      setUsedThemeTitles(Array.from(new Set([
+        ...rememberedThemes,
+        ...batches.map((batch) => batch.topic).filter(Boolean),
+      ])).slice(-500));
     } catch {}
   }, []);
   const persist = useCallback((value: Design) => {
@@ -2702,6 +2775,8 @@ export default function Home() {
     const templateId =
       route.templateId === "jay-mirror" && route.copy.length > 92
         ? "jay-quiet-ink"
+        : route.templateId === "jay-message" && route.copy.length > 90
+          ? "jay-quiet-paper"
         : route.templateId;
     const source = templates.find((template) => template.id === templateId);
     if (!source) return;
@@ -2747,10 +2822,10 @@ export default function Home() {
     openIdeaRoute(
       {
         id: `${post.id}-slide-${index}`,
-        title: `${post.route.title} · ${index + 1}/${slides.length}`,
-        label: `Carrusel · lámina ${index + 1}`,
-        templateId: "jay-quiet-ink",
-        copy: slides[index],
+      title: `${post.route.title} · ${index + 1}/${slides.length}`,
+      label: `Carrusel · lámina ${index + 1}`,
+      templateId: post.route.templateId || "jay-quiet-ink",
+      copy: slides[index],
       },
       "queue",
     );
@@ -2787,6 +2862,13 @@ export default function Home() {
       return next;
     });
   };
+  const rememberThemes = (titles: string[]) => {
+    setUsedThemeTitles((current) => {
+      const next = Array.from(new Set([...current, ...titles.filter(Boolean)])).slice(-500);
+      localStorage.setItem("jay-used-weekly-themes", JSON.stringify(next));
+      return next;
+    });
+  };
   const findWeeklyThemes = async () => {
     if (themeSearching) return;
     setThemeSearching(true);
@@ -2794,17 +2876,27 @@ export default function Home() {
       const response = await fetch("/api/week", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "themes", seed: cleanIdea(batchTopic) }),
+        body: JSON.stringify({
+          mode: "themes",
+          seed: cleanIdea(batchTopic),
+          exclude: Array.from(new Set([
+            ...usedThemeTitles,
+            ...themeIdeas.map((theme) => theme.title),
+          ])).slice(-500),
+        }),
       });
       if (!response.ok) throw new Error("Could not find themes");
       const result = (await response.json()) as { themes?: WeeklyTheme[] };
-      setThemeIdeas(result.themes || []);
+      const fresh = (result.themes || []).filter(
+        (theme) => !usedThemeTitles.includes(theme.title),
+      );
+      setThemeIdeas(fresh);
     } catch {
       setThemeIdeas([
-        { id: "local-tolerar", title: "El costo de tolerar", thesis: "Lo que toleras no es neutral: también diseña la vida que luego intentas cambiar.", tension: "limits" },
-        { id: "local-version", title: "La versión que sostienes", thesis: "Cambiar no siempre exige empezar de cero; a veces exige dejar de sostener una identidad que ya venció.", tension: "identity" },
-        { id: "local-urgencia", title: "La urgencia prestada", thesis: "No todo lo que exige atención merece dirigir tu semana.", tension: "time" },
-        { id: "local-libertad", title: "La libertad incómoda", thesis: "La libertad empieza cuando dejas de negociar lo esencial.", tension: "freedom" },
+        { id: "local-disponibilidad", title: "El precio de estar disponible", thesis: "Decir sí a todo puede parecer generosidad hasta que tu propia vida empieza a no caber.", tension: "limits" },
+        { id: "local-aprobacion", title: "La aprobación como contrato", thesis: "Cuando necesitas gustar para sentirte seguro, cada decisión empieza a tener un dueño extra.", tension: "identity" },
+        { id: "local-control", title: "La vida administrada", thesis: "Puedes tener todo bajo control y aun así no estar construyendo nada que te importe.", tension: "time" },
+        { id: "local-comodidad", title: "La comodidad que cobra", thesis: "Lo cómodo no siempre es malo; el problema empieza cuando también decide por ti.", tension: "freedom" },
       ]);
     } finally {
       setThemeSearching(false);
@@ -2812,14 +2904,24 @@ export default function Home() {
   };
   const createWeeklyBatch = async (selectedTheme?: WeeklyTheme) => {
     const topic = selectedTheme?.thesis || cleanIdea(batchTopic);
+    const requestedTitle = selectedTheme?.title || cleanIdea(batchTopic);
     const tension = selectedTheme?.tension || "other";
     if (!topic || batchGenerating) return;
+    if (requestedTitle && usedThemeTitles.includes(requestedTitle)) {
+      setSaved("Ese tema ya está creado. Pide nuevos Temas JAY.");
+      return;
+    }
     setBatchGenerating(true);
     try {
       const response = await fetch("/api/week", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "week", topic, tension }),
+        body: JSON.stringify({
+          mode: "week",
+          title: requestedTitle,
+          topic,
+          tension,
+        }),
       });
       if (!response.ok) throw new Error("Could not create weekly arc");
       const result = (await response.json()) as {
@@ -2879,6 +2981,7 @@ export default function Home() {
         })),
       };
       updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
+      rememberThemes([batch.topic]);
       setBatchTopic("");
       setThemeIdeas([]);
     } catch {
@@ -2902,6 +3005,7 @@ export default function Home() {
         }),
       };
       updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
+      rememberThemes([batch.topic]);
     } finally {
       setBatchGenerating(false);
     }
@@ -3410,6 +3514,27 @@ export default function Home() {
                       {batch.arc && <p className="batch-arc">{batch.arc}</p>}
                       {isLegacyBatch && <p className="batch-legacy">Borrador anterior: no sigue el nuevo arco semanal ni incluye captions. Puedes conservarlo o crear una semana nueva arriba.</p>}
                       <p className="queue-count">{approved} aprobados · {batch.posts.length} posts</p>
+                      {!isLegacyBatch && (
+                        <section className="weekly-plan" aria-label={`Plan completo: ${batch.topic}`}>
+                          <p className="idea-kicker">Plan completo</p>
+                          <div className="weekly-plan-grid">
+                            {batch.posts.map((post, index) => {
+                              const plan = post.plan || brandWeekPlan[index % brandWeekPlan.length];
+                              return (
+                                <button
+                                  className={`weekly-plan-card ${post.status}`}
+                                  key={`${post.id}-plan`}
+                                  onClick={() => post.slides?.length ? openCarouselSlide(post, 0) : openIdeaRoute(post.route, "queue")}
+                                >
+                                  <span>{plan.day} · {plan.role || "Post"}</span>
+                                  <strong>{post.route.title}</strong>
+                                  <small>{brandFormatCopy[plan.format]} · {post.route.templateId.replace("jay-", "").replaceAll("-", " ")}</small>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      )}
                       <div className="queue-posts">
                         {batch.posts.map((post, index) => {
                           const plan = post.plan || brandWeekPlan[index % brandWeekPlan.length];
@@ -3422,7 +3547,7 @@ export default function Home() {
                               </div>
                               <p className="queue-copy">{post.route.copy}</p>
                               <div className="queue-meta">
-                                <span>{brandFormatCopy[plan.format]}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
+                                <span>{brandFormatCopy[plan.format]}</span><span>{post.route.templateId.replace("jay-", "").replaceAll("-", " ")}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
                               </div>
                               <p className="queue-intent"><b>{objective.description}</b></p>
                               {post.slides?.length ? (
