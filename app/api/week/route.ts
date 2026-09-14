@@ -436,7 +436,7 @@ export async function POST(request: Request) {
         prompt: `Optional starting thought: ${seed || "No seed. Find a fresh tension for JAY."}\nDo not repeat these previous titles: ${excluded.length ? excluded.join(" | ") : "none"}.`,
       });
       const themes = parseThemes(text, excluded);
-      if (!themes) console.warn("[JAY AI] Theme response could not be parsed; using the editorial library.");
+      if (!themes) console.warn(`[JAY AI] Theme response could not be parsed; using the editorial library. Raw response: ${text.slice(0, 2400)}`);
       return Response.json({ themes: themes || themeFallback(seed, excluded), source: themes ? "ai" : "editorial" });
     }
     const { text } = await generateText({
@@ -447,7 +447,7 @@ export async function POST(request: Request) {
     });
     const parsedWeek = parseWeek(text, weeklyPlans);
     const week = parsedWeek ? { ...parsedWeek, title: title || parsedWeek.title } : null;
-    if (!week) console.warn("[JAY AI] Weekly response could not be parsed; using the editorial library.");
+    if (!week) console.warn(`[JAY AI] Weekly response could not be parsed; using the editorial library. Raw response: ${text.slice(0, 4000)}`);
     return Response.json({ week: week || fallbackWeek(topic, tension, weeklyPlans, title), source: week ? "ai" : "editorial" });
   } catch (error) {
     reportGenerationFailure(mode === "themes" ? "theme generation" : "weekly generation", error);

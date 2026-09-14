@@ -214,7 +214,7 @@ export async function POST(request: Request) {
       prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}`,
     });
     const routes = parseDirections(text);
-    if (!routes) console.warn("[JAY AI] Idea response could not be parsed; using the editorial library.");
+    if (!routes) console.warn(`[JAY AI] Idea response could not be parsed; using the editorial library. Raw response: ${text.slice(0, 2400)}`);
     return Response.json({ routes: routes || editorialRoutes, source: routes ? "ai" : "editorial" });
   } catch (error) {
     reportGenerationFailure(error);
