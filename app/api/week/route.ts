@@ -361,12 +361,14 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
     const posts: Array<WeekPost | null> = payload.posts.map((item: Record<string, unknown>, index: number): WeekPost | null => {
       const plan = weeklyPlans[index];
       const templateId = plan.templateId;
-      const copy = normalCaption(item.copy);
-      const caption = normalCaption(item.caption);
-      if (!copy || !caption || copy.length > graphicLimit(plan.format)) return null;
       const slides = Array.isArray(item.slides)
         ? item.slides.map((slide: unknown) => normalize(slide, 85)).filter(Boolean).slice(0, 5)
         : undefined;
+      // Claude naturally treats the first carousel slide as its visual copy.
+      // Accept that valid shape instead of discarding a complete weekly plan.
+      const copy = normalCaption(item.copy) || (plan.format === "carousel" ? normalCaption(slides?.[0]) : "");
+      const caption = normalCaption(item.caption);
+      if (!copy || !caption || copy.length > graphicLimit(plan.format)) return null;
       if (plan.format === "carousel" && (!slides || slides.length < 4)) return null;
       return {
         ...plan,
