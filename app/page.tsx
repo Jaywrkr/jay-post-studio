@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlignCenter,
   AlignLeft,
@@ -190,6 +190,7 @@ type ContentBatch = {
   topic: string;
   createdAt: string;
   source: "ai" | "editorial";
+  schemaVersion?: 3;
   posts: QueuePost[];
   arc?: string;
   thesis?: string;
@@ -249,6 +250,59 @@ const brandFormatCopy: Record<BrandFormat, string> = {
   carousel: "Carrusel",
   context: "Contexto",
 };
+const templateNameCopy: Record<string, string> = {
+  "jay-quiet-paper": "JAY / Papel sobrio",
+  "jay-quiet-ink": "JAY / Tinta sobria",
+  "jay-centered-caps": "JAY / Mayúsculas centradas",
+  "jay-simple-paper": "JAY / SIMPLE claro",
+  "jay-simple-ink": "JAY / SIMPLE oscuro",
+  "jay-mirror": "JAY / Espejo",
+  "jay-four-sides": "JAY / Cuatro lados",
+  "jay-circle-quote": "JAY / Cita circular",
+  "jay-grain-left": "JAY / Grano izquierdo",
+  "jay-grain-right": "JAY / Grano derecho",
+  "jay-message": "JAY / Mensaje",
+  "jay-venn": "JAY / Diagrama",
+  "jay-repeater": "JAY / Repetición",
+  "jay-reminder": "JAY / Recordatorio",
+  "jay-photo-reference": "JAY / Referencia con foto",
+};
+const originalTemplateNameCopy: Record<string, string> = {
+  "JAY / Quiet Paper": "JAY / Papel sobrio",
+  "JAY / Quiet Ink": "JAY / Tinta sobria",
+  "JAY / Centered Caps": "JAY / Mayúsculas centradas",
+  "JAY / SIMPLE Paper": "JAY / SIMPLE claro",
+  "JAY / SIMPLE Ink": "JAY / SIMPLE oscuro",
+  "JAY / Mirror": "JAY / Espejo",
+  "JAY / Four Sides": "JAY / Cuatro lados",
+  "JAY / Circle Quote": "JAY / Cita circular",
+  "JAY / Grain Left": "JAY / Grano izquierdo",
+  "JAY / Grain Right": "JAY / Grano derecho",
+  "JAY / Message": "JAY / Mensaje",
+  "JAY / Venn": "JAY / Diagrama",
+  "JAY / Repeater": "JAY / Repetición",
+  "JAY / Reminder": "JAY / Recordatorio",
+  "JAY / Photo Reference": "JAY / Referencia con foto",
+};
+const templateName = (template: Pick<Template, "id" | "name">) => templateNameCopy[template.id] || originalTemplateNameCopy[template.name] || template.name;
+const templateNameFromId = (id: string) => templateNameCopy[id]?.replace("JAY / ", "") || id.replace("jay-", "").replaceAll("-", " ");
+const localizedRouteLabel = (label: string) => label
+  .replace(/Quiet Paper/gi, "Papel sobrio")
+  .replace(/Quiet Ink/gi, "Tinta sobria")
+  .replace(/Four Sides/gi, "Cuatro lados")
+  .replace(/Mirror/gi, "Espejo")
+  .replace(/Centered Caps/gi, "Mayúsculas centradas")
+  .replace(/Simple Paper/gi, "SIMPLE claro")
+  .replace(/Simple Ink/gi, "SIMPLE oscuro");
+const elementTypeName: Record<ElementType, string> = {
+  text: "TEXTO",
+  rect: "RECTÁNGULO",
+  circle: "CÍRCULO",
+  ellipse: "ELIPSE",
+  line: "LÍNEA",
+  plus: "CRUZ / MÁS",
+  image: "IMAGEN",
+};
 const base = (
   type: ElementType,
   extra: Partial<StudioElement> = {},
@@ -257,9 +311,9 @@ const base = (
   type,
   name:
     type === "text"
-      ? "Text"
+      ? "Texto"
       : type === "plus"
-        ? "Cross / Plus"
+        ? "Cruz / Más"
         : type[0].toUpperCase() + type.slice(1),
   x: 160,
   y: 160,
@@ -281,7 +335,7 @@ const text = (
   width = 660,
 ): StudioElement =>
   base("text", {
-    name: value.slice(0, 24) || "Text",
+    name: value.slice(0, 24) || "Texto",
     text: value,
     x,
     y,
@@ -416,7 +470,7 @@ const sideBrand = (color = "#8C8C8C") => [
 ];
 const postImage = (
   src: string,
-  name = "Photo",
+  name = "Foto",
   x = 0,
   y = 0,
   width = SIZE,
@@ -544,8 +598,8 @@ const templates: Template[] = [
     ),
     rotated(
       "La rutina es peligrosa precisamente porque\npuede convertir decisiones extraordinarias\nen cosas que dejas de cuestionar.",
-      42,
-      811,
+      1038,
+      909,
       33,
       "#FFFFFF",
       930,
@@ -1369,14 +1423,14 @@ const buildIdeaRoutes = (
     {
       id: "quiet",
       title: "Decirlo sin ruido",
-      label: "Quiet Paper · reflexión directa",
+      label: "Papel sobrio · reflexión directa",
       templateId: "jay-quiet-paper",
       copy: idea,
     },
     {
       id: "contrast",
       title: "La pregunta incómoda",
-      label: "Four Sides · tensión y remate",
+      label: "Cuatro lados · tensión y remate",
       templateId: "jay-four-sides",
       copy: `${frame.contrast}\n\nQuizá la pregunta no es cómo conseguir más.`,
       counterpoint: idea,
@@ -1384,14 +1438,14 @@ const buildIdeaRoutes = (
     {
       id: "mirror",
       title: "La parte que se repite",
-      label: "Mirror · idea que no puedes ignorar",
+      label: "Espejo · idea que no puedes ignorar",
       templateId: "jay-mirror",
       copy: `${idea}\n\n${frame.mirror}`,
     },
     {
       id: "caps",
       title: "El recordatorio",
-      label: "Centered Caps · una verdad frontal",
+      label: "Mayúsculas centradas · una verdad frontal",
       templateId: "jay-centered-caps",
       copy: `${frame.contrast}\n\n${idea}`,
       uppercase: true,
@@ -1604,17 +1658,13 @@ function MiniPreview({ template }: { template: Template }) {
 }
 
 function Noise({ effects }: { effects: Effects }) {
-  const [image, setImage] = useState<HTMLCanvasElement | null>(null);
-  useEffect(() => {
-    if (!effects.noise) {
-      setImage(null);
-      return;
-    }
+  const image = useMemo(() => {
+    if (!effects.noise || typeof document === "undefined") return null;
     const canvas = document.createElement("canvas");
     canvas.width = SIZE;
     canvas.height = SIZE;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) return null;
     const data = ctx.createImageData(SIZE, SIZE);
     let seed = effects.seed || 1;
     const random = () => {
@@ -1637,9 +1687,9 @@ function Noise({ effects }: { effects: Effects }) {
           }
       }
     ctx.putImageData(data, 0, 0);
-    setImage(canvas);
-  }, [effects]);
-  return image ? (
+    return canvas;
+  }, [effects.noise, effects.noiseAmount, effects.noiseScale, effects.seed]);
+  return effects.noise && image ? (
     <KImage
       image={image}
       width={SIZE}
@@ -1737,10 +1787,7 @@ function PostDetails({
 function CanvasImage({ item }: { item: StudioElement }) {
   const [bitmap, setBitmap] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
-    if (!item.src) {
-      setBitmap(null);
-      return;
-    }
+    if (!item.src) return;
     const next = new window.Image();
     let cancelled = false;
     next.onload = () => {
@@ -1752,7 +1799,7 @@ function CanvasImage({ item }: { item: StudioElement }) {
       next.onload = null;
     };
   }, [item.src]);
-  if (!bitmap) return null;
+  if (!item.src || !bitmap) return null;
   const sourceRatio = bitmap.width / bitmap.height;
   const frameRatio = item.width / item.height;
   const crop =
@@ -1794,7 +1841,10 @@ function StudioCanvas({
   const [fit, setFit] = useState(0.55);
   const [guides, setGuides] = useState<{ x?: number; y?: number }>({});
   const [canvasReady, setCanvasReady] = useState(false);
-  useEffect(() => setCanvasReady(true), []);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setCanvasReady(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
   useEffect(() => {
     const resize = () => {
       if (wrap.current)
@@ -2202,12 +2252,12 @@ function BackgroundPanel({
               setDesign({ ...design, background: { ...bg, type } })
             }
           >
-            {type}
+            {{ solid: "Sólido", linear: "Lineal", radial: "Radial" }[type]}
           </button>
         ))}
       </div>
       <ColorInput
-          label="Color A"
+        label="Color principal"
         value={bg.color}
         onChange={(color) =>
           setDesign({ ...design, background: { ...bg, color } })
@@ -2216,7 +2266,7 @@ function BackgroundPanel({
       {bg.type !== "solid" && (
         <>
           <ColorInput
-            label="Color B"
+            label="Color secundario"
             value={bg.colorB}
             onChange={(colorB) =>
               setDesign({ ...design, background: { ...bg, colorB } })
@@ -2267,9 +2317,7 @@ function EffectsPanel({
           onChange={(e) => patch({ noise: e.target.checked })}
         />
       </label>
-      <p className="muted">
-        Procedural texture; it is included in exported PNG files.
-      </p>
+      <p className="muted">Añade textura al diseño y al PNG final.</p>
       <NumberField
           label="Cantidad de grano"
         value={fx.noiseAmount}
@@ -2288,15 +2336,13 @@ function EffectsPanel({
         onChange={(noiseScale) => patch({ noiseScale })}
       />
       <NumberField
-        label="Seed"
+        label="Variación"
         value={fx.seed}
         onChange={(seed) => patch({ seed })}
       />
       <div className="side-rule" />
       <h3>Detalles</h3>
-      <p className="muted">
-        Small editorial treatments for giving the post a more intentional finish.
-      </p>
+      <p className="muted">Acabados visuales sutiles.</p>
       <label className="toggle">
           <span>Líneas</span>
         <input
@@ -2464,7 +2510,7 @@ function Properties({
     <>
       <div className="property-head">
         <div>
-          <p className="panel-kicker">{item.type.toUpperCase()}</p>
+          <p className="panel-kicker">{elementTypeName[item.type]}</p>
           <h2>{item.name}</h2>
         </div>
         <button onClick={deleteItem}>
@@ -2677,6 +2723,7 @@ export default function Home() {
   const [ideaSource, setIdeaSource] = useState<"ai" | "editorial" | null>(null);
   const [batchTopic, setBatchTopic] = useState("");
   const [batchGenerating, setBatchGenerating] = useState(false);
+  const [batchError, setBatchError] = useState("");
   const [themeIdeas, setThemeIdeas] = useState<WeeklyTheme[]>([]);
   const [themeSearching, setThemeSearching] = useState(false);
   const [usedThemeTitles, setUsedThemeTitles] = useState<string[]>([]);
@@ -2685,21 +2732,20 @@ export default function Home() {
   const stageRef = useRef<Konva.Stage>(null);
   const leftContentRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    try {
-      setMyDesigns(
-        JSON.parse(localStorage.getItem("jay-post-designs") || "[]"),
-      );
-      setMyTemplates(
-        JSON.parse(localStorage.getItem("jay-post-templates") || "[]"),
-      );
-      const batches = JSON.parse(localStorage.getItem("jay-content-batches") || "[]") as ContentBatch[];
-      const rememberedThemes = JSON.parse(localStorage.getItem("jay-used-weekly-themes") || "[]") as string[];
-      setContentBatches(batches);
-      setUsedThemeTitles(Array.from(new Set([
-        ...rememberedThemes,
-        ...batches.map((batch) => batch.topic).filter(Boolean),
-      ])).slice(-500));
-    } catch {}
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        setMyDesigns(JSON.parse(localStorage.getItem("jay-post-designs") || "[]"));
+        setMyTemplates(JSON.parse(localStorage.getItem("jay-post-templates") || "[]"));
+        const batches = JSON.parse(localStorage.getItem("jay-content-batches") || "[]") as ContentBatch[];
+        const rememberedThemes = JSON.parse(localStorage.getItem("jay-used-weekly-themes") || "[]") as string[];
+        setContentBatches(batches);
+        setUsedThemeTitles(Array.from(new Set([
+          ...rememberedThemes,
+          ...batches.map((batch) => batch.topic).filter(Boolean),
+        ])).slice(-500));
+      } catch {}
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
   const persist = useCallback((value: Design) => {
     const updated = { ...value, updatedAt: new Date().toISOString() };
@@ -2720,13 +2766,13 @@ export default function Home() {
   useEffect(() => {
     if (screen !== "editor" || !shouldPersist) return;
     const timer = window.setTimeout(() => persist(design), 1200);
-    setSaved("Guardando…");
     return () => window.clearTimeout(timer);
   }, [design, persist, screen, shouldPersist]);
   const commit = (next: Design) => {
     setHistory((h) => [...h.slice(-39), design]);
     setFuture([]);
     setShouldPersist(true);
+    setSaved("Guardando…");
     setDesign(next);
   };
   const updateElements = (fn: (items: StudioElement[]) => StudioElement[]) =>
@@ -2737,17 +2783,17 @@ export default function Home() {
   };
   const addImageFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      setImageMessage("Choose an image file.");
+      setImageMessage("Elige un archivo de imagen.");
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      setImageMessage("Use a photo under 2 MB so the design can be saved.");
+      setImageMessage("Usa una foto menor de 2 MB para poder guardar el diseño.");
       return;
     }
     const reader = new FileReader();
     reader.onload = () => {
       add(postImage(String(reader.result), file.name, 120, 120, 720, 720));
-      setImageMessage("Photo added. Select it to resize or reorder it.");
+      setImageMessage("Foto añadida. Selecciónala para cambiar su tamaño u orden.");
     };
     reader.readAsDataURL(file);
   };
@@ -2805,8 +2851,10 @@ export default function Home() {
     next.elements = next.elements.map((item) => {
       const index = copyTargets.findIndex((target) => target.id === item.id);
       if (index < 0) return item;
-      if (templateId === "jay-four-sides")
-        return rewrite(item, index === 0 ? route.copy : route.counterpoint || route.copy);
+      if (templateId === "jay-four-sides") {
+        if (index === 0) return rewrite(item, route.copy);
+        return route.counterpoint ? rewrite(item, route.counterpoint) : { ...item, visible: false };
+      }
       return rewrite(item, route.copy);
     });
     next.name = route.title;
@@ -2829,6 +2877,14 @@ export default function Home() {
       },
       "queue",
     );
+  };
+  const openQueuePost = (post: QueuePost) => {
+    if (post.slides?.length) {
+      openCarouselSlide(post, 0);
+      return;
+    }
+    setCarouselPreview(null);
+    openIdeaRoute(post.route, "queue");
   };
   const createIdeaDirections = async () => {
     const idea = cleanIdea(ideaInput);
@@ -2911,6 +2967,7 @@ export default function Home() {
       setSaved("Ese tema ya está creado. Pide nuevos Temas JAY.");
       return;
     }
+    setBatchError("");
     setBatchGenerating(true);
     try {
       const response = await fetch("/api/week", {
@@ -2923,7 +2980,10 @@ export default function Home() {
           tension,
         }),
       });
-      if (!response.ok) throw new Error("Could not create weekly arc");
+      if (!response.ok) {
+        const failure = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(failure?.error || "No se pudo crear la semana.");
+      }
       const result = (await response.json()) as {
         source?: "ai" | "editorial";
         week?: {
@@ -2956,6 +3016,7 @@ export default function Home() {
         arc: result.week.arc,
         createdAt: new Date().toISOString(),
         source: result.source || "editorial",
+        schemaVersion: 3,
         posts: result.week.posts.map((post) => ({
           id: uid(),
           route: {
@@ -2984,28 +3045,8 @@ export default function Home() {
       rememberThemes([batch.topic]);
       setBatchTopic("");
       setThemeIdeas([]);
-    } catch {
-      const routes = buildIdeaRoutes(topic, tension);
-      const batch: ContentBatch = {
-        id: uid(),
-        topic: selectedTheme?.title || "Semana JAY",
-        thesis: topic,
-        arc: "Cinco ángulos independientes: observar, contrastar, confrontar, aterrizar y decidir.",
-        createdAt: new Date().toISOString(),
-        source: "editorial",
-        posts: brandWeekPlan.map((plan, index) => {
-          const route = routes[index % routes.length];
-          return {
-            id: uid(),
-            route: { ...route, id: uid() },
-            plan: { ...plan },
-            caption: `Una idea no cambia nada por estar bien escrita. Cambia algo cuando te ayuda a mirar de frente lo que estabas evitando.\n\n${topic}`,
-            status: "review" as QueueStatus,
-          };
-        }),
-      };
-      updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
-      rememberThemes([batch.topic]);
+    } catch (error) {
+      setBatchError(error instanceof Error ? error.message : "Claude no completó la semana. No se guardó contenido de relleno.");
     } finally {
       setBatchGenerating(false);
     }
@@ -3116,7 +3157,8 @@ export default function Home() {
       }
       if (mod && event.key.toLowerCase() === "z") {
         event.preventDefault();
-        event.shiftKey ? redo() : undo();
+        if (event.shiftKey) redo();
+        else undo();
       }
       if (mod && event.key.toLowerCase() === "d" && selectedItem) {
         event.preventDefault();
@@ -3125,7 +3167,7 @@ export default function Home() {
           id: uid(),
           x: selectedItem.x + 30,
           y: selectedItem.y + 30,
-          name: `${selectedItem.name} copy`,
+          name: `${selectedItem.name} copia`,
         });
       }
       if (event.key === "Escape") setSelected([]);
@@ -3190,7 +3232,7 @@ export default function Home() {
                 onClick={() => newFrom(item)}
               >
                 <DesignPreview design={item} />
-                <strong>{item.name}</strong>
+                <strong>{templateName(item)}</strong>
                 <small>1080 × 1080</small>
               </button>
             ))
@@ -3225,7 +3267,7 @@ export default function Home() {
                 onClick={() => newFrom(cloneTemplate(template))}
               >
                 <MiniPreview template={template} />
-                <span>{template.name}</span>
+                <span>{templateName(template)}</span>
                 <small>{template.subtitle}</small>
               </button>
             ))}
@@ -3271,7 +3313,7 @@ export default function Home() {
           </button>
           <button
             onClick={() =>
-              newFrom({ ...design, id: uid(), name: `${design.name} copy` })
+              newFrom({ ...design, id: uid(), name: `${design.name} copia` })
             }
           >
             <Copy size={16} />
@@ -3325,7 +3367,7 @@ export default function Home() {
                       onClick={() => newFrom(cloneTemplate(template))}
                     >
                       <MiniPreview template={template} />
-                      <span>{template.name}</span>
+                      <span>{templateName(template)}</span>
                     </button>
                   ))}
                 </div>
@@ -3385,7 +3427,7 @@ export default function Home() {
                     </p>
                     {ideaRoutes.map((route) => (
                       <article className="idea-route" key={route.id}>
-                        <p className="idea-kicker">{route.label}</p>
+                        <p className="idea-kicker">{localizedRouteLabel(route.label)}</p>
                         <h4>{route.title}</h4>
                         <p className="idea-copy">{route.copy}</p>
                         <button onClick={() => openIdeaRoute(route)}>
@@ -3438,7 +3480,7 @@ export default function Home() {
                     </div>
                   </section>
                 ) : null}
-                <section className="brand-compass" aria-label="Personal brand strategy">
+                <section className="brand-compass" aria-label="Estrategia de marca personal">
                   <p className="idea-kicker">RUMBO · @jaywrkr</p>
                   <h4>Que te recuerden por ideas precisas que hacen cuestionar lo que la gente tolera.</h4>
                 <div className="brand-flow" aria-label="Cinco ángulos del mismo tema">
@@ -3478,6 +3520,7 @@ export default function Home() {
                   </button>
                 </div>
                 <p className="queue-note">Elige un tema. Los cinco posts quedan listos.</p>
+                {batchError && <p className="batch-error" role="alert">{batchError}</p>}
                 {themeIdeas.length > 0 && (
                   <section className="weekly-themes" aria-label="Temas sugeridos por IA">
                     <p className="idea-kicker">Temas posibles para la semana</p>
@@ -3494,9 +3537,8 @@ export default function Home() {
                     ))}
                   </section>
                 )}
-                {contentBatches.map((batch) => {
+                {contentBatches.filter((batch) => batch.schemaVersion === 3).map((batch) => {
                   const approved = batch.posts.filter((post) => post.status === "approved").length;
-                  const isLegacyBatch = !batch.arc && batch.posts.length !== 5;
                   return (
                     <section className="content-batch" key={batch.id}>
                       <header>
@@ -3512,9 +3554,8 @@ export default function Home() {
                       </header>
                       {batch.thesis && <p className="batch-thesis">{batch.thesis}</p>}
                       {batch.arc && <p className="batch-arc">{batch.arc}</p>}
-                      {isLegacyBatch && <p className="batch-legacy">Borrador anterior: no sigue el nuevo arco semanal ni incluye captions. Puedes conservarlo o crear una semana nueva arriba.</p>}
                       <p className="queue-count">{approved} aprobados · {batch.posts.length} posts</p>
-                      {!isLegacyBatch && (
+                      {(
                         <section className="weekly-plan" aria-label={`Plan completo: ${batch.topic}`}>
                           <p className="idea-kicker">Plan completo</p>
                           <div className="weekly-plan-grid">
@@ -3524,11 +3565,11 @@ export default function Home() {
                                 <button
                                   className={`weekly-plan-card ${post.status}`}
                                   key={`${post.id}-plan`}
-                                  onClick={() => post.slides?.length ? openCarouselSlide(post, 0) : openIdeaRoute(post.route, "queue")}
+                                  onClick={() => openQueuePost(post)}
                                 >
                                   <span>{plan.day} · {plan.role || "Post"}</span>
                                   <strong>{post.route.title}</strong>
-                                  <small>{brandFormatCopy[plan.format]} · {post.route.templateId.replace("jay-", "").replaceAll("-", " ")}</small>
+                                  <small>{brandFormatCopy[plan.format]} · {templateNameFromId(post.route.templateId)}</small>
                                 </button>
                               );
                             })}
@@ -3547,7 +3588,7 @@ export default function Home() {
                               </div>
                               <p className="queue-copy">{post.route.copy}</p>
                               <div className="queue-meta">
-                                <span>{brandFormatCopy[plan.format]}</span><span>{post.route.templateId.replace("jay-", "").replaceAll("-", " ")}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
+                                <span>{brandFormatCopy[plan.format]}</span><span>{templateNameFromId(post.route.templateId)}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
                               </div>
                               <p className="queue-intent"><b>{objective.description}</b></p>
                               {post.slides?.length ? (
@@ -3555,16 +3596,14 @@ export default function Home() {
                                   {post.slides.map((slide, slideIndex) => <li key={`${post.id}-slide-${slideIndex}`}>{slide}</li>)}
                                 </ol>
                               ) : null}
-                              {!isLegacyBatch && (
-                                <label className="queue-caption">
-                                  <span>Texto para publicar</span>
-                                  <textarea
-                                    value={post.caption || ""}
-                                    placeholder="El texto del post aparecerá aquí."
-                                    onChange={(event) => updateQueuePost(batch.id, post.id, { caption: event.target.value })}
-                                  />
-                                </label>
-                              )}
+                              <label className="queue-caption">
+                                <span>Texto para publicar</span>
+                                <textarea
+                                  value={post.caption || ""}
+                                  placeholder="El texto del post aparecerá aquí."
+                                  onChange={(event) => updateQueuePost(batch.id, post.id, { caption: event.target.value })}
+                                />
+                              </label>
                               <div className="queue-actions">
                                 <button onClick={() => post.slides?.length ? openCarouselSlide(post, 0) : openIdeaRoute(post.route)}>
                                   {post.slides?.length ? `Ver carrusel · ${post.slides.length} láminas` : "Editar diseño"}
@@ -3589,37 +3628,40 @@ export default function Home() {
                     </section>
                   );
                 })}
+                {contentBatches.some((batch) => batch.schemaVersion !== 3) && (
+                  <p className="batch-legacy">Los borradores del sistema anterior siguen guardados, pero ya no se mezclan con tus semanas nuevas.</p>
+                )}
               </>
             )}
             {tool === "text" && (
               <>
                 <h3>Texto</h3>
                 <div className="add-list">
-                  <button onClick={() => add(text("HEADLINE", 160, 300, 64))}>
+                  <button onClick={() => add(text("TÍTULO", 160, 300, 64))}>
                     <Type />
-                    Add headline
+                    Añadir título
                   </button>
                   <button
                     onClick={() =>
-                      add(text("Body text goes here.", 160, 300, 30))
+                      add(text("Escribe aquí el texto.", 160, 300, 30))
                     }
                   >
                     <Type />
-                    Add body
+                    Añadir texto
                   </button>
                   <button
-                    onClick={() => add(text("SMALL LABEL", 160, 300, 18))}
+                    onClick={() => add(text("ETIQUETA", 160, 300, 18))}
                   >
                     <Type />
-                    Add small label
+                    Añadir etiqueta
                   </button>
                   <button
                     onClick={() =>
-                      add(text("A MONO QUOTE\nWITH INTENTION.", 160, 300, 42))
+                      add(text("UNA FRASE\nCON INTENCIÓN.", 160, 300, 42))
                     }
                   >
                     <Type />
-                    Add mono quote
+                    Añadir frase
                   </button>
                 </div>
                 <button
@@ -3631,7 +3673,7 @@ export default function Home() {
                     ])
                   }
                 >
-                  + Add brand frame
+                  + Añadir marco JAY
                 </button>
               </>
             )}
@@ -3643,7 +3685,7 @@ export default function Home() {
                     onClick={() =>
                       add(
                         base("rect", {
-                          name: "Rectangle",
+                          name: "Rectángulo",
                           width: 260,
                           height: 180,
                           fill: "#000000",
@@ -3652,13 +3694,13 @@ export default function Home() {
                     }
                   >
                     <Square />
-                    Rectangle
+                    Rectángulo
                   </button>
                   <button
                     onClick={() =>
                       add(
                         base("rect", {
-                          name: "Rounded rectangle",
+                          name: "Rectángulo redondeado",
                           width: 260,
                           height: 180,
                           fill: "#EDEDED",
@@ -3668,7 +3710,7 @@ export default function Home() {
                     }
                   >
                     <Square />
-                    Rounded
+                    Redondeado
                   </button>
                   <button
                     onClick={() =>
@@ -3684,7 +3726,7 @@ export default function Home() {
                     }
                   >
                     <Circle />
-                    Circle
+                    Círculo
                   </button>
                   <button
                     onClick={() =>
@@ -3700,7 +3742,7 @@ export default function Home() {
                     }
                   >
                     <Circle />
-                    Ellipse
+                    Elipse
                   </button>
                   <button
                     onClick={() =>
@@ -3715,11 +3757,11 @@ export default function Home() {
                     }
                   >
                     <Minus />
-                    Line
+                    Línea
                   </button>
                   <button onClick={() => add(cross(160, 160, "#000000", 56))}>
                     <Plus />
-                    Cross / Plus
+                    Cruz / Más
                   </button>
                 </div>
               </>
@@ -3728,12 +3770,11 @@ export default function Home() {
               <>
                 <h3>Imágenes</h3>
                 <p className="muted">
-                  Add your own photo. It will cover its frame cleanly when you
-                  resize it.
+                  Añade una foto. Se ajustará al marco cuando cambies su tamaño.
                 </p>
                 <label className="image-upload">
                   <ImagePlus size={18} />
-                  Add photo
+                  Añadir foto
                   <input
                     type="file"
                     accept="image/*"
@@ -3745,8 +3786,8 @@ export default function Home() {
                   />
                 </label>
                 <p className="muted image-note">
-                  Your image stays in this design on this browser. Select it
-                  to send it behind text or bring it forward.
+                  La imagen queda guardada en este diseño. Selecciónala para
+                  cambiar su orden.
                 </p>
                 {imageMessage && <p className="image-note">{imageMessage}</p>}
               </>
@@ -3872,7 +3913,7 @@ export default function Home() {
                   id: uid(),
                   x: selectedItem.x + 24,
                   y: selectedItem.y + 24,
-                  name: `${selectedItem.name} copy`,
+                  name: `${selectedItem.name} copia`,
                 })
               }
               sendToBack={() =>

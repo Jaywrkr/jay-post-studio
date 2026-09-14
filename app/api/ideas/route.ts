@@ -85,8 +85,23 @@ const normalize = (value: unknown, max = 260) =>
 const graphicCopy = (value: string, max: number) => {
   const clean = normalize(value, max + 1);
   if (clean.length <= max) return clean;
-  return `${clean.slice(0, max).replace(/\s+\S*$/, "").trim()}…`;
+  const sentences = clean.match(/[^.!?]+[.!?]+/g) || [];
+  const complete = sentences.find((sentence) => sentence.trim().length <= max)?.trim();
+  if (complete) return complete;
+  const shortened = clean.slice(0, Math.max(1, max - 1)).replace(/\s+\S*$/, "").replace(/[,:;\-–—]+$/, "").trim();
+  return `${shortened}.`;
 };
+const decodeJson = (text: string): unknown => {
+  const clean = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const candidates = [clean, clean.match(/\[[\s\S]*\]/)?.[0], clean.match(/\{[\s\S]*\}/)?.[0]];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try { return JSON.parse(candidate); } catch { /* Try the next valid shape. */ }
+  }
+  return null;
+};
+const copyLimit = (templateId: string) =>
+  templateId === "jay-quiet-paper" ? 145 : templateId === "jay-four-sides" ? 100 : 85;
 
 const fallback = (idea: string, tension: Tension, angle: Angle): Direction[] => {
   const frame = frames[tension];
@@ -100,14 +115,14 @@ const fallback = (idea: string, tension: Tension, angle: Angle): Direction[] => 
     {
       id: "quiet",
       title: graphicCopy(premise, 50),
-      label: "Quiet Paper · idea central",
+      label: "Papel sobrio · idea central",
       templateId: "jay-quiet-paper",
       copy: premise,
     },
     {
       id: "contrast",
       title: graphicCopy(frame.contrast, 50),
-      label: "Four Sides · contraste",
+      label: "Cuatro lados · contraste",
       templateId: "jay-four-sides",
       copy: graphicCopy(frame.contrast, 100),
       counterpoint: graphicCopy(premise, 85),
@@ -115,14 +130,14 @@ const fallback = (idea: string, tension: Tension, angle: Angle): Direction[] => 
     {
       id: "mirror",
       title: graphicCopy(frame.mirror, 50),
-      label: "Mirror · observación",
+      label: "Espejo · observación",
       templateId: "jay-mirror",
       copy: graphicCopy(frame.mirror, 85),
     },
     {
       id: "caps",
       title: graphicCopy(pressure, 50),
-      label: "Centered Caps · presión",
+      label: "Mayúsculas centradas · presión",
       templateId: "jay-centered-caps",
       copy: graphicCopy(pressure, 85),
       uppercase: true,
@@ -131,31 +146,33 @@ const fallback = (idea: string, tension: Tension, angle: Angle): Direction[] => 
 };
 
 const parseDirections = (text: string): Direction[] | null => {
-  const match = text.match(/\[[\s\S]*\]/);
-  if (!match) return null;
+  const decoded = decodeJson(text);
+  const value = Array.isArray(decoded)
+    ? decoded
+    : decoded && typeof decoded === "object" && Array.isArray((decoded as { routes?: unknown }).routes)
+      ? (decoded as { routes: unknown[] }).routes
+      : null;
+  if (!value) return null;
   try {
-    const value = JSON.parse(match[0]);
-    if (!Array.isArray(value) || value.length !== 4) return null;
+    if (value.length !== 4) return null;
     const directions = value.map((item, index): Direction | null => {
       const templateId = normalize(item?.templateId, 50);
-      const copy = normalize(item?.copy);
+      const copy = graphicCopy(normalize(item?.copy), copyLimit(templateId));
       if (!templateIds.has(templateId) || !copy) return null;
       return {
         id: `ai-${index}`,
         title: normalize(item?.title, 50) || "Nueva dirección",
-        label: normalize(item?.label, 80) || "JAY direction",
+        label: normalize(item?.label, 80) || "Dirección JAY",
         templateId,
         copy,
         ...(templateId === "jay-four-sides" && normalize(item?.counterpoint)
-          ? { counterpoint: normalize(item.counterpoint) }
+          ? { counterpoint: graphicCopy(normalize(item.counterpoint), 85) }
           : {}),
         ...(item?.uppercase === true ? { uppercase: true } : {}),
       };
     });
     return directions.every(Boolean) ? (directions as Direction[]) : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 };
 
 const canGenerate = (request: Request) => {
@@ -213,7 +230,7 @@ export async function POST(request: Request) {
         "Keep every route legible on a 1080px minimalist post: do not exceed 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. " +
         "Return only valid JSON: an array of exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. " +
         "Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. " +
-        "For jay-four-sides, provide a short counterpoint. Keep copy below 230 characters.",
+        "For jay-four-sides, provide a short counterpoint. Respect the exact character limit for every template.",
       prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}`,
     });
     const routes = parseDirections(text);

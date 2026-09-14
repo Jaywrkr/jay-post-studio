@@ -54,29 +54,71 @@ const decodeJson = (text: string): unknown => {
   return null;
 };
 
-const plans: Array<Pick<WeekPost, "day" | "role" | "objective" | "format" | "successMetric" | "templateId">> = [
-  { day: "LUN", role: "Observación", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos", templateId: "jay-quiet-ink" },
-  { day: "MAR", role: "Contraste", objective: "depth", format: "carousel", successMetric: "Guardados", templateId: "jay-four-sides" },
-  { day: "JUE", role: "Consecuencia", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos", templateId: "jay-centered-caps" },
-  { day: "VIE", role: "Vida real", objective: "human", format: "context", successMetric: "Comentarios con sentido", templateId: "jay-quiet-paper" },
-  { day: "DOM", role: "Criterio", objective: "direction", format: "text art", successMetric: "Seguidores ganados", templateId: "jay-quiet-paper" },
+type Plan = Pick<WeekPost, "day" | "role" | "objective" | "format" | "successMetric" | "templateId">;
+type PlanSeed = Omit<Plan, "templateId">;
+
+const planArcs: PlanSeed[][] = [
+  [
+    { day: "LUN", role: "Observación", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos" },
+    { day: "MAR", role: "Contraste", objective: "depth", format: "carousel", successMetric: "Guardados" },
+    { day: "JUE", role: "Consecuencia", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos" },
+    { day: "VIE", role: "Vida real", objective: "human", format: "context", successMetric: "Comentarios con sentido" },
+    { day: "DOM", role: "Criterio", objective: "direction", format: "text art", successMetric: "Seguidores ganados" },
+  ],
+  [
+    { day: "LUN", role: "La señal", objective: "discovery", format: "SIMPLE", successMetric: "Alcance" },
+    { day: "MAR", role: "El costo", objective: "depth", format: "text art", successMetric: "Compartidos" },
+    { day: "JUE", role: "La excusa", objective: "depth", format: "carousel", successMetric: "Guardados" },
+    { day: "VIE", role: "Dónde aparece", objective: "human", format: "context", successMetric: "Comentarios con sentido" },
+    { day: "DOM", role: "La decisión", objective: "direction", format: "text art", successMetric: "Seguidores ganados" },
+  ],
+  [
+    { day: "LUN", role: "La suposición", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos" },
+    { day: "MAR", role: "La fricción", objective: "human", format: "context", successMetric: "Comentarios con sentido" },
+    { day: "JUE", role: "La presión", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos" },
+    { day: "VIE", role: "La prueba", objective: "depth", format: "carousel", successMetric: "Guardados" },
+    { day: "DOM", role: "El estándar", objective: "direction", format: "text art", successMetric: "Seguidores ganados" },
+  ],
+  [
+    { day: "LUN", role: "Lo normalizado", objective: "discovery", format: "text art", successMetric: "Alcance" },
+    { day: "MAR", role: "Lo que cobra", objective: "depth", format: "carousel", successMetric: "Guardados" },
+    { day: "JUE", role: "La implicación", objective: "human", format: "context", successMetric: "Comentarios con sentido" },
+    { day: "VIE", role: "La pregunta", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos" },
+    { day: "DOM", role: "El límite", objective: "direction", format: "text art", successMetric: "Seguidores ganados" },
+  ],
+  [
+    { day: "LUN", role: "La escena", objective: "human", format: "context", successMetric: "Comentarios con sentido" },
+    { day: "MAR", role: "La contradicción", objective: "discovery", format: "text art", successMetric: "Compartidos" },
+    { day: "JUE", role: "Lo que evitas", objective: "depth", format: "carousel", successMetric: "Guardados" },
+    { day: "VIE", role: "La verdad breve", objective: "discovery", format: "SIMPLE", successMetric: "Alcance" },
+    { day: "DOM", role: "La elección", objective: "direction", format: "text art", successMetric: "Seguidores ganados" },
+  ],
+  [
+    { day: "LUN", role: "El síntoma", objective: "discovery", format: "text art", successMetric: "Alcance" },
+    { day: "MAR", role: "La verdad breve", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos" },
+    { day: "JUE", role: "La consecuencia", objective: "depth", format: "carousel", successMetric: "Guardados" },
+    { day: "VIE", role: "La vida diaria", objective: "human", format: "context", successMetric: "Comentarios con sentido" },
+    { day: "DOM", role: "Lo que sigue", objective: "direction", format: "text art", successMetric: "Seguidores ganados" },
+  ],
 ];
 
-const layoutCycles = [
-  ["jay-quiet-ink", "jay-four-sides", "jay-centered-caps", "jay-quiet-paper", "jay-grain-right"],
-  ["jay-grain-left", "jay-four-sides", "jay-simple-ink", "jay-message", "jay-circle-quote"],
-  ["jay-quiet-paper", "jay-four-sides", "jay-simple-paper", "jay-message", "jay-quiet-ink"],
-  ["jay-mirror", "jay-four-sides", "jay-centered-caps", "jay-grain-left", "jay-quiet-paper"],
-  ["jay-quiet-ink", "jay-four-sides", "jay-simple-ink", "jay-quiet-paper", "jay-grain-left"],
-  ["jay-grain-right", "jay-four-sides", "jay-centered-caps", "jay-quiet-paper", "jay-circle-quote"],
-  ["jay-quiet-paper", "jay-four-sides", "jay-simple-paper", "jay-grain-left", "jay-quiet-ink"],
-  ["jay-circle-quote", "jay-four-sides", "jay-simple-ink", "jay-quiet-paper", "jay-grain-right"],
-];
-
-const weeklyPlansFor = (seed: string) => {
-  const index = [...seed].reduce((total, char) => total + char.charCodeAt(0), 0) % layoutCycles.length;
-  return plans.map((plan, postIndex) => ({ ...plan, templateId: layoutCycles[index][postIndex] }));
+const templatePools: Record<Format, string[]> = {
+  "text art": ["jay-quiet-ink", "jay-quiet-paper", "jay-grain-left", "jay-grain-right", "jay-circle-quote", "jay-mirror"],
+  carousel: ["jay-four-sides", "jay-quiet-paper", "jay-quiet-ink", "jay-mirror", "jay-message", "jay-grain-left", "jay-grain-right"],
+  SIMPLE: ["jay-centered-caps", "jay-simple-paper", "jay-simple-ink", "jay-reminder"],
+  context: ["jay-message", "jay-quiet-paper", "jay-quiet-ink", "jay-grain-left", "jay-grain-right", "jay-mirror"],
 };
+
+const seedNumber = (value: string) => [...value].reduce((hash, char) => ((hash * 33) ^ char.charCodeAt(0)) >>> 0, 5381);
+const weeklyPlansFor = (seed: string): Plan[] => {
+  const hash = seedNumber(seed);
+  const arc = planArcs[hash % planArcs.length];
+  return arc.map((plan, index) => {
+    const pool = templatePools[plan.format];
+    return { ...plan, templateId: pool[(hash + index * 17 + (hash >>> (index + 1))) % pool.length] };
+  });
+};
+const plans = weeklyPlansFor("JAY base");
 
 const graphicLimit = (format: Format) =>
   format === "carousel" ? 100 : format === "SIMPLE" ? 85 : format === "context" ? 155 : 145;
@@ -84,6 +126,20 @@ const graphicCopy = (value: string, max: number) => {
   const clean = normalize(value, max + 1);
   if (clean.length <= max) return clean;
   return `${clean.slice(0, max).replace(/\s+\S*$/, "").replace(/[,:;]$/, "").trim()}…`;
+};
+const completeGraphicCopy = (value: unknown, max: number) => {
+  const clean = normalCaption(value).replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const sentences = clean.match(/[^.!?]+[.!?]+/g) || [];
+  let result = "";
+  for (const sentence of sentences) {
+    const candidate = `${result} ${sentence.trim()}`.trim();
+    if (candidate.length > max) break;
+    result = candidate;
+  }
+  if (result) return result;
+  const shortened = clean.slice(0, Math.max(1, max - 1)).replace(/\s+\S*$/, "").replace(/[,:;\-–—]+$/, "").trim();
+  return `${shortened}.`;
 };
 
 const curatedEditorialThemes: Array<Omit<Theme, "id">> = [
@@ -329,6 +385,8 @@ const fallbackWeek = (
   ];
   return { title: weekTitle, thesis: premise, arc: "Cinco ángulos independientes: observar, contrastar, confrontar, aterrizar y decidir.", posts };
 };
+// Retained as an internal recovery reference, but never exposed as a generated week.
+void fallbackWeek;
 
 const parseThemes = (text: string, excluded: string[] = []): Theme[] | null => {
   const decoded = decodeJson(text);
@@ -353,22 +411,25 @@ const parseThemes = (text: string, excluded: string[] = []): Theme[] | null => {
 };
 
 const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
-  const value = decodeJson(text);
-  if (!value || typeof value !== "object") return null;
+  const decoded = decodeJson(text);
+  if (!decoded || typeof decoded !== "object") return null;
   try {
+    const wrapper = decoded as { week?: unknown };
+    const value = wrapper.week && typeof wrapper.week === "object" ? wrapper.week : decoded;
     const payload = value as { title?: unknown; thesis?: unknown; arc?: unknown; posts?: unknown };
     if (!Array.isArray(payload.posts) || payload.posts.length !== 5) return null;
     const posts: Array<WeekPost | null> = payload.posts.map((item: Record<string, unknown>, index: number): WeekPost | null => {
       const plan = weeklyPlans[index];
       const templateId = plan.templateId;
-      const slides = Array.isArray(item.slides)
-        ? item.slides.map((slide: unknown) => normalize(slide, 85)).filter(Boolean).slice(0, 5)
+      const slides = plan.format === "carousel" && Array.isArray(item.slides)
+        ? item.slides.map((slide: unknown) => completeGraphicCopy(slide, 85)).filter(Boolean).slice(0, 5)
         : undefined;
       // Claude naturally treats the first carousel slide as its visual copy.
       // Accept that valid shape instead of discarding a complete weekly plan.
-      const copy = normalCaption(item.copy) || (plan.format === "carousel" ? normalCaption(slides?.[0]) : "");
+      const copySource = normalCaption(item.copy) || (plan.format === "carousel" ? normalCaption(slides?.[0]) : normalize(item.title));
+      const copy = completeGraphicCopy(copySource, graphicLimit(plan.format));
       const caption = normalCaption(item.caption);
-      if (!copy || !caption || copy.length > graphicLimit(plan.format)) return null;
+      if (!copy || !caption) return null;
       if (plan.format === "carousel" && (!slides || slides.length < 4)) return null;
       return {
         ...plan,
@@ -378,7 +439,7 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
         copy,
         caption,
         pillar: normalize(item.pillar, 65) || "Idea central",
-        ...(templateId === "jay-four-sides" && normalize(item.counterpoint) ? { counterpoint: normalize(item.counterpoint) } : {}),
+        ...(templateId === "jay-four-sides" && normalize(item.counterpoint) ? { counterpoint: completeGraphicCopy(item.counterpoint, 85) } : {}),
         ...(plan.format === "SIMPLE" ? { uppercase: true } : {}),
         ...(slides?.length ? { slides } : {}),
       };
@@ -421,8 +482,12 @@ export async function POST(request: Request) {
 
   if (mode === "week" && !topic) return Response.json({ error: "Elige un tema semanal." }, { status: 400 });
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; using the editorial library.");
-    return Response.json(mode === "themes" ? { themes: themeFallback(seed, excluded), source: "editorial" } : { week: fallbackWeek(topic, tension, weeklyPlans, title), source: "editorial" });
+    if (mode === "themes") {
+      console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; using the editorial theme library.");
+      return Response.json({ themes: themeFallback(seed, excluded), source: "editorial" });
+    }
+    console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; refusing to create a filler week.");
+    return Response.json({ error: "Claude no está disponible. No se creó una semana de relleno." }, { status: 503 });
   }
   if (!process.env.ANTHROPIC_WORKSPACE_ID) {
     console.warn("[JAY AI] ANTHROPIC_WORKSPACE_ID is unavailable; an unscoped key may be rejected by Anthropic.");
@@ -449,15 +514,19 @@ export async function POST(request: Request) {
       model: anthropic(model),
       providerOptions: { anthropic: { thinking: { type: "disabled" } } },
       maxOutputTokens: 4000,
-      system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one complete five-post week in the JAY voice: precise, sober, specific and slightly uncomfortable. Never motivational, therapeutic, salesy, decorative, generic, or sentimental. JAY observes a hidden cost, names a contradiction and stops before over-explaining. Its language is plain, not academic. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No toda seguridad es libertad.' 'Lo suficiente necesita una definición.' 'La vida no guarda borradores.' 'La paz puede requerir decepcionar.' Every post must be an independent, complete JAY idea; do not write a sequel, tease, or part number. Together they must orbit the same weekly tension from five different angles: (1) observation, (2) reframe, (3) direct consequence, (4) real-life implication, (5) closing standard. Never make the five posts say the same thing with different words. Return only valid JSON object with title, thesis, arc, and posts. posts must be exactly 5 objects in this fixed order. Each object needs title, label, copy, caption, pillar, optional counterpoint, uppercase, slides. Titles must name that post's exact claim, never generic labels such as 'La entrada', 'El golpe', or 'El cierre'. Every caption has two concise paragraphs: a concrete observation first, then a precise implication. Graphic copy limits are strict: text art max 145 characters, carousel cover max 100, SIMPLE max 85, context max 155. Carousel slides must be 4 or 5 coherent steps, each max 85 characters: claim, reframe, consequence, closure. Do not merely restate the visual copy in a caption. Make every post useful, specific, and ready to publish.",
+      system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one complete five-post week in the JAY voice: precise, sober, specific and slightly uncomfortable. Never motivational, therapeutic, salesy, decorative, generic, or sentimental. JAY observes a hidden cost, names a contradiction and stops before over-explaining. Its language is plain, not academic. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No toda seguridad es libertad.' 'Lo suficiente necesita una definición.' 'La vida no guarda borradores.' 'La paz puede requerir decepcionar.' Every post must be an independent, complete JAY idea; do not write a sequel, tease, or part number. Together they must follow the exact five roles supplied by the user while orbiting the same weekly tension. Never make the five posts say the same thing with different words. Return only a valid JSON object with title, thesis, arc, and exactly 5 posts in the supplied order. Every post needs title, label, copy, caption and pillar. Titles must name that post's exact claim, never generic labels such as 'La entrada', 'El golpe', or 'El cierre'. Every caption has two concise paragraphs: a concrete observation first, then a precise implication. Graphic copy limits are strict: text art max 145 characters, carousel cover max 100, SIMPLE max 85, context max 155. Only the carousel post gets slides: 4 or 5 coherent steps, each max 85 characters, moving through claim, reframe, consequence and closure. Omit slides from every other post. counterpoint is optional and only useful for a split composition. Do not merely restate the visual copy in a caption. Make every post useful, specific, and ready to publish.",
       prompt: `Tema semanal: ${topic}\nNombre del tema: ${title || "Semana JAY"}\nTensión: ${tension}\nEstructura visual obligatoria: ${weeklyPlans.map((plan) => `${plan.day}: ${plan.format} (${plan.templateId})`).join(" | ")}\nObjetivo: crecer una marca personal reconocible por ideas precisas que cuestionan lo que la gente tolera.`,
     });
     const parsedWeek = parseWeek(text, weeklyPlans);
     const week = parsedWeek ? { ...parsedWeek, title: title || parsedWeek.title } : null;
-    if (!week) console.warn(`[JAY AI] Weekly response could not be parsed; using the editorial library. Raw response: ${text.slice(0, 4000)}`);
-    return Response.json({ week: week || fallbackWeek(topic, tension, weeklyPlans, title), source: week ? "ai" : "editorial" });
+    if (!week) {
+      console.warn(`[JAY AI] Weekly response could not be parsed. Raw response: ${text.slice(0, 4000)}`);
+      return Response.json({ error: "Claude no completó una semana válida. Inténtalo otra vez." }, { status: 502 });
+    }
+    return Response.json({ week, source: "ai" });
   } catch (error) {
     reportGenerationFailure(mode === "themes" ? "theme generation" : "weekly generation", error);
-    return Response.json(mode === "themes" ? { themes: themeFallback(seed, excluded), source: "editorial" } : { week: fallbackWeek(topic, tension, weeklyPlans, title), source: "editorial" });
+    if (mode === "themes") return Response.json({ themes: themeFallback(seed, excluded), source: "editorial" });
+    return Response.json({ error: "No se pudo crear la semana con Claude. Inténtalo otra vez." }, { status: 502 });
   }
 }

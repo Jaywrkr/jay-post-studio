@@ -223,12 +223,28 @@
   font-size: 9px;
 }
 
-.queue-note,
-.queue-count {
+.queue-note {
   margin: -8px 0 14px;
   color: #777;
   font-size: 9px;
   line-height: 1.4;
+}
+
+.queue-count {
+  margin: 8px 0 14px;
+  color: #777;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.batch-error {
+  margin: 0 0 14px;
+  border-left: 2px solid #a11;
+  background: #f7eded;
+  color: #711;
+  padding: 9px 10px;
+  font-size: 9px;
+  line-height: 1.45;
 }
 
 .weekly-plan {
@@ -594,6 +610,15 @@
 }
 
 @media (min-width: 901px) {
+  .design-name {
+    min-width: 300px;
+  }
+
+  .design-name input {
+    width: 100%;
+    max-width: 260px;
+  }
+
   .workspace {
     grid-template-columns: 390px minmax(480px, 1fr) 278px;
   }
