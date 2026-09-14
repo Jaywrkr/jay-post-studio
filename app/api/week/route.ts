@@ -431,7 +431,11 @@ export async function POST(request: Request) {
     if (mode === "themes") {
       const { text } = await generateText({
         model: anthropic(model),
-        maxOutputTokens: 700,
+        // The app needs finished editorial copy, not hidden reasoning. With
+        // adaptive thinking enabled, Claude could use the response budget
+        // before it ever returned the JSON the UI needs.
+        providerOptions: { anthropic: { thinking: { type: "disabled" } } },
+        maxOutputTokens: 1600,
         system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. JAY's voice is precise, sober, observant and slightly uncomfortable; never motivational, therapeutic, poetic for its own sake, salesy, or abstract. It names a hidden cost, a contradiction, an assumption, or the consequence people avoid seeing. Prefer clean structures such as 'No todo X es Y', 'La X también Y', 'No necesitas X para Y', and 'Puedes X y aun así Y'. Avoid titles shaped like 'La X que...' and avoid filler such as 'Esta semana observa'. Reference lines: 'La comodidad también cobra intereses.' 'Tus prioridades dejan recibos.' 'La velocidad no corrige el rumbo.' 'No todo límite es una limitación.' 'La rutina puede esconder una renuncia.' 'No necesitas ganar un juego absurdo.' Return only valid JSON: exactly 4 objects with title, thesis, tension. tension must be one of time, freedom, limits, money, identity, routine, other. Each idea must sustain five distinct but coherent posts across one week. Every request must explore fresh angles and never recycle a title the user already saw.",
         prompt: `Optional starting thought: ${seed || "No seed. Find a fresh tension for JAY."}\nDo not repeat these previous titles: ${excluded.length ? excluded.join(" | ") : "none"}.`,
       });
@@ -441,7 +445,8 @@ export async function POST(request: Request) {
     }
     const { text } = await generateText({
       model: anthropic(model),
-      maxOutputTokens: 1800,
+      providerOptions: { anthropic: { thinking: { type: "disabled" } } },
+      maxOutputTokens: 4000,
       system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one complete five-post week in the JAY voice: precise, sober, specific and slightly uncomfortable. Never motivational, therapeutic, salesy, decorative, generic, or sentimental. JAY observes a hidden cost, names a contradiction and stops before over-explaining. Its language is plain, not academic. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No toda seguridad es libertad.' 'Lo suficiente necesita una definición.' 'La vida no guarda borradores.' 'La paz puede requerir decepcionar.' Every post must be an independent, complete JAY idea; do not write a sequel, tease, or part number. Together they must orbit the same weekly tension from five different angles: (1) observation, (2) reframe, (3) direct consequence, (4) real-life implication, (5) closing standard. Never make the five posts say the same thing with different words. Return only valid JSON object with title, thesis, arc, and posts. posts must be exactly 5 objects in this fixed order. Each object needs title, label, copy, caption, pillar, optional counterpoint, uppercase, slides. Titles must name that post's exact claim, never generic labels such as 'La entrada', 'El golpe', or 'El cierre'. Every caption has two concise paragraphs: a concrete observation first, then a precise implication. Graphic copy limits are strict: text art max 145 characters, carousel cover max 100, SIMPLE max 85, context max 155. Carousel slides must be 4 or 5 coherent steps, each max 85 characters: claim, reframe, consequence, closure. Do not merely restate the visual copy in a caption. Make every post useful, specific, and ready to publish.",
       prompt: `Tema semanal: ${topic}\nNombre del tema: ${title || "Semana JAY"}\nTensión: ${tension}\nEstructura visual obligatoria: ${weeklyPlans.map((plan) => `${plan.day}: ${plan.format} (${plan.templateId})`).join(" | ")}\nObjetivo: crecer una marca personal reconocible por ideas precisas que cuestionan lo que la gente tolera.`,
     });

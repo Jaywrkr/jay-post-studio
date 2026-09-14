@@ -203,7 +203,10 @@ export async function POST(request: Request) {
   try {
     const { text } = await generateText({
       model: anthropic(model),
-      maxOutputTokens: 900,
+      // Reserve the response for the usable post ideas instead of invisible
+      // adaptive reasoning, which can otherwise leave text empty.
+      providerOptions: { anthropic: { thinking: { type: "disabled" } } },
+      maxOutputTokens: 1800,
       system:
         "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. " +
         "The voice is observant, precise, restrained and human: never motivational, generic, therapeutic, decorative, or salesy; never use emojis, hashtags or calls to action. It names a hidden cost, a contradiction, an assumption, or the consequence people avoid seeing. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No todo límite es una limitación.' Preserve the emotional truth of the source idea; do not invent claims. " +
