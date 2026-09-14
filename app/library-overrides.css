@@ -231,6 +231,60 @@
   line-height: 1.4;
 }
 
+.brand-compass {
+  margin: 0 0 18px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  padding: 13px;
+}
+
+.brand-compass .idea-kicker {
+  color: #a8a8a3;
+}
+
+.brand-compass h4 {
+  margin: 0;
+  max-width: 280px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.42;
+}
+
+.brand-flow,
+.brand-baseline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 13px;
+  font-size: 8px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.brand-flow i {
+  color: #888;
+  font-style: normal;
+}
+
+.brand-baseline {
+  flex-wrap: wrap;
+  gap: 5px;
+  color: #a8a8a3;
+  font-size: 8px;
+  text-transform: none;
+}
+
+.brand-baseline span {
+  border: 1px solid #444;
+  padding: 4px 5px;
+}
+
+.brand-baseline b {
+  color: #fff;
+  font-weight: 500;
+}
+
 .content-batch {
   margin: 18px 0;
   border-top: 1px solid #111;
@@ -268,6 +322,75 @@
   border: 1px solid #d9d9d4;
   background: #fff;
   padding: 10px;
+}
+
+.queue-post-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.brand-objective {
+  flex: 0 0 auto;
+  border: 1px solid #bcbcb7;
+  padding: 3px 4px;
+  color: #555;
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.brand-objective.discovery,
+.brand-objective.direction {
+  border-color: #111;
+  color: #111;
+}
+
+.queue-intent {
+  margin: 9px 0 0;
+  color: #777;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.queue-intent b {
+  color: #444;
+  font-weight: 500;
+}
+
+.queue-plan-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.queue-plan-controls label,
+.queue-pillar {
+  display: grid;
+  gap: 4px;
+  color: #777;
+  font-size: 7px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.queue-plan-controls select,
+.queue-pillar input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d9d9d4;
+  border-radius: 0;
+  background: #fff;
+  color: #222;
+  padding: 5px;
+  font-family: inherit;
+  font-size: 8px;
+  outline: none;
+}
+
+.queue-pillar {
+  margin-top: 7px;
 }
 
 .queue-post.approved {

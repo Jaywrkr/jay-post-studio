@@ -157,10 +157,20 @@ type IdeaRoute = {
 };
 type IdeaAngle = "reflective" | "direct" | "contrarian";
 type QueueStatus = "review" | "approved" | "discarded";
+type BrandObjective = "discovery" | "depth" | "human" | "direction";
+type BrandFormat = "text art" | "SIMPLE" | "carousel" | "context";
+type BrandPlan = {
+  day: string;
+  objective: BrandObjective;
+  format: BrandFormat;
+  pillar: string;
+  successMetric: string;
+};
 type QueuePost = {
   id: string;
   route: IdeaRoute;
   status: QueueStatus;
+  plan?: BrandPlan;
 };
 type ContentBatch = {
   id: string;
@@ -170,6 +180,49 @@ type ContentBatch = {
   posts: QueuePost[];
 };
 const uid = () => Math.random().toString(36).slice(2, 9);
+const brandWeekPlan: BrandPlan[] = [
+  {
+    day: "MON",
+    objective: "discovery",
+    format: "text art",
+    pillar: "Autorresponsabilidad",
+    successMetric: "Alcance + compartidos",
+  },
+  {
+    day: "TUE",
+    objective: "depth",
+    format: "carousel",
+    pillar: "La idea detrás de la frase",
+    successMetric: "Guardados",
+  },
+  {
+    day: "THU",
+    objective: "discovery",
+    format: "SIMPLE",
+    pillar: "Límites y libertad",
+    successMetric: "Compartidos",
+  },
+  {
+    day: "FRI",
+    objective: "human",
+    format: "context",
+    pillar: "Proceso real",
+    successMetric: "Comentarios cualitativos",
+  },
+  {
+    day: "SUN",
+    objective: "direction",
+    format: "text art",
+    pillar: "Tu idea central",
+    successMetric: "Seguidores ganados",
+  },
+];
+const brandObjectiveCopy: Record<BrandObjective, { label: string; description: string }> = {
+  discovery: { label: "Descubrimiento", description: "Haz que alguien nuevo se detenga." },
+  depth: { label: "Profundidad", description: "Demuestra que hay una idea detrás." },
+  human: { label: "Humano", description: "Da contexto a la persona detrás de JAY." },
+  direction: { label: "Dirección", description: "Haz reconocible por qué volver." },
+};
 const base = (
   type: ElementType,
   extra: Partial<StudioElement> = {},
@@ -2689,7 +2742,10 @@ export default function Home() {
             route: { ...route, id: `${pass}-${route.id}` },
             status: "review" as QueueStatus,
           })),
-        ),
+        ).map((post, index) => ({
+          ...post,
+          plan: { ...brandWeekPlan[index % brandWeekPlan.length] },
+        })),
       };
       updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
       setBatchTopic("");
@@ -2712,7 +2768,10 @@ export default function Home() {
             },
             status: "review" as QueueStatus,
           })),
-        ),
+        ).map((post, index) => ({
+          ...post,
+          plan: { ...brandWeekPlan[index % brandWeekPlan.length] },
+        })),
       };
       updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
     } finally {
@@ -2727,6 +2786,26 @@ export default function Home() {
               ...batch,
               posts: batch.posts.map((post) =>
                 post.id === postId ? { ...post, status } : post,
+              ),
+            }
+          : batch,
+      ),
+    );
+  };
+  const updateQueuePostPlan = (
+    batchId: string,
+    postId: string,
+    patch: Partial<BrandPlan>,
+  ) => {
+    updateContentBatches((batches) =>
+      batches.map((batch) =>
+        batch.id === batchId
+          ? {
+              ...batch,
+              posts: batch.posts.map((post, index) =>
+                post.id === postId
+                  ? { ...post, plan: { ...(post.plan || brandWeekPlan[index % brandWeekPlan.length]), ...patch } }
+                  : post,
               ),
             }
           : batch,
@@ -3093,10 +3172,22 @@ export default function Home() {
             )}
             {tool === "queue" && (
               <>
-                <h3>Weekly queue</h3>
+                <h3>Brand growth queue</h3>
                 <p className="muted">
-                  Create an 8-post set, review it, then open any post for a final edit.
+                  Grow a recognizable personal brand: a reason to stop, a reason to trust, a reason to return.
                 </p>
+                <section className="brand-compass" aria-label="Personal brand strategy">
+                  <p className="idea-kicker">90-day north star · @jaywrkr</p>
+                  <h4>Be remembered for precise ideas that make people rethink what they tolerate.</h4>
+                  <div className="brand-flow" aria-label="Brand growth path">
+                    <span>Discover</span><i>→</i><span>Trust</span><i>→</i><span>Return</span>
+                  </div>
+                  <div className="brand-baseline">
+                    <span><b>36</b> posts / 30d</span>
+                    <span><b>94.5K</b> record views</span>
+                    <span><b>115.5K</b> audience</span>
+                  </div>
+                </section>
                 <label className="field">
                   <span>What is this week about?</span>
                   <textarea
@@ -3127,9 +3218,9 @@ export default function Home() {
                   onClick={createWeeklyBatch}
                 >
                   <Sparkles size={15} />
-                  {batchGenerating ? "Building your set..." : "Create 8-post weekly set"}
+                  {batchGenerating ? "Building your set..." : "Create brand week"}
                 </button>
-                <p className="queue-note">Two creative passes · eight editable post directions</p>
+                <p className="queue-note">Two creative passes · each direction gets a purpose, format and metric before you make it.</p>
                 {contentBatches.map((batch) => {
                   const approved = batch.posts.filter((post) => post.status === "approved").length;
                   return (
@@ -3147,27 +3238,66 @@ export default function Home() {
                       </header>
                       <p className="queue-count">{approved} approved · {batch.posts.length} posts</p>
                       <div className="queue-posts">
-                        {batch.posts.map((post, index) => (
-                          <article className={`queue-post ${post.status}`} key={post.id}>
-                            <p className="idea-kicker">{String(index + 1).padStart(2, "0")} · {post.route.label}</p>
-                            <p className="queue-copy">{post.route.copy}</p>
-                            <div className="queue-actions">
-                              <button onClick={() => openIdeaRoute(post.route)}>Edit</button>
-                              <button
-                                className={post.status === "approved" ? "selected" : ""}
-                                onClick={() => setQueuePostStatus(batch.id, post.id, "approved")}
-                              >
-                                <Check size={12} /> Approve
-                              </button>
-                              <button
-                                className={post.status === "discarded" ? "selected" : ""}
-                                onClick={() => setQueuePostStatus(batch.id, post.id, "discarded")}
-                              >
-                                <Trash2 size={12} /> Skip
-                              </button>
-                            </div>
-                          </article>
-                        ))}
+                        {batch.posts.map((post, index) => {
+                          const plan = post.plan || brandWeekPlan[index % brandWeekPlan.length];
+                          const objective = brandObjectiveCopy[plan.objective];
+                          return (
+                            <article className={`queue-post ${post.status}`} key={post.id}>
+                              <div className="queue-post-head">
+                                <p className="idea-kicker">{plan.day} · {String(index + 1).padStart(2, "0")} · {post.route.label}</p>
+                                <span className={`brand-objective ${plan.objective}`}>{objective.label}</span>
+                              </div>
+                              <p className="queue-copy">{post.route.copy}</p>
+                              <p className="queue-intent"><b>{objective.description}</b> Measure: {plan.successMetric}.</p>
+                              <div className="queue-plan-controls">
+                                <label>
+                                  <span>Purpose</span>
+                                  <select
+                                    value={plan.objective}
+                                    onChange={(event) => updateQueuePostPlan(batch.id, post.id, { objective: event.target.value as BrandObjective })}
+                                  >
+                                    {Object.entries(brandObjectiveCopy).map(([value, item]) => <option key={value} value={value}>{item.label}</option>)}
+                                  </select>
+                                </label>
+                                <label>
+                                  <span>Format</span>
+                                  <select
+                                    value={plan.format}
+                                    onChange={(event) => updateQueuePostPlan(batch.id, post.id, { format: event.target.value as BrandFormat })}
+                                  >
+                                    <option value="text art">Text art</option>
+                                    <option value="SIMPLE">SIMPLE</option>
+                                    <option value="carousel">Carousel</option>
+                                    <option value="context">Photo / context</option>
+                                  </select>
+                                </label>
+                              </div>
+                              <label className="queue-pillar">
+                                <span>Pillar</span>
+                                <input
+                                  value={plan.pillar}
+                                  onChange={(event) => updateQueuePostPlan(batch.id, post.id, { pillar: event.target.value })}
+                                  aria-label="Content pillar"
+                                />
+                              </label>
+                              <div className="queue-actions">
+                                <button onClick={() => openIdeaRoute(post.route)}>Edit</button>
+                                <button
+                                  className={post.status === "approved" ? "selected" : ""}
+                                  onClick={() => setQueuePostStatus(batch.id, post.id, "approved")}
+                                >
+                                  <Check size={12} /> Approve
+                                </button>
+                                <button
+                                  className={post.status === "discarded" ? "selected" : ""}
+                                  onClick={() => setQueuePostStatus(batch.id, post.id, "discarded")}
+                                >
+                                  <Trash2 size={12} /> Skip
+                                </button>
+                              </div>
+                            </article>
+                          );
+                        })}
                       </div>
                     </section>
                   );
