@@ -36,11 +36,11 @@ const normalCaption = (value: unknown) =>
     : "";
 
 const plans: Array<Pick<WeekPost, "day" | "role" | "objective" | "format" | "successMetric" | "templateId">> = [
-  { day: "LUN", role: "Entrada", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos", templateId: "jay-quiet-ink" },
-  { day: "MAR", role: "Profundizar", objective: "depth", format: "carousel", successMetric: "Guardados", templateId: "jay-four-sides" },
-  { day: "JUE", role: "Presionar", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos", templateId: "jay-centered-caps" },
-  { day: "VIE", role: "Aterrizar", objective: "human", format: "context", successMetric: "Comentarios con sentido", templateId: "jay-quiet-paper" },
-  { day: "DOM", role: "Cerrar", objective: "direction", format: "text art", successMetric: "Seguidores ganados", templateId: "jay-quiet-paper" },
+  { day: "LUN", role: "Observación", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos", templateId: "jay-quiet-ink" },
+  { day: "MAR", role: "Contraste", objective: "depth", format: "carousel", successMetric: "Guardados", templateId: "jay-four-sides" },
+  { day: "JUE", role: "Consecuencia", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos", templateId: "jay-centered-caps" },
+  { day: "VIE", role: "Vida real", objective: "human", format: "context", successMetric: "Comentarios con sentido", templateId: "jay-quiet-paper" },
+  { day: "DOM", role: "Criterio", objective: "direction", format: "text art", successMetric: "Seguidores ganados", templateId: "jay-quiet-paper" },
 ];
 
 const layoutCycles = [
@@ -82,44 +82,90 @@ const curatedEditorialThemes: Array<Omit<Theme, "id">> = [
   { title: "El hábito de postergar", thesis: "Aplazar una decisión pequeña muchas veces puede terminar pareciéndose a una identidad.", tension: "routine" },
 ];
 
-const themeSubjects: Array<{ article: string; subject: string; tension: Tension }> = [
-  { article: "La", subject: "disponibilidad", tension: "limits" }, { article: "El", subject: "cansancio", tension: "routine" },
-  { article: "La", subject: "comodidad", tension: "freedom" }, { article: "La", subject: "urgencia", tension: "time" },
-  { article: "El", subject: "dinero", tension: "money" }, { article: "La", subject: "rutina", tension: "routine" },
-  { article: "La", subject: "aprobación", tension: "identity" }, { article: "La", subject: "paciencia", tension: "limits" },
-  { article: "La", subject: "identidad", tension: "identity" }, { article: "El", subject: "control", tension: "other" },
-  { article: "La", subject: "libertad", tension: "freedom" }, { article: "El", subject: "tiempo", tension: "time" },
-  { article: "La", subject: "ambición", tension: "other" }, { article: "La", subject: "disciplina", tension: "routine" },
-  { article: "La", subject: "culpa", tension: "identity" }, { article: "La", subject: "elección", tension: "freedom" },
-  { article: "La", subject: "distracción", tension: "time" }, { article: "El", subject: "silencio", tension: "other" },
-  { article: "La", subject: "productividad", tension: "routine" }, { article: "La", subject: "certeza", tension: "other" },
-  { article: "El", subject: "esfuerzo", tension: "limits" }, { article: "La", subject: "lealtad", tension: "identity" },
-  { article: "El", subject: "hábito", tension: "routine" }, { article: "La", subject: "expectativa", tension: "identity" },
+const jayCorpusThemes: Array<[string, Tension]> = [
+  ["No todo consejo merece obediencia", "other"],
+  ["Ser fuerte también es retirarse", "limits"],
+  ["Hay problemas que alimentas resolviéndolos", "routine"],
+  ["El tiempo revela prioridades falsas", "time"],
+  ["La abundancia también distrae", "other"],
+  ["Puedes ganar y equivocarte", "other"],
+  ["Puedes perder y tener razón", "other"],
+  ["No todo riesgo es irresponsable", "freedom"],
+  ["Tu entorno normaliza tus límites", "limits"],
+  ["Lo pendiente también ocupa espacio", "time"],
+  ["El orgullo también procrastina", "identity"],
+  ["Algunas excusas dicen la verdad a medias", "other"],
+  ["La reputación es una cárcel elegante", "identity"],
+  ["No necesitas terminar todo lo que empiezas", "identity"],
+  ["Lo conocido también puede ser peligroso", "routine"],
+  ["No toda deuda aparece en el banco", "money"],
+  ["Hay silencios que cuestan años", "other"],
+  ["La certeza también puede ser ignorancia", "other"],
+  ["La comodidad vuelve razonable lo absurdo", "freedom"],
+  ["No confundas adaptación con felicidad", "identity"],
+  ["El éxito también necesita límites", "limits"],
+  ["La nostalgia elimina escenas incómodas", "time"],
+  ["El ego convierte preferencias en principios", "identity"],
+  ["Tu vida no empieza después del pendiente", "time"],
+  ["No toda espera es paciencia", "routine"],
+  ["La experiencia puede endurecer errores", "identity"],
+  ["El futuro llega sin pedir permiso", "time"],
+  ["No todo merece optimización", "routine"],
+  ["La facilidad también puede costarte caro", "freedom"],
+  ["La rutina reduce preguntas", "routine"],
+  ["Hay ambiciones heredadas", "identity"],
+  ["No necesitas ganar un juego absurdo", "identity"],
+  ["Lo urgente envejece rápido", "time"],
+  ["Hay victorias que deberías rechazar", "identity"],
+  ["No toda crítica es un ataque", "other"],
+  ["El contexto también tiene mérito", "other"],
+  ["La suerte no invalida el esfuerzo", "other"],
+  ["Tus decisiones pequeñas saben sumar", "time"],
+  ["La gente también se arrepiente de aguantar", "limits"],
+  ["No todo fracaso necesita revancha", "identity"],
+  ["No necesitas recuperar cada pérdida", "identity"],
+  ["Hay caminos que empeoran al insistir", "limits"],
+  ["La ambición sin criterio es hambre", "identity"],
+  ["Tu ego también tiene memoria selectiva", "identity"],
+  ["La vida también sucede sin objetivos", "other"],
+  ["No necesitas monetizar cada talento", "money"],
+  ["Ser eficiente no justifica la tarea", "routine"],
+  ["Hay verdades que llegan después del daño", "other"],
+  ["A veces cerrar es dejar abierto", "limits"],
+  ["No eres neutral mientras esperas", "time"],
 ];
-const themeLenses = [
-  "que termina decidiendo por ti", "que nadie cuestiona", "que cobra tarde", "que se vuelve identidad",
-  "que se disfraza de fortaleza", "que te aleja sin hacer ruido", "que no te deja elegir",
-  "que parece normal desde dentro", "que pide más de lo que devuelve", "que no cabe en una excusa",
-  "que te hace perder el centro", "que conviene mirar de frente",
-];
-const themeThesis = (article: string, subject: string, lens: string) => {
-  if (lens === "que nadie cuestiona") {
-    return `${article} ${subject} puede pasar demasiado tiempo sin una pregunta incómoda. Esta semana abre esa conversación.`;
-  }
-  if (lens === "que conviene mirar de frente") {
-    return `${article} ${subject} suele parecer menor de lo que es. Esta semana la mira de frente.`;
-  }
-  return `${article} ${subject} suele parecer menor de lo que es. Esta semana observa cómo ${lens.replace(/^que\s+/, "")}.`;
-};
+
 const editorialThemePool: Array<Omit<Theme, "id">> = [
   ...curatedEditorialThemes,
-  ...themeSubjects.flatMap(({ article, subject, tension }) =>
-    themeLenses.map((lens) => ({
-      title: `${article} ${subject} ${lens}`,
-      thesis: themeThesis(article, subject, lens),
-      tension,
-    })),
-  ),
+  { title: "No toda paz merece silencio", thesis: "Hay silencios que parecen calma porque todavía no has contado lo que cuestan.", tension: "other" },
+  { title: "La costumbre anestesia", thesis: "Lo repetido deja de sorprenderte antes de que deje de hacerte daño.", tension: "routine" },
+  { title: "La atención precede al recuerdo", thesis: "Lo que no miras mientras ocurre puede volverse importante cuando ya no está.", tension: "time" },
+  { title: "No necesitas permiso para cambiar", thesis: "Esperar aprobación para cambiar puede ser una forma elegante de posponerlo.", tension: "identity" },
+  { title: "El ego odia las preguntas correctas", thesis: "Una buena pregunta no siempre confirma lo que querías creer.", tension: "identity" },
+  { title: "Tus prioridades dejan recibos", thesis: "Lo que dices valorar y lo que pagas con tiempo no siempre coinciden.", tension: "time" },
+  { title: "La comodidad también cobra intereses", thesis: "Lo cómodo no siempre cuesta hoy. Por eso es tan fácil no calcularlo.", tension: "freedom" },
+  { title: "La libertad necesita espacio vacío", thesis: "No puedes elegir con margen si cada parte de tu vida ya está comprometida.", tension: "freedom" },
+  { title: "No toda oportunidad es progreso", thesis: "Algunas oportunidades solo hacen más difícil decir que no a lo que no quieres.", tension: "limits" },
+  { title: "La disciplina también necesita auditorías", thesis: "Una rutina útil puede convertirse en una cárcel si nunca la revisas.", tension: "routine" },
+  { title: "La rutina puede esconder una renuncia", thesis: "Hay decisiones que siguen ocurriendo incluso después de que dejaste de elegirlas.", tension: "routine" },
+  { title: "La velocidad no corrige el rumbo", thesis: "Hacer algo más rápido no responde si valía la pena hacerlo.", tension: "time" },
+  { title: "No todo límite es una limitación", thesis: "Algunos límites no te quitan opciones. Evitan que entregues demasiadas.", tension: "limits" },
+  { title: "Lo suficiente necesita una definición", thesis: "Si nunca defines suficiente, cada logro encuentra una forma de quedarse corto.", tension: "money" },
+  { title: "No todo lo que produce dinero importa", thesis: "El ingreso puede medir demanda. No necesariamente significado.", tension: "money" },
+  { title: "La información también puede paralizar", thesis: "Saber más no siempre ayuda si usas cada dato para evitar decidir.", tension: "other" },
+  { title: "No toda meta es tuya", thesis: "Hay ambiciones heredadas que se sienten propias hasta que calculas su costo.", tension: "identity" },
+  { title: "Ser productivo no te hace imprescindible", thesis: "Hacer mucho no responde si algo de eso tendría que existir sin ti.", tension: "routine" },
+  { title: "La curiosidad también es disciplina", thesis: "Pensar mejor exige permanecer más tiempo dentro de una buena pregunta.", tension: "other" },
+  { title: "Tu identidad puede quedarse obsoleta", thesis: "No todo lo que te trajo hasta aquí debe decidir quién sigues siendo.", tension: "identity" },
+  { title: "No toda incomodidad es crecimiento", thesis: "Sufrir más no es una estrategia. Elegir mejor qué incomodidades pagar sí puede serlo.", tension: "limits" },
+  { title: "La vida no guarda borradores", thesis: "La versión provisional de tu vida también consume años reales.", tension: "time" },
+  { title: "Tu atención no tiene respaldo", thesis: "El dinero perdido a veces vuelve. Las horas entregadas sin mirar no.", tension: "time" },
+  { title: "No confundas reconocimiento con valor", thesis: "La reacción de otros puede ser breve. El precio de perseguirla no siempre.", tension: "identity" },
+  { title: "La responsabilidad no necesita culpa", thesis: "Hacerte cargo de algo no exige castigarte por no haberlo visto antes.", tension: "other" },
+  { title: "El costo hundido también hunde vidas", thesis: "Los años invertidos no deberían decidir automáticamente cuántos más vas a entregar.", tension: "limits" },
+  { title: "La paz puede requerir decepcionar", thesis: "Decir que no puede generar culpa sin ser una mala decisión.", tension: "freedom" },
+  { title: "El ruido evita preguntas", thesis: "No todo lo que ocupa tu atención merece dirigirla.", tension: "other" },
+  ...jayCorpusThemes.map(([title, tension]) => ({ title, thesis: title, tension })),
 ];
 
 const themeFallback = (seed: string, excluded: string[] = []): Theme[] => {
@@ -133,52 +179,101 @@ const themeFallback = (seed: string, excluded: string[] = []): Theme[] => {
   return selected.map((theme, index) => ({
     ...theme,
     id: `editorial-${Date.now().toString(36)}-${index}`,
-    thesis: seed && index === 0 ? `${theme.thesis} Punto de partida: ${seed}.` : theme.thesis,
+    thesis: theme.thesis,
   }));
 };
 
-const fallbackFrames: Record<Tension, { reframe: string; pressure: string; human: string; close: string }> = {
+const fallbackFrames: Record<Tension, { reframe: string; pressure: string; human: string; close: string; notes: [string, string, string, string, string] }> = {
   limits: {
-    reframe: "Un límite no siempre te aleja de alguien. A veces te devuelve a ti.",
-    pressure: "NO TODO LO QUE AGUANTAS MERECE SEGUIR SIENDO NORMAL.",
-    human: "La parte difícil no fue decir que no. Fue aceptar que llevaba mucho tiempo diciendo sí por miedo.",
-    close: "Proteger tu tiempo también es una forma de elegir tu vida.",
+    reframe: "No todo límite es una limitación.",
+    pressure: "SER FUERTE TAMBIÉN ES RETIRARSE.",
+    human: "A veces dices que necesitas pensarlo más porque no te hace sentir culpable y sí te hace sentir miserable.",
+    close: "Tus límites revelan tus prioridades.",
+    notes: [
+      "Hay decisiones que se ven pequeñas hasta que sumas el tiempo, la energía y la atención que te quitan.",
+      "Un límite no sirve para castigar a alguien. Sirve para que tu vida no se convierta en el lugar donde todo cabe menos tú.",
+      "Aguantar puede parecer noble. Pero seguir evitando una conversación por miedo al malestar también tiene un costo.",
+      "La culpa es una emoción real. No necesariamente una instrucción para seguir diciendo sí.",
+      "Una prioridad no se demuestra con una declaración. Se demuestra con lo que estás dispuesto a dejar fuera.",
+    ],
   },
   identity: {
-    reframe: "Cambiar no siempre es traicionarte. A veces es dejar de interpretar una versión vencida.",
-    pressure: "NO LE DEBES CONTINUIDAD A UNA VERSIÓN QUE YA NO TE REPRESENTA.",
-    human: "No fue fácil soltar esa identidad. Era conocida, y lo conocido se parece mucho a la seguridad.",
-    close: "No tienes que seguir explicando quién eras para empezar a vivir distinto.",
+    reframe: "Cambiar de opinión después de recibir nueva información no es inconsistencia.",
+    pressure: "NO NECESITAS PERMISO PARA CAMBIAR.",
+    human: "Una de las trampas más silenciosas del éxito es que puede hacer extremadamente caro cambiar de dirección.",
+    close: "No todo cambio necesita explicación.",
+    notes: [
+      "Las preguntas que más incomodan suelen ser las que ponen en duda una identidad que ya te daba seguridad.",
+      "Cambiar de opinión no borra lo que aprendiste. Evita que una versión antigua decida por una realidad nueva.",
+      "Mucha gente espera sentirse lista para cambiar. A veces estar listo solo significa admitir que seguir igual ya no tiene sentido.",
+      "Cuando ya construiste reputación, experiencia o estatus, cambiar parece caro. Eso no convierte en buena la dirección actual.",
+      "No tienes que conservar una versión de ti solo porque otras personas ya aprendieron a reconocerla.",
+    ],
   },
   time: {
-    reframe: "Lo urgente no siempre merece dirigir tu semana.",
-    pressure: "ESTAR OCUPADO NO ES LO MISMO QUE ESTAR CONSTRUYENDO ALGO.",
-    human: "No me faltaba tiempo. Me faltaba admitir qué cosas ya no merecían seguir ocupándolo.",
-    close: "Tu agenda también revela lo que has decidido proteger.",
+    reframe: "La velocidad no corrige el rumbo.",
+    pressure: "TU CALENDARIO NUNCA DICE ALGÚN DÍA.",
+    human: "El tiempo tiene una ventaja peligrosa: desaparece sin enviarte notificaciones.",
+    close: "Tus prioridades dejan recibos.",
+    notes: [
+      "No todo lo que se mueve rápido está avanzando. A veces solo está evitando detenerse para mirar el rumbo.",
+      "Tu calendario no necesita mentir para mostrarte qué está recibiendo tus mejores horas.",
+      "La urgencia es persuasiva porque parece importante. La pregunta útil es qué seguirá importando cuando deje de hacer ruido.",
+      "Perder una hora no se siente como perder algo. Repetirla todos los días termina ocupando una parte reconocible de una vida.",
+      "Las prioridades reales no siempre coinciden con las declaradas. Por eso conviene mirar la agenda antes que el discurso.",
+    ],
   },
   freedom: {
-    reframe: "Toda libertad importante tiene una renuncia que al principio incomoda.",
-    pressure: "LA COMODIDAD TAMBIÉN PUEDE DECIDIR POR TI.",
-    human: "Elegir distinto no se sintió libre al inicio. Se sintió como dejar de tener una excusa.",
-    close: "La libertad no elimina el costo. Te deja elegir cuál estás dispuesto a pagar.",
+    reframe: "No toda seguridad es libertad.",
+    pressure: "LA COMODIDAD TAMBIÉN COBRA INTERESES.",
+    human: "Hay decisiones que no tomas porque ninguna opción preserva todas las cosas que quieres.",
+    close: "La libertad necesita espacio vacío.",
+    notes: [
+      "La seguridad puede sentirse cómoda y aun así dejarte sin margen para elegir una vida distinta.",
+      "La comodidad no siempre te detiene de golpe. A veces vuelve razonable seguir posponiendo lo que ya sabes.",
+      "Querer libertad sin incertidumbre es una negociación imposible. Toda elección importante deja algo afuera.",
+      "No tomar una decisión también preserva cosas: la excusa, lo conocido y la posibilidad de no decepcionar a nadie.",
+      "El espacio vacío no es desperdicio cuando te permite elegir sin pánico.",
+    ],
   },
   money: {
-    reframe: "Ganar más resuelve algunos problemas. No resuelve decidir qué quieres hacer con tu vida.",
-    pressure: "MÁS DINERO NO SIEMPRE COMPRA MÁS CONTROL SOBRE TU TIEMPO.",
-    human: "La pregunta dejó de ser cuánto podía ganar. Empezó a ser cuánto de mi vida quería vender para lograrlo.",
-    close: "El dinero ayuda. Pero no puede elegir por ti qué significa suficiente.",
+    reframe: "No todo lo importante produce dinero.",
+    pressure: "LO SUFICIENTE NECESITA UNA DEFINICIÓN.",
+    human: "Una compra no cuesta únicamente dinero. También cuesta las horas de vida necesarias para producir ese dinero.",
+    close: "El dinero puede comprar margen para decir que no.",
+    notes: [
+      "El dinero importa. El problema empieza cuando se convierte en la única medida de lo que merece tu tiempo.",
+      "Suficiente no es una cifra universal. Es una pregunta que nadie puede responder por ti sin diseñar tu vida desde afuera.",
+      "Cada aumento puede resolver un problema y crear una expectativa nueva. Por eso ganar más no responde por sí solo qué buscas.",
+      "Traducir una compra a horas de vida no prohíbe comprarla. Solo hace visible el intercambio.",
+      "El margen es interesante porque te permite rechazar algo sin que toda tu vida se desarme.",
+    ],
   },
   routine: {
-    reframe: "Lo repetido puede parecer correcto solo porque ya no tienes que pensarlo.",
-    pressure: "UN HÁBITO NORMAL TAMBIÉN PUEDE ESTAR DECIDIENDO TU VIDA.",
-    human: "No había una gran crisis. Había una rutina que llevaba demasiado tiempo evitando revisar.",
-    close: "Cambiar una rutina empieza cuando dejas de llamarla inevitable.",
+    reframe: "La rutina puede esconder una renuncia.",
+    pressure: "LA COSTUMBRE ANESTESIA.",
+    human: "Hay gente que dedica más tiempo a diseñar su sistema de productividad que a producir algo que importe.",
+    close: "La disciplina también necesita auditorías.",
+    notes: [
+      "La rutina ahorra energía porque evita decidir. También puede seguir tomando decisiones mucho después de que dejaron de servirte.",
+      "Lo normal se vuelve difícil de cuestionar precisamente cuando ya no exige atención.",
+      "Diseñar un sistema puede sentirse productivo. No reemplaza hacer una cosa que realmente importe.",
+      "No hace falta una crisis para revisar una rutina. Basta con preguntar si todavía protege algo que valoras.",
+      "La disciplina es útil cuando sirve a una dirección. Sin dirección, solo vuelve más eficiente una inercia.",
+    ],
   },
   other: {
-    reframe: "No todo lo que parece estable está realmente en su lugar.",
-    pressure: "LO QUE EVITAS MIRAR TAMBIÉN TERMINA ORGANIZANDO TU VIDA.",
-    human: "No necesitaba una respuesta nueva. Necesitaba dejar de negociar con lo que ya entendía.",
-    close: "Una decisión honesta suele empezar antes de que tengas todas las respuestas.",
+    reframe: "No toda paz merece silencio.",
+    pressure: "EL EGO ODIA LAS PREGUNTAS CORRECTAS.",
+    human: "Tener acceso instantáneo a todas las respuestas puede estar destruyendo nuestra tolerancia a permanecer dentro de una buena pregunta.",
+    close: "La curiosidad también es disciplina.",
+    notes: [
+      "El silencio no siempre es paz. A veces es el precio de evitar una conversación que ya ocupa demasiado espacio por dentro.",
+      "Una pregunta correcta no siempre trae una respuesta agradable. Eso no la vuelve menos necesaria.",
+      "Tener más información no garantiza pensar mejor. El criterio aparece cuando decides qué merece atención y qué no.",
+      "La comodidad de una respuesta rápida puede impedirte pasar el tiempo suficiente dentro de una duda importante.",
+      "La curiosidad no es solo interés. También es la disciplina de no conformarte con una explicación que te resulta conveniente.",
+    ],
   },
 };
 
@@ -192,28 +287,28 @@ const fallbackWeek = (
   const frame = fallbackFrames[tension];
   const posts: WeekPost[] = [
     {
-      ...weeklyPlans[0], pillar: "Autorresponsabilidad", title: "La entrada", label: "Texto art · entrada", copy: premise,
-      caption: `Hay cosas que no se rompen de golpe. Se aceptan poco a poco hasta que un día ya parecen parte de tu carácter.\n\nLa pregunta no es solo qué quieres cambiar. También es qué has estado enseñándole a tu vida que puede seguir tolerando.`,
+      ...weeklyPlans[0], pillar: "Autorresponsabilidad", title: graphicCopy(premise, 55), label: "Texto art · entrada", copy: premise,
+      caption: `${frame.notes[0]}\n\nLa pregunta no es si puedes vivir con eso. Es cuánto de tu vida está empezando a decidir por ti.`,
     },
     {
-      ...weeklyPlans[1], pillar: "La idea detrás", title: "La idea detrás", label: "Carrusel · contraste", copy: frame.reframe, counterpoint: premise,
-      caption: `Hay ideas que solo se vuelven claras cuando las miras en partes. Esta es una de ellas.\n\nNo se trata de juzgar tu punto de partida. Se trata de distinguir qué parte de tu vida sigue siendo una elección y cuál ya funciona por inercia.`,
+      ...weeklyPlans[1], pillar: "La idea detrás", title: graphicCopy(frame.reframe, 55), label: "Carrusel · contraste", copy: frame.reframe, counterpoint: premise,
+      caption: `${frame.notes[1]}\n\nUna elección consciente y una inercia pueden verse igual desde afuera. No son lo mismo.`,
       slides: [graphicCopy(premise, 85), frame.reframe, frame.pressure, frame.close],
     },
     {
-      ...weeklyPlans[2], pillar: "La presión", title: "El golpe", label: "SIMPLE · contraste", copy: frame.pressure, uppercase: true,
-      caption: `Hay una versión de la fortaleza que solo sabe aguantar. Y por fuera incluso puede verse admirable.\n\nPero sostener algo sin revisarlo no siempre es resistencia. A veces es postergar la conversación que te devolvería margen para decidir.`,
+      ...weeklyPlans[2], pillar: "La presión", title: graphicCopy(frame.pressure, 55), label: "SIMPLE · contraste", copy: frame.pressure, uppercase: true,
+      caption: `${frame.notes[2]}\n\nNo toda resistencia merece el nombre de fortaleza.`,
     },
     {
-      ...weeklyPlans[3], pillar: "Proceso real", title: "La escena humana", label: "Contexto · proceso real", copy: frame.human,
-      caption: `Esto no lo escribo desde una versión resuelta. Lo escribo desde el momento incómodo en que una idea deja de ser teoría y empieza a tocar una decisión propia.\n\nNo todo cambio llega como una ruptura. Algunos empiezan cuando dejas de justificar lo que ya te pesa.`,
+      ...weeklyPlans[3], pillar: "Proceso real", title: graphicCopy(frame.human, 55), label: "Contexto · proceso real", copy: frame.human,
+      caption: `${frame.notes[3]}\n\nAhí es donde una idea deja de ser una frase y empieza a tocar una decisión real.`,
     },
     {
-      ...weeklyPlans[4], pillar: "La idea central", title: "El cierre", label: "Texto art · cierre", copy: frame.close,
-      caption: `No necesitas convertir esta semana en una reinvención. Basta con mirar una decisión que estabas dejando en automático.\n\nCuando esa parte se vuelve visible, ya no es tan fácil seguir llamándola normal.`,
+      ...weeklyPlans[4], pillar: "La idea central", title: graphicCopy(frame.close, 55), label: "Texto art · cierre", copy: frame.close,
+      caption: `${frame.notes[4]}\n\nUn estándar claro no resuelve todo. Evita seguir confundiendo lo que cuesta con lo que importa.`,
     },
   ];
-  return { title: weekTitle, thesis: premise, arc: "Abrir → mostrar el costo → presionar → volverlo humano → cerrar", posts };
+  return { title: weekTitle, thesis: premise, arc: "Cinco ángulos independientes: observar, contrastar, confrontar, aterrizar y decidir.", posts };
 };
 
 const parseThemes = (text: string, excluded: string[] = []): Theme[] | null => {
@@ -288,7 +383,7 @@ const canGenerate = (request: Request) => {
 
 export async function POST(request: Request) {
   let body: { mode?: unknown; seed?: unknown; topic?: unknown; title?: unknown; tension?: unknown; exclude?: unknown };
-  try { body = await request.json(); } catch { return Response.json({ error: "Invalid request." }, { status: 400 }); }
+  try { body = await request.json(); } catch { return Response.json({ error: "Solicitud inválida." }, { status: 400 }); }
   const mode = body.mode === "themes" ? "themes" : "week";
   const seed = normalize(body.seed, 220);
   const topic = normalize(body.topic, 240);
@@ -299,18 +394,18 @@ export async function POST(request: Request) {
     : [];
   const weeklyPlans = weeklyPlansFor(`${title} ${topic}`);
 
-  if (mode === "week" && !topic) return Response.json({ error: "A weekly theme is required." }, { status: 400 });
+  if (mode === "week" && !topic) return Response.json({ error: "Elige un tema semanal." }, { status: 400 });
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json(mode === "themes" ? { themes: themeFallback(seed, excluded), source: "editorial" } : { week: fallbackWeek(topic, tension, weeklyPlans, title), source: "editorial" });
   }
-  if (!canGenerate(request)) return Response.json({ error: "Try again in a few minutes." }, { status: 429 });
+  if (!canGenerate(request)) return Response.json({ error: "Inténtalo de nuevo en unos minutos." }, { status: 429 });
 
   try {
     if (mode === "themes") {
       const { text } = await generateText({
         model: anthropic("claude-sonnet-5"),
         maxOutputTokens: 700,
-        system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Generate ideas for a thoughtful personal brand, not motivational quotes. Voice: precise, restrained, human and slightly uncomfortable. Return only valid JSON: exactly 4 objects with title, thesis, tension. tension must be one of time, freedom, limits, money, identity, routine, other. Each idea must sustain five distinct but coherent posts across one week. Every request must explore fresh angles and never recycle a title the user already saw.",
+        system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. JAY's voice is precise, sober, observant and slightly uncomfortable; never motivational, therapeutic, poetic for its own sake, salesy, or abstract. It names a hidden cost, a contradiction, an assumption, or the consequence people avoid seeing. Prefer clean structures such as 'No todo X es Y', 'La X también Y', 'No necesitas X para Y', and 'Puedes X y aun así Y'. Avoid titles shaped like 'La X que...' and avoid filler such as 'Esta semana observa'. Reference lines: 'La comodidad también cobra intereses.' 'Tus prioridades dejan recibos.' 'La velocidad no corrige el rumbo.' 'No todo límite es una limitación.' 'La rutina puede esconder una renuncia.' 'No necesitas ganar un juego absurdo.' Return only valid JSON: exactly 4 objects with title, thesis, tension. tension must be one of time, freedom, limits, money, identity, routine, other. Each idea must sustain five distinct but coherent posts across one week. Every request must explore fresh angles and never recycle a title the user already saw.",
         prompt: `Optional starting thought: ${seed || "No seed. Find a fresh tension for JAY."}\nDo not repeat these previous titles: ${excluded.length ? excluded.join(" | ") : "none"}.`,
       });
       const themes = parseThemes(text, excluded);
@@ -319,7 +414,7 @@ export async function POST(request: Request) {
     const { text } = await generateText({
       model: anthropic("claude-sonnet-5"),
       maxOutputTokens: 1800,
-      system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one complete five-post week for a personal brand. Each post must stand alone, but together must create a deliberate arc: opening promise, deeper reframe, direct pressure, human grounding, and memorable close. Never motivational, generic, salesy, use emojis, hashtags, or direct calls to action. Return only valid JSON object with title, thesis, arc, and posts. posts must be exactly 5 objects in this fixed order. Each object needs title, label, copy, caption, pillar, optional counterpoint, uppercase, slides. Every caption has two concise paragraphs: context first, then a precise conclusion. Graphic copy limits are strict: text art max 145 characters, carousel cover max 100, SIMPLE max 85, context max 155. Carousel slides must be 4 or 5 coherent steps, each max 85 characters: hook, reframe, tension, closure. Do not merely restate the visual copy in a caption. Make every post useful, specific, and ready to publish.",
+      system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one complete five-post week in the JAY voice: precise, sober, specific and slightly uncomfortable. Never motivational, therapeutic, salesy, decorative, generic, or sentimental. JAY observes a hidden cost, names a contradiction and stops before over-explaining. Its language is plain, not academic. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No toda seguridad es libertad.' 'Lo suficiente necesita una definición.' 'La vida no guarda borradores.' 'La paz puede requerir decepcionar.' Every post must be an independent, complete JAY idea; do not write a sequel, tease, or part number. Together they must orbit the same weekly tension from five different angles: (1) observation, (2) reframe, (3) direct consequence, (4) real-life implication, (5) closing standard. Never make the five posts say the same thing with different words. Return only valid JSON object with title, thesis, arc, and posts. posts must be exactly 5 objects in this fixed order. Each object needs title, label, copy, caption, pillar, optional counterpoint, uppercase, slides. Titles must name that post's exact claim, never generic labels such as 'La entrada', 'El golpe', or 'El cierre'. Every caption has two concise paragraphs: a concrete observation first, then a precise implication. Graphic copy limits are strict: text art max 145 characters, carousel cover max 100, SIMPLE max 85, context max 155. Carousel slides must be 4 or 5 coherent steps, each max 85 characters: claim, reframe, consequence, closure. Do not merely restate the visual copy in a caption. Make every post useful, specific, and ready to publish.",
       prompt: `Tema semanal: ${topic}\nNombre del tema: ${title || "Semana JAY"}\nTensión: ${tension}\nEstructura visual obligatoria: ${weeklyPlans.map((plan) => `${plan.day}: ${plan.format} (${plan.templateId})`).join(" | ")}\nObjetivo: crecer una marca personal reconocible por ideas precisas que cuestionan lo que la gente tolera.`,
     });
     const parsedWeek = parseWeek(text, weeklyPlans);

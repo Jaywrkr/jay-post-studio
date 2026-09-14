@@ -19,7 +19,7 @@ const geistMono = localFont({
   display: "swap",
 });
 
-export const metadata: Metadata = { title: "JAY POST STUDIO", description: "A focused editorial post editor for JAY." };
+export const metadata: Metadata = { title: "JAY POST STUDIO", description: "Un editor editorial para las ideas de JAY." };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

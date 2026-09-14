@@ -30,34 +30,41 @@ const requestWindows = new Map<string, { count: number; resetAt: number }>();
 const requestLimit = 8;
 const requestWindowMs = 10 * 60 * 1000;
 
-const frames: Record<Tension, { contrast: string; mirror: string }> = {
+const frames: Record<Tension, { contrast: string; mirror: string; pressure: string }> = {
   time: {
-    contrast: "No todo lo urgente merece tu vida.",
-    mirror: "El tiempo también se pierde en lo que toleras.",
+    contrast: "La velocidad no corrige el rumbo.",
+    mirror: "Tus prioridades dejan recibos.",
+    pressure: "TU CALENDARIO NUNCA DICE ALGÚN DÍA.",
   },
   freedom: {
-    contrast: "La libertad no siempre se siente cómoda.",
-    mirror: "Toda libertad importante trae una renuncia.",
+    contrast: "No toda seguridad es libertad.",
+    mirror: "La comodidad también cobra intereses.",
+    pressure: "LA LIBERTAD NECESITA ESPACIO VACÍO.",
   },
   limits: {
-    contrast: "Decir que sí también es elegir un costo.",
-    mirror: "Un límite no necesita una defensa larga.",
+    contrast: "No todo límite es una limitación.",
+    mirror: "Tus límites revelan tus prioridades.",
+    pressure: "SER FUERTE TAMBIÉN ES RETIRARSE.",
   },
   money: {
-    contrast: "Ganar más no siempre compra más vida.",
-    mirror: "El dinero resuelve algunos problemas y revela otros.",
+    contrast: "No todo lo importante produce dinero.",
+    mirror: "Lo suficiente necesita una definición.",
+    pressure: "NO TODO LO QUE PRODUCE DINERO IMPORTA.",
   },
   identity: {
-    contrast: "Cambiar incomoda a quien necesitaba que siguieras igual.",
-    mirror: "No tienes que seguir siendo una versión antigua de ti.",
+    contrast: "Cambiar de opinión no es inconsistencia.",
+    mirror: "No todo cambio necesita explicación.",
+    pressure: "NO NECESITAS PERMISO PARA CAMBIAR.",
   },
   routine: {
-    contrast: "Lo conocido no siempre es lo correcto.",
-    mirror: "La rutina puede ocultar una decisión que ya no eliges.",
+    contrast: "La rutina puede esconder una renuncia.",
+    mirror: "La disciplina también necesita auditorías.",
+    pressure: "LA COSTUMBRE ANESTESIA.",
   },
   other: {
-    contrast: "No todo necesita más esfuerzo.",
-    mirror: "La parte difícil casi siempre es admitirlo.",
+    contrast: "No toda paz merece silencio.",
+    mirror: "La curiosidad también es disciplina.",
+    pressure: "EL EGO ODIA LAS PREGUNTAS CORRECTAS.",
   },
 };
 
@@ -65,50 +72,49 @@ const normalize = (value: unknown, max = 260) =>
   typeof value === "string"
     ? value.replace(/\s+/g, " ").trim().slice(0, max)
     : "";
+const graphicCopy = (value: string, max: number) => {
+  const clean = normalize(value, max + 1);
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, max).replace(/\s+\S*$/, "").trim()}…`;
+};
 
 const fallback = (idea: string, tension: Tension, angle: Angle): Direction[] => {
   const frame = frames[tension];
-  const premise =
-    angle === "direct"
-      ? `Esto es lo que cuesta admitir:\n\n${idea}`
-      : angle === "contrarian"
-        ? `${frame.contrast}\n\n${idea}`
-        : idea;
-  const reminder =
-    angle === "direct"
-      ? "No necesitas otra excusa mejor escrita."
-      : angle === "contrarian"
-        ? frame.mirror
-        : frame.contrast;
+  const premise = angle === "direct"
+    ? graphicCopy(`Esto es lo que cuesta admitir: ${idea}`, 145)
+    : angle === "contrarian"
+      ? graphicCopy(`${frame.contrast} ${idea}`, 145)
+      : graphicCopy(idea, 145);
+  const pressure = frame.pressure;
   return [
     {
       id: "quiet",
-      title: "Decirlo sin ruido",
-      label: "Quiet Paper · reflexión directa",
+      title: graphicCopy(premise, 50),
+      label: "Quiet Paper · idea central",
       templateId: "jay-quiet-paper",
       copy: premise,
     },
     {
       id: "contrast",
-      title: "La pregunta incómoda",
-      label: "Four Sides · tensión y remate",
+      title: graphicCopy(frame.contrast, 50),
+      label: "Four Sides · contraste",
       templateId: "jay-four-sides",
-      copy: `${reminder}\n\nQuizá la pregunta no es cómo conseguir más.`,
-      counterpoint: idea,
+      copy: graphicCopy(frame.contrast, 100),
+      counterpoint: graphicCopy(premise, 85),
     },
     {
       id: "mirror",
-      title: "La parte que se repite",
-      label: "Mirror · idea que no puedes ignorar",
+      title: graphicCopy(frame.mirror, 50),
+      label: "Mirror · observación",
       templateId: "jay-mirror",
-      copy: `${idea}\n\n${frame.mirror}`,
+      copy: graphicCopy(frame.mirror, 85),
     },
     {
       id: "caps",
-      title: "El recordatorio",
-      label: "Centered Caps · una verdad frontal",
+      title: graphicCopy(pressure, 50),
+      label: "Centered Caps · presión",
       templateId: "jay-centered-caps",
-      copy: `${reminder}\n\n${idea}`,
+      copy: graphicCopy(pressure, 85),
       uppercase: true,
     },
   ];
@@ -160,7 +166,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return Response.json({ error: "Invalid request." }, { status: 400 });
+    return Response.json({ error: "Solicitud inválida." }, { status: 400 });
   }
 
   const idea = normalize(body.idea, 220);
@@ -170,14 +176,14 @@ export async function POST(request: Request) {
   const angle = ["reflective", "direct", "contrarian"].includes(String(body.angle))
     ? (body.angle as Angle)
     : "reflective";
-  if (!idea) return Response.json({ error: "An idea is required." }, { status: 400 });
+  if (!idea) return Response.json({ error: "Escribe una idea primero." }, { status: 400 });
 
   const editorialRoutes = fallback(idea, tension, angle);
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ routes: editorialRoutes, source: "editorial" });
   }
   if (!canGenerate(request)) {
-    return Response.json({ error: "Try again in a few minutes." }, { status: 429 });
+    return Response.json({ error: "Inténtalo de nuevo en unos minutos." }, { status: 429 });
   }
 
   try {
@@ -186,8 +192,8 @@ export async function POST(request: Request) {
       maxOutputTokens: 900,
       system:
         "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. " +
-        "The voice is observant, precise, restrained and human: never motivational, never generic, never use emojis, hashtags or calls to action. " +
-        "Keep each route legible on a 1080px minimalist post. Preserve the emotional truth of the source idea; do not invent claims. " +
+        "The voice is observant, precise, restrained and human: never motivational, generic, therapeutic, decorative, or salesy; never use emojis, hashtags or calls to action. It names a hidden cost, a contradiction, an assumption, or the consequence people avoid seeing. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No todo límite es una limitación.' Preserve the emotional truth of the source idea; do not invent claims. " +
+        "Keep every route legible on a 1080px minimalist post: do not exceed 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. " +
         "Return only valid JSON: an array of exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. " +
         "Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. " +
         "For jay-four-sides, provide a short counterpoint. Keep copy below 230 characters.",

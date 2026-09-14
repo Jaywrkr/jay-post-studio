@@ -197,40 +197,40 @@ type ContentBatch = {
 const uid = () => Math.random().toString(36).slice(2, 9);
 const brandWeekPlan: BrandPlan[] = [
   {
-    day: "MON",
-    role: "Entrada",
+    day: "LUN",
+    role: "Observación",
     objective: "discovery",
     format: "text art",
     pillar: "Autorresponsabilidad",
     successMetric: "Alcance + compartidos",
   },
   {
-    day: "TUE",
-    role: "Profundizar",
+    day: "MAR",
+    role: "Contraste",
     objective: "depth",
     format: "carousel",
     pillar: "La idea detrás de la frase",
     successMetric: "Guardados",
   },
   {
-    day: "THU",
-    role: "Presionar",
+    day: "JUE",
+    role: "Consecuencia",
     objective: "discovery",
     format: "SIMPLE",
     pillar: "Límites y libertad",
     successMetric: "Compartidos",
   },
   {
-    day: "FRI",
-    role: "Aterrizar",
+    day: "VIE",
+    role: "Vida real",
     objective: "human",
     format: "context",
     pillar: "Proceso real",
     successMetric: "Comentarios cualitativos",
   },
   {
-    day: "SUN",
-    role: "Cerrar",
+    day: "DOM",
+    role: "Criterio",
     objective: "direction",
     format: "text art",
     pillar: "Tu idea central",
@@ -430,7 +430,7 @@ const make = (
 ): Template => ({
   id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
   name,
-  subtitle: "JAY visual system",
+  subtitle: "Sistema visual JAY",
   design: {
     background,
     elements,
@@ -1895,7 +1895,7 @@ function StudioCanvas({
     );
   };
   if (!canvasReady)
-    return <div className="canvas-wrap"><div className="canvas-loading">Preparing canvas…</div></div>;
+    return <div className="canvas-wrap"><div className="canvas-loading">Preparando lienzo…</div></div>;
   return (
     <div className="canvas-wrap" ref={wrap}>
       <div
@@ -2893,10 +2893,10 @@ export default function Home() {
       setThemeIdeas(fresh);
     } catch {
       setThemeIdeas([
-        { id: "local-disponibilidad", title: "El precio de estar disponible", thesis: "Decir sí a todo puede parecer generosidad hasta que tu propia vida empieza a no caber.", tension: "limits" },
-        { id: "local-aprobacion", title: "La aprobación como contrato", thesis: "Cuando necesitas gustar para sentirte seguro, cada decisión empieza a tener un dueño extra.", tension: "identity" },
-        { id: "local-control", title: "La vida administrada", thesis: "Puedes tener todo bajo control y aun así no estar construyendo nada que te importe.", tension: "time" },
-        { id: "local-comodidad", title: "La comodidad que cobra", thesis: "Lo cómodo no siempre es malo; el problema empieza cuando también decide por ti.", tension: "freedom" },
+        { id: "local-costumbre", title: "La costumbre anestesia", thesis: "Lo repetido deja de sorprenderte antes de que deje de hacerte daño.", tension: "routine" },
+        { id: "local-recibos", title: "Tus prioridades dejan recibos", thesis: "Lo que dices valorar y lo que pagas con tiempo no siempre coinciden.", tension: "time" },
+        { id: "local-silencio", title: "No toda paz merece silencio", thesis: "Hay silencios que parecen calma porque todavía no has contado lo que cuestan.", tension: "other" },
+        { id: "local-suficiente", title: "Lo suficiente necesita una definición", thesis: "Si nunca defines suficiente, cada logro encuentra una forma de quedarse corto.", tension: "money" },
       ]);
     } finally {
       setThemeSearching(false);
@@ -2990,7 +2990,7 @@ export default function Home() {
         id: uid(),
         topic: selectedTheme?.title || "Semana JAY",
         thesis: topic,
-        arc: "Observar → confrontar → integrar",
+        arc: "Cinco ángulos independientes: observar, contrastar, confrontar, aterrizar y decidir.",
         createdAt: new Date().toISOString(),
         source: "editorial",
         posts: brandWeekPlan.map((plan, index) => {
@@ -3400,7 +3400,7 @@ export default function Home() {
             {tool === "queue" && (
               <>
                 <h3>Semana editorial</h3>
-                <p className="muted">Un tema. Cinco posts conectados.</p>
+                <p className="muted">Un tema común. Cinco posts independientes.</p>
                 {carouselPreview?.post.slides?.length ? (
                   <section className="carousel-browser" aria-label="Visor de carrusel">
                     <header>
@@ -3441,8 +3441,8 @@ export default function Home() {
                 <section className="brand-compass" aria-label="Personal brand strategy">
                   <p className="idea-kicker">RUMBO · @jaywrkr</p>
                   <h4>Que te recuerden por ideas precisas que hacen cuestionar lo que la gente tolera.</h4>
-                  <div className="brand-flow" aria-label="Brand growth path">
-                    <span>Entrada</span><i>→</i><span>Profundizar</span><i>→</i><span>Presionar</span><i>→</i><span>Aterrizar</span><i>→</i><span>Cerrar</span>
+                <div className="brand-flow" aria-label="Cinco ángulos del mismo tema">
+                  <span>Observar</span><i>·</i><span>Contrastar</span><i>·</i><span>Presionar</span><i>·</i><span>Aterrizar</span><i>·</i><span>Decidir</span>
                   </div>
                   <div className="brand-baseline">
                     <span><b>36</b> posts / 30 días</span>
@@ -3477,7 +3477,7 @@ export default function Home() {
                     {batchGenerating ? "Creando..." : "Crear semana"}
                   </button>
                 </div>
-                <p className="queue-note">Elige un tema. La semana queda lista.</p>
+                <p className="queue-note">Elige un tema. Los cinco posts quedan listos.</p>
                 {themeIdeas.length > 0 && (
                   <section className="weekly-themes" aria-label="Temas sugeridos por IA">
                     <p className="idea-kicker">Temas posibles para la semana</p>
@@ -3485,7 +3485,7 @@ export default function Home() {
                       <article className="weekly-theme" key={theme.id}>
                         <div>
                           <h4>{theme.title}</h4>
-                          <p>{theme.thesis}</p>
+                          {theme.thesis !== theme.title && <p>{theme.thesis}</p>}
                         </div>
                         <button disabled={batchGenerating} onClick={() => createWeeklyBatch(theme)}>
                           Construir esta semana <Plus size={12} />
