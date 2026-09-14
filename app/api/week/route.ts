@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
 
 type Tension = "time" | "freedom" | "limits" | "money" | "identity" | "routine" | "other";
 type Objective = "discovery" | "depth" | "human" | "direction";
@@ -28,6 +28,11 @@ const requestWindows = new Map<string, { count: number; resetAt: number }>();
 const requestLimit = 8;
 const requestWindowMs = 10 * 60 * 1000;
 const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
+const anthropic = createAnthropic({
+  headers: process.env.ANTHROPIC_WORKSPACE_ID
+    ? { "anthropic-workspace-id": process.env.ANTHROPIC_WORKSPACE_ID }
+    : undefined,
+});
 const reportGenerationFailure = (area: string, error: unknown) => {
   const detail = error instanceof Error ? `${error.name}: ${error.message}` : "Unknown provider error";
   console.error(`[JAY AI] ${area} failed with ${model}. ${detail}`);
@@ -403,6 +408,9 @@ export async function POST(request: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; using the editorial library.");
     return Response.json(mode === "themes" ? { themes: themeFallback(seed, excluded), source: "editorial" } : { week: fallbackWeek(topic, tension, weeklyPlans, title), source: "editorial" });
+  }
+  if (!process.env.ANTHROPIC_WORKSPACE_ID) {
+    console.warn("[JAY AI] ANTHROPIC_WORKSPACE_ID is unavailable; an unscoped key may be rejected by Anthropic.");
   }
   if (!canGenerate(request)) return Response.json({ error: "Inténtalo de nuevo en unos minutos." }, { status: 429 });
 
