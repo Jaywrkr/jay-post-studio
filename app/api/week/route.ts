@@ -36,12 +36,20 @@ const normalCaption = (value: unknown) =>
     : "";
 
 const plans: Array<Pick<WeekPost, "day" | "role" | "objective" | "format" | "successMetric" | "templateId">> = [
-  { day: "LUN", role: "Entrada", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos", templateId: "jay-mirror" },
+  { day: "LUN", role: "Entrada", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos", templateId: "jay-quiet-ink" },
   { day: "MAR", role: "Profundizar", objective: "depth", format: "carousel", successMetric: "Guardados", templateId: "jay-four-sides" },
   { day: "JUE", role: "Presionar", objective: "discovery", format: "SIMPLE", successMetric: "Compartidos", templateId: "jay-centered-caps" },
   { day: "VIE", role: "Aterrizar", objective: "human", format: "context", successMetric: "Comentarios con sentido", templateId: "jay-quiet-paper" },
-  { day: "DOM", role: "Cerrar", objective: "direction", format: "text art", successMetric: "Seguidores ganados", templateId: "jay-mirror" },
+  { day: "DOM", role: "Cerrar", objective: "direction", format: "text art", successMetric: "Seguidores ganados", templateId: "jay-quiet-paper" },
 ];
+
+const graphicLimit = (format: Format) =>
+  format === "carousel" ? 100 : format === "SIMPLE" ? 85 : format === "context" ? 155 : 145;
+const graphicCopy = (value: string, max: number) => {
+  const clean = normalize(value, max + 1);
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, max).replace(/\s+\S*$/, "").replace(/[,:;]$/, "").trim()}…`;
+};
 
 const themeFallback = (seed: string): Theme[] => {
   const root = seed || "La vida que construyes mientras intentas cumplir con todo";
@@ -54,14 +62,14 @@ const themeFallback = (seed: string): Theme[] => {
 };
 
 const fallbackWeek = (topic: string, tension: Tension): Week => {
-  const premise = topic || "Lo que toleras en silencio también construye la vida de la que luego quieres escapar.";
+  const premise = graphicCopy(topic || "Lo que toleras en silencio también construye la vida de la que luego quieres escapar.", 145);
   const posts: WeekPost[] = [
     {
-      ...plans[0], pillar: "Autorresponsabilidad", title: "La entrada", label: "Mirror · texto denso", copy: premise,
+      ...plans[0], pillar: "Autorresponsabilidad", title: "La entrada", label: "Texto art · entrada", copy: premise,
       caption: `Hay cosas que no se rompen de golpe. Se aceptan poco a poco hasta que un día ya parecen parte de tu carácter.\n\nLa pregunta no es solo qué quieres cambiar. También es qué has estado enseñándole a tu vida que puede seguir tolerando.`,
     },
     {
-      ...plans[1], pillar: "El costo invisible", title: "La idea detrás", label: "Carousel · contraste", copy: "Lo que toleras no siempre te destruye. A veces solo te distrae de construir algo mejor.", counterpoint: premise,
+      ...plans[1], pillar: "El costo invisible", title: "La idea detrás", label: "Carrusel · contraste", copy: "Lo que toleras no siempre te destruye. A veces solo te distrae de construir algo mejor.", counterpoint: premise,
       caption: `Tolerar no siempre parece una decisión. Por eso es tan difícil verla.\n\nEste carrusel no es para juzgar lo que aún no cambias. Es para distinguir entre paciencia y resignación.`,
       slides: ["Lo que toleras no siempre te destruye.", "A veces solo te distrae.", "La paciencia tiene una dirección.", "La resignación también."],
     },
@@ -74,7 +82,7 @@ const fallbackWeek = (topic: string, tension: Tension): Week => {
       caption: `Esto no lo escribo desde una versión resuelta de mí. Lo escribo porque sigo notando los lugares donde normalizo lo que ya me pesa.\n\nNo todo cambio empieza con una decisión grande. Algunos empiezan cuando dejas de justificar lo obvio.`,
     },
     {
-      ...plans[4], pillar: "La idea central", title: "El cierre", label: "Mirror · recordatorio", copy: "Tu vida no cambia cuando encuentras una respuesta perfecta. Cambia cuando dejas de proteger lo que ya sabes que te cuesta demasiado.",
+      ...plans[4], pillar: "La idea central", title: "El cierre", label: "Texto art · cierre", copy: "Tu vida no cambia cuando encuentras una respuesta perfecta. Cambia cuando dejas de proteger lo que ya sabes que te cuesta demasiado.",
       caption: `No necesitas convertir esta semana en una reinvención. Basta con mirar una cosa que has estado tolerando y dejar de llamarla normal.\n\nEso también cuenta como empezar.`,
     },
   ];
@@ -108,10 +116,11 @@ const parseWeek = (text: string): Week | null => {
       const templateId = plan.templateId;
       const copy = normalCaption(item.copy);
       const caption = normalCaption(item.caption);
-      if (!copy || !caption) return null;
+      if (!copy || !caption || copy.length > graphicLimit(plan.format)) return null;
       const slides = Array.isArray(item.slides)
-        ? item.slides.map((slide: unknown) => normalize(slide, 100)).filter(Boolean).slice(0, 5)
+        ? item.slides.map((slide: unknown) => normalize(slide, 85)).filter(Boolean).slice(0, 5)
         : undefined;
+      if (plan.format === "carousel" && (!slides || slides.length < 4)) return null;
       return {
         ...plan,
         title: normalize(item.title, 55) || plan.role,
@@ -175,7 +184,7 @@ export async function POST(request: Request) {
     const { text } = await generateText({
       model: anthropic("claude-sonnet-5"),
       maxOutputTokens: 1800,
-      system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one coherent five-post week for a personal brand. Each post must stand alone, but together they should feel like five perspectives around one central tension: entry, depth, pressure, human grounding, and closure. Never motivational, generic, salesy, use emojis, hashtags, or direct calls to action. Return only valid JSON object with title, thesis, arc, and posts. posts must be exactly 5 objects in this fixed order: (1) text art discovery / jay-mirror, (2) carousel depth / jay-four-sides with 4-5 short slides and counterpoint, (3) SIMPLE discovery / jay-centered-caps / uppercase true, (4) personal context / jay-quiet-paper, (5) closing text art / jay-mirror. Each object needs title, label, templateId, copy, caption, pillar, optional counterpoint, uppercase, slides. Copy must fit a 1080px graphic; captions should be 2 concise paragraphs and add meaning instead of repeating the image.",
+      system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one coherent five-post week for a personal brand. Each post must stand alone, but together they should feel like five perspectives around one central tension: entry, depth, pressure, human grounding, and closure. Never motivational, generic, salesy, use emojis, hashtags, or direct calls to action. Return only valid JSON object with title, thesis, arc, and posts. posts must be exactly 5 objects in this fixed order: (1) text art discovery, (2) carousel depth with 4-5 short slides, (3) SIMPLE discovery, (4) personal context, (5) closing text art. Each object needs title, label, copy, caption, pillar, optional counterpoint, uppercase, slides. Graphic copy limits are strict: text art max 145 characters, carousel cover max 100, SIMPLE max 85, context max 155. Carousel slides must be 4 or 5 coherent steps, each max 85 characters: hook, reframe, tension, closure. Captions should be 2 concise paragraphs and add meaning instead of repeating the image.",
       prompt: `Tema semanal: ${topic}\nTensión: ${tension}\nObjetivo: crecer una marca personal reconocible por ideas precisas que cuestionan lo que la gente tolera.`,
     });
     const week = parseWeek(text);

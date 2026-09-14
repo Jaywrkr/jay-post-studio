@@ -181,6 +181,10 @@ type QueuePost = {
   caption?: string;
   slides?: string[];
 };
+type CarouselPreview = {
+  post: QueuePost;
+  index: number;
+};
 type ContentBatch = {
   id: string;
   topic: string;
@@ -239,6 +243,12 @@ const brandObjectiveCopy: Record<BrandObjective, { label: string; description: s
   human: { label: "Humano", description: "Da contexto a la persona detrás de JAY." },
   direction: { label: "Dirección", description: "Haz reconocible por qué volver." },
 };
+const brandFormatCopy: Record<BrandFormat, string> = {
+  "text art": "Texto art",
+  SIMPLE: "SIMPLE",
+  carousel: "Carrusel",
+  context: "Contexto",
+};
 const base = (
   type: ElementType,
   extra: Partial<StudioElement> = {},
@@ -284,6 +294,29 @@ const text = (
     fill: color,
     align: "left",
   });
+const wrapCanvasCopy = (value: string, width: number, fontSize: number) => {
+  const limit = Math.max(13, Math.floor(width / Math.max(1, fontSize * 0.57)));
+  return value
+    .trim()
+    .split("\n")
+    .flatMap((paragraph) => {
+      const words = paragraph.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return [""];
+      const lines: string[] = [];
+      let line = "";
+      words.forEach((word) => {
+        const candidate = line ? `${line} ${word}` : word;
+        if (candidate.length <= limit || !line) line = candidate;
+        else {
+          lines.push(line);
+          line = word;
+        }
+      });
+      if (line) lines.push(line);
+      return lines;
+    })
+    .join("\n");
+};
 const cross = (
   x: number,
   y: number,
@@ -1340,7 +1373,7 @@ const buildIdeaRoutes = (
 };
 const emptyDesign = (): Design => ({
   id: uid(),
-  name: "Untitled post",
+  name: "Post sin título",
   background: { ...white },
   effects: {
     noise: false,
@@ -2107,7 +2140,7 @@ function BackgroundPanel({
   const bg = design.background;
   return (
     <>
-      <h3>Background</h3>
+      <h3>Fondo</h3>
       <div className="segmented">
         {(["solid", "linear", "radial"] as const).map((type) => (
           <button
@@ -2122,7 +2155,7 @@ function BackgroundPanel({
         ))}
       </div>
       <ColorInput
-        label="Color A"
+          label="Color A"
         value={bg.color}
         onChange={(color) =>
           setDesign({ ...design, background: { ...bg, color } })
@@ -2138,7 +2171,7 @@ function BackgroundPanel({
             }
           />
           <NumberField
-            label="Angle"
+            label="Ángulo"
             value={bg.angle}
             onChange={(angle) =>
               setDesign({ ...design, background: { ...bg, angle } })
@@ -2173,9 +2206,9 @@ function EffectsPanel({
     setDesign({ ...design, effects: { ...fx, ...p } });
   return (
     <>
-      <h3>Effects</h3>
+      <h3>Efectos</h3>
       <label className="toggle">
-        <span>Noise / grain</span>
+          <span>Ruido / grano</span>
         <input
           type="checkbox"
           checked={fx.noise}
@@ -2186,18 +2219,18 @@ function EffectsPanel({
         Procedural texture; it is included in exported PNG files.
       </p>
       <NumberField
-        label="Noise amount"
+          label="Cantidad de grano"
         value={fx.noiseAmount}
         onChange={(noiseAmount) => patch({ noiseAmount })}
       />
       <NumberField
-        label="Noise opacity"
+          label="Opacidad del grano"
         value={fx.noiseOpacity}
         step={0.01}
         onChange={(noiseOpacity) => patch({ noiseOpacity })}
       />
       <NumberField
-        label="Grain scale"
+          label="Escala del grano"
         value={fx.noiseScale}
         step={0.5}
         onChange={(noiseScale) => patch({ noiseScale })}
@@ -2208,12 +2241,12 @@ function EffectsPanel({
         onChange={(seed) => patch({ seed })}
       />
       <div className="side-rule" />
-      <h3>Post details</h3>
+      <h3>Detalles</h3>
       <p className="muted">
         Small editorial treatments for giving the post a more intentional finish.
       </p>
       <label className="toggle">
-        <span>Scanlines</span>
+          <span>Líneas</span>
         <input
           type="checkbox"
           checked={fx.scanlines || false}
@@ -2221,18 +2254,18 @@ function EffectsPanel({
         />
       </label>
       <NumberField
-        label="Line opacity"
+          label="Opacidad"
         value={fx.scanlineOpacity || 0.08}
         step={0.01}
         onChange={(scanlineOpacity) => patch({ scanlineOpacity })}
       />
       <NumberField
-        label="Line spacing"
+          label="Espaciado"
         value={fx.scanlineSpacing || 12}
         onChange={(scanlineSpacing) => patch({ scanlineSpacing })}
       />
       <label className="toggle">
-        <span>Dot field</span>
+          <span>Puntos</span>
         <input
           type="checkbox"
           checked={fx.dotField || false}
@@ -2240,24 +2273,24 @@ function EffectsPanel({
         />
       </label>
       <NumberField
-        label="Dot opacity"
+          label="Opacidad de puntos"
         value={fx.dotOpacity || 0.12}
         step={0.01}
         onChange={(dotOpacity) => patch({ dotOpacity })}
       />
       <NumberField
-        label="Dot spacing"
+          label="Espaciado de puntos"
         value={fx.dotSpacing || 48}
         onChange={(dotSpacing) => patch({ dotSpacing })}
       />
       <NumberField
-        label="Dot size"
+          label="Tamaño de puntos"
         value={fx.dotSize || 1.5}
         step={0.5}
         onChange={(dotSize) => patch({ dotSize })}
       />
       <label className="toggle">
-        <span>Edge focus</span>
+          <span>Viñeta</span>
         <input
           type="checkbox"
           checked={fx.vignette || false}
@@ -2265,13 +2298,13 @@ function EffectsPanel({
         />
       </label>
       <NumberField
-        label="Edge opacity"
+          label="Opacidad de viñeta"
         value={fx.vignetteOpacity || 0.16}
         step={0.01}
         onChange={(vignetteOpacity) => patch({ vignetteOpacity })}
       />
       <label className="toggle">
-        <span>Archive frame</span>
+          <span>Marco</span>
         <input
           type="checkbox"
           checked={fx.frame || false}
@@ -2279,12 +2312,12 @@ function EffectsPanel({
         />
       </label>
       <NumberField
-        label="Frame inset"
+          label="Margen del marco"
         value={fx.frameInset || 48}
         onChange={(frameInset) => patch({ frameInset })}
       />
       <NumberField
-        label="Frame opacity"
+          label="Opacidad del marco"
         value={fx.frameOpacity || 0.28}
         step={0.01}
         onChange={(frameOpacity) => patch({ frameOpacity })}
@@ -2305,14 +2338,14 @@ function DocumentPanel({
 }) {
   return (
     <>
-      <p className="panel-kicker">DOCUMENT</p>
-      <h2>Instagram Square</h2>
+      <p className="panel-kicker">DOCUMENTO</p>
+      <h2>Post cuadrado</h2>
       <div className="document-size">
         1080 <span>×</span> 1080 <small>px</small>
       </div>
       <div className="side-rule" />
       <label className="toggle">
-        <span>Snap to guides</span>
+        <span>Ajustar a guías</span>
         <input
           type="checkbox"
           checked={snap}
@@ -2320,7 +2353,7 @@ function DocumentPanel({
         />
       </label>
       <label className="toggle">
-        <span>Grain effect</span>
+        <span>Grano</span>
         <input
           type="checkbox"
           checked={design.effects.noise}
@@ -2334,7 +2367,7 @@ function DocumentPanel({
       </label>
       <div className="side-rule" />
       <p className="muted">
-        Select an element to edit its typography, color and position.
+        Selecciona un elemento para editarlo.
       </p>
     </>
   );
@@ -2367,9 +2400,9 @@ function Properties({
       </div>
       {item.type === "text" ? (
         <section className="property-section">
-          <h3>Text</h3>
+          <h3>Texto</h3>
           <label className="field">
-            <span>Content</span>
+              <span>Texto</span>
             <textarea
               value={item.text || ""}
               onChange={(e) =>
@@ -2381,7 +2414,7 @@ function Properties({
             />
           </label>
           <label className="field">
-            <span>Font</span>
+              <span>Fuente</span>
             <select
               value={item.fontFamily}
               onChange={(e) => update({ fontFamily: e.target.value })}
@@ -2393,38 +2426,38 @@ function Properties({
           </label>
           <div className="field-row">
             <NumberField
-              label="Size"
+                label="Tamaño"
               value={item.fontSize || 0}
               onChange={(fontSize) => update({ fontSize })}
             />
             <label className="field">
-              <span>Weight</span>
+                <span>Peso</span>
               <select
                 value={item.fontStyle || "normal"}
                 onChange={(e) => update({ fontStyle: e.target.value })}
               >
-                <option value="100">Thin</option>
-                <option value="200">Extra Light</option>
-                <option value="300">Light</option>
+                <option value="100">Fino</option>
+                <option value="200">Extra fino</option>
+                <option value="300">Ligero</option>
                 <option value="normal">Regular</option>
-                <option value="500">Medium</option>
-                <option value="600">SemiBold</option>
-                <option value="bold">Bold</option>
-                <option value="800">ExtraBold</option>
-                <option value="900">Black</option>
-                <option value="italic">Italic</option>
+                <option value="500">Medio</option>
+                <option value="600">Seminegrita</option>
+                <option value="bold">Negrita</option>
+                <option value="800">Extra negrita</option>
+                <option value="900">Negra</option>
+                <option value="italic">Cursiva</option>
               </select>
             </label>
           </div>
           <div className="field-row">
             <NumberField
-              label="Line height"
+                label="Interlineado"
               value={item.lineHeight || 1}
               step={0.1}
               onChange={(lineHeight) => update({ lineHeight })}
             />
             <NumberField
-              label="Tracking"
+                label="Espaciado"
               value={item.letterSpacing || 0}
               onChange={(letterSpacing) => update({ letterSpacing })}
             />
@@ -2450,7 +2483,7 @@ function Properties({
             </button>
           </div>
           <label className="toggle">
-            <span>Uppercase</span>
+              <span>Mayúsculas</span>
             <input
               type="checkbox"
               checked={item.uppercase || false}
@@ -2460,32 +2493,32 @@ function Properties({
         </section>
       ) : item.type === "image" ? (
         <section className="property-section">
-          <h3>Image</h3>
-          <p className="muted">Drag, resize or replace this photo from Images.</p>
+          <h3>Imagen</h3>
+          <p className="muted">Arrastra, cambia el tamaño o reemplaza la foto.</p>
         </section>
       ) : (
         <section className="property-section">
-          <h3>Appearance</h3>
+          <h3>Apariencia</h3>
           <ColorInput
-            label="Fill"
+            label="Relleno"
             value={item.fill}
             onChange={(fill) => update({ fill })}
           />
           {item.type !== "plus" && (
             <ColorInput
-              label="Stroke"
+                label="Borde"
               value={item.stroke || "#000000"}
               onChange={(stroke) => update({ stroke })}
             />
           )}
           <NumberField
-            label="Stroke width"
+              label="Grosor de borde"
             value={item.strokeWidth || 0}
             onChange={(strokeWidth) => update({ strokeWidth })}
           />
           {item.type === "rect" && (
             <NumberField
-              label="Corner radius"
+              label="Radio de esquina"
               value={item.radius || 0}
               onChange={(radius) => update({ radius })}
             />
@@ -2493,7 +2526,7 @@ function Properties({
         </section>
       )}
       <section className="property-section">
-        <h3>Position</h3>
+        <h3>Posición</h3>
         <div className="position-grid">
           <NumberField
             label="X"
@@ -2516,12 +2549,12 @@ function Properties({
             onChange={(height) => update({ height })}
           />
           <NumberField
-            label="Rotation"
+            label="Rotación"
             value={Math.round(item.rotation)}
             onChange={(rotation) => update({ rotation })}
           />
           <NumberField
-            label="Opacity"
+            label="Opacidad"
             value={item.opacity}
             step={0.05}
             onChange={(opacity) => update({ opacity })}
@@ -2531,22 +2564,22 @@ function Properties({
       <div className="property-actions">
         <button onClick={() => update({ x: 0 })}>
           <AlignLeft size={15} />
-          Canvas left
+          A la izquierda
         </button>
         <button onClick={() => update({ x: (SIZE - item.width) / 2 })}>
           <AlignCenter size={15} />
-          Center
+          Centrar
         </button>
         <button onClick={() => update({ x: SIZE - item.width })}>
           <AlignRight size={15} />
-          Canvas right
+          A la derecha
         </button>
         <button onClick={duplicate}>
           <Copy size={15} />
-          Duplicate
+          Duplicar
         </button>
-        <button onClick={sendToBack}>To back</button>
-        <button onClick={bringToFront}>To front</button>
+        <button onClick={sendToBack}>Al fondo</button>
+        <button onClick={bringToFront}>Al frente</button>
       </div>
     </>
   );
@@ -2561,7 +2594,7 @@ export default function Home() {
   const [selected, setSelected] = useState<string[]>([]);
   const [zoom, setZoom] = useState(0);
   const [snap, setSnap] = useState(true);
-  const [saved, setSaved] = useState("Saved");
+  const [saved, setSaved] = useState("Guardado");
   const [history, setHistory] = useState<Design[]>([]);
   const [future, setFuture] = useState<Design[]>([]);
   const [myDesigns, setMyDesigns] = useState<Design[]>([]);
@@ -2579,7 +2612,9 @@ export default function Home() {
   const [themeIdeas, setThemeIdeas] = useState<WeeklyTheme[]>([]);
   const [themeSearching, setThemeSearching] = useState(false);
   const [contentBatches, setContentBatches] = useState<ContentBatch[]>([]);
+  const [carouselPreview, setCarouselPreview] = useState<CarouselPreview | null>(null);
   const stageRef = useRef<Konva.Stage>(null);
+  const leftContentRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     try {
       setMyDesigns(
@@ -2604,15 +2639,15 @@ export default function Home() {
         localStorage.setItem("jay-post-designs", JSON.stringify(next));
         return next;
       });
-      setSaved("Saved");
+      setSaved("Guardado");
     } catch {
-      setSaved("Saved in this session");
+      setSaved("Guardado en esta sesión");
     }
   }, []);
   useEffect(() => {
     if (screen !== "editor" || !shouldPersist) return;
     const timer = window.setTimeout(() => persist(design), 1200);
-    setSaved("Saving…");
+    setSaved("Guardando…");
     return () => window.clearTimeout(timer);
   }, [design, persist, screen, shouldPersist]);
   const commit = (next: Design) => {
@@ -2660,11 +2695,15 @@ export default function Home() {
     setHistory([]);
     setFuture([]);
     setShouldPersist(false);
-    setSaved("Template ready");
+    setSaved("Plantilla lista");
     setScreen("editor");
   };
-  const openIdeaRoute = (route: IdeaRoute) => {
-    const source = templates.find((template) => template.id === route.templateId);
+  const openIdeaRoute = (route: IdeaRoute, nextTool: Tool = "text") => {
+    const templateId =
+      route.templateId === "jay-mirror" && route.copy.length > 92
+        ? "jay-quiet-ink"
+        : route.templateId;
+    const source = templates.find((template) => template.id === templateId);
     if (!source) return;
     const next = cloneTemplate(source);
     const copyTargets = next.elements
@@ -2675,23 +2714,46 @@ export default function Home() {
           item.text?.toUpperCase() !== "SIMPLE",
       )
       .sort((a, b) => a.y - b.y);
-    const rewrite = (item: StudioElement, value: string) => ({
-      ...item,
-      text: value,
-      name: value.slice(0, 24) || item.name,
-      height: (item.fontSize || 36) * 1.35 * Math.max(1, value.split("\n").length),
-      uppercase: route.uppercase || item.uppercase,
-    });
+    const rewrite = (item: StudioElement, value: string) => {
+      const copy = wrapCanvasCopy(value, item.width, item.fontSize || 36);
+      return {
+        ...item,
+        text: copy,
+        name: value.slice(0, 24) || item.name,
+        height: Math.min(
+          SIZE - Math.max(0, item.y) - 36,
+          (item.fontSize || 36) * (item.lineHeight || 1.2) * Math.max(1, copy.split("\n").length) + 6,
+        ),
+        uppercase: route.uppercase || item.uppercase,
+      };
+    };
     next.elements = next.elements.map((item) => {
       const index = copyTargets.findIndex((target) => target.id === item.id);
       if (index < 0) return item;
-      if (route.templateId === "jay-four-sides")
+      if (templateId === "jay-four-sides")
         return rewrite(item, index === 0 ? route.copy : route.counterpoint || route.copy);
       return rewrite(item, route.copy);
     });
     next.name = route.title;
     newFrom(next);
-    setTool("text");
+    if (nextTool !== "queue") setCarouselPreview(null);
+    setTool(nextTool);
+  };
+  const openCarouselSlide = (post: QueuePost, index: number) => {
+    const slides = post.slides || [];
+    if (!slides[index]) return;
+    setCarouselPreview({ post, index });
+    window.requestAnimationFrame(() => leftContentRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
+    openIdeaRoute(
+      {
+        id: `${post.id}-slide-${index}`,
+        title: `${post.route.title} · ${index + 1}/${slides.length}`,
+        label: `Carrusel · lámina ${index + 1}`,
+        templateId: "jay-quiet-ink",
+        copy: slides[index],
+      },
+      "queue",
+    );
   };
   const createIdeaDirections = async () => {
     const idea = cleanIdea(ideaInput);
@@ -2994,17 +3056,17 @@ export default function Home() {
           </div>
           <button className="primary" onClick={() => newFrom(emptyDesign())}>
             <Plus size={16} />
-            New design
+            Nuevo diseño
           </button>
         </header>
         <section className="library-hero">
           <p>
-            MY DESIGNS <em>{myDesigns.length.toString().padStart(2, "0")}</em>
+            MIS DISEÑOS <em>{myDesigns.length.toString().padStart(2, "0")}</em>
           </p>
           <h1>
-            Make room
+            Haz espacio
             <br />
-            for the idea.
+            para la idea.
           </h1>
           <button
             onClick={() => {
@@ -3012,7 +3074,7 @@ export default function Home() {
               newFrom(emptyDesign());
             }}
           >
-            Turn an idea into a post <Sparkles size={16} />
+            Convertir una idea en post <Sparkles size={16} />
           </button>
         </section>
         <section className={myDesigns.length ? "design-grid" : "design-empty"}>
@@ -3031,15 +3093,15 @@ export default function Home() {
           ) : (
             <div className="empty-card">
               <Grid2X2 size={26} />
-              <p>Your saved posts will live here.</p>
+              <p>Aquí estarán tus posts guardados.</p>
             </div>
           )}
         </section>
         <section className="template-library">
           <div className="template-library-head">
             <div>
-              <p>TEMPLATE LIBRARY / {templateList.length.toString().padStart(2, "0")} SYSTEMS</p>
-              <h2>Choose the composition first.</h2>
+              <p>PLANTILLAS / {templateList.length.toString().padStart(2, "0")} SISTEMAS</p>
+              <h2>Elige una composición.</h2>
             </div>
             <button
               className="view-library"
@@ -3048,7 +3110,7 @@ export default function Home() {
                 newFrom(emptyDesign());
               }}
             >
-              Browse all templates <Plus size={15} />
+              Ver plantillas <Plus size={15} />
             </button>
           </div>
           <div className="template-row">
@@ -3084,15 +3146,15 @@ export default function Home() {
           <small>{saved}</small>
         </label>
         <div className="top-actions">
-          <button title="Undo" onClick={undo} disabled={!history.length}>
+          <button title="Deshacer" onClick={undo} disabled={!history.length}>
             <Undo2 size={17} />
           </button>
-          <button title="Redo" onClick={redo} disabled={!future.length}>
+          <button title="Rehacer" onClick={redo} disabled={!future.length}>
             <Redo2 size={17} />
           </button>
           <button onClick={() => newFrom(emptyDesign())}>
             <FilePlus2 size={16} />
-            New
+            Nuevo
           </button>
           <button
             onClick={() => {
@@ -3101,7 +3163,7 @@ export default function Home() {
             }}
           >
             <Save size={16} />
-            Save
+            Guardar
           </button>
           <button
             onClick={() =>
@@ -3109,15 +3171,15 @@ export default function Home() {
             }
           >
             <Copy size={16} />
-            Duplicate
+            Duplicar
           </button>
           <button onClick={saveTemplate}>
             <Sparkles size={16} />
-            Template
+            Plantilla
           </button>
           <button className="export" onClick={exportPng}>
             <Download size={16} />
-            Export PNG
+            Exportar PNG
           </button>
         </div>
       </header>
@@ -3126,15 +3188,15 @@ export default function Home() {
           <nav>
             {(
               [
-                { id: "templates", icon: Grid2X2, label: "Templates" },
+                { id: "templates", icon: Grid2X2, label: "Plantillas" },
                 { id: "ideas", icon: Sparkles, label: "Idea" },
-                { id: "queue", icon: Check, label: "Queue" },
-                { id: "text", icon: Type, label: "Text" },
-                { id: "shapes", icon: Shapes, label: "Shapes" },
-                { id: "images", icon: ImagePlus, label: "Images" },
-                { id: "background", icon: Palette, label: "Background" },
-                { id: "effects", icon: Sparkles, label: "Effects" },
-                { id: "layers", icon: Layers3, label: "Layers" },
+                { id: "queue", icon: Check, label: "Semana" },
+                { id: "text", icon: Type, label: "Texto" },
+                { id: "shapes", icon: Shapes, label: "Formas" },
+                { id: "images", icon: ImagePlus, label: "Imágenes" },
+                { id: "background", icon: Palette, label: "Fondo" },
+                { id: "effects", icon: Sparkles, label: "Efectos" },
+                { id: "layers", icon: Layers3, label: "Capas" },
               ] as { id: Tool; icon: typeof Type; label: string }[]
             ).map(({ id, icon: Icon, label }) => (
               <button
@@ -3147,13 +3209,11 @@ export default function Home() {
               </button>
             ))}
           </nav>
-          <section className="left-content">
+          <section className="left-content" ref={leftContentRef}>
             {tool === "templates" && (
               <>
-                <h3>Templates</h3>
-                <p className="muted">
-                  Use a composition. You will edit a new copy.
-                </p>
+                <h3>Plantillas</h3>
+                <p className="muted">Elige una composición.</p>
                 <div className="template-grid">
                   {templateList.map((template) => (
                     <button
@@ -3169,44 +3229,41 @@ export default function Home() {
             )}
             {tool === "ideas" && (
               <>
-                <h3>From an idea</h3>
-                <p className="muted">
-                  Write the raw thought first. The studio will turn it into
-                  four JAY directions you can edit.
-                </p>
+                <h3>Desde una idea</h3>
+                <p className="muted">Escribe una idea. Te damos cuatro direcciones.</p>
                 <label className="field">
-                  <span>Your raw thought</span>
+                  <span>Tu idea</span>
                   <textarea
                     className="idea-input"
                     value={ideaInput}
-                    placeholder="I am making more money but have less control of my time."
+                    placeholder="Gano más dinero, pero tengo menos tiempo."
                     onChange={(event) => setIdeaInput(event.target.value)}
                   />
                 </label>
                 <label className="field">
-                  <span>What is underneath it?</span>
+                  <span>Tensión</span>
                   <select
                     value={ideaTension}
                     onChange={(event) => setIdeaTension(event.target.value as IdeaTension)}
                   >
-                    <option value="time">Time</option>
-                    <option value="freedom">Freedom</option>
-                    <option value="limits">Limits</option>
-                    <option value="money">Money</option>
-                    <option value="identity">Identity</option>
-                    <option value="routine">Routine</option>
-                    <option value="other">Something else</option>
+                    <option value="time">Tiempo</option>
+                    <option value="freedom">Libertad</option>
+                    <option value="limits">Límites</option>
+                    <option value="money">Dinero</option>
+                    <option value="identity">Identidad</option>
+                    <option value="routine">Rutina</option>
+                    <option value="other">Otra</option>
                   </select>
                 </label>
                 <label className="field">
-                  <span>How should it land?</span>
+                  <span>Tono</span>
                   <select
                     value={ideaAngle}
                     onChange={(event) => setIdeaAngle(event.target.value as IdeaAngle)}
                   >
-                    <option value="reflective">Reflective</option>
-                    <option value="direct">Direct</option>
-                    <option value="contrarian">Contrarian</option>
+                    <option value="reflective">Reflexivo</option>
+                    <option value="direct">Directo</option>
+                    <option value="contrarian">Contrario</option>
                   </select>
                 </label>
                 <button
@@ -3215,12 +3272,12 @@ export default function Home() {
                   onClick={createIdeaDirections}
                 >
                   <Sparkles size={15} />
-                  {ideaGenerating ? "Finding the angle..." : "Create directions"}
+                  {ideaGenerating ? "Buscando ángulos..." : "Crear direcciones"}
                 </button>
                 {ideaRoutes.length > 0 && (
                   <div className="idea-routes">
                     <p className="idea-source">
-                      {ideaSource === "ai" ? "AI-shaped, JAY-edited" : "JAY editorial engine"}
+                      {ideaSource === "ai" ? "IA + edición JAY" : "Motor editorial JAY"}
                     </p>
                     {ideaRoutes.map((route) => (
                       <article className="idea-route" key={route.id}>
@@ -3228,7 +3285,7 @@ export default function Home() {
                         <h4>{route.title}</h4>
                         <p className="idea-copy">{route.copy}</p>
                         <button onClick={() => openIdeaRoute(route)}>
-                          Open this direction <Plus size={13} />
+                          Abrir dirección <Plus size={13} />
                         </button>
                       </article>
                     ))}
@@ -3239,19 +3296,54 @@ export default function Home() {
             {tool === "queue" && (
               <>
                 <h3>Semana editorial</h3>
-                <p className="muted">
-                  Una idea central. Cinco piezas que se sostienen solas y, juntas, dejan una impresión completa.
-                </p>
+                <p className="muted">Un tema. Cinco posts conectados.</p>
+                {carouselPreview?.post.slides?.length ? (
+                  <section className="carousel-browser" aria-label="Visor de carrusel">
+                    <header>
+                      <div>
+                        <p className="idea-kicker">Carrusel</p>
+                        <h4>Lámina {carouselPreview.index + 1} de {carouselPreview.post.slides.length}</h4>
+                      </div>
+                      <button onClick={() => setCarouselPreview(null)}>Cerrar</button>
+                    </header>
+                    <p>{carouselPreview.post.slides[carouselPreview.index]}</p>
+                    <div className="carousel-slide-picker">
+                      {carouselPreview.post.slides.map((_, index) => (
+                        <button
+                          key={`${carouselPreview.post.id}-picker-${index}`}
+                          className={index === carouselPreview.index ? "selected" : ""}
+                          onClick={() => openCarouselSlide(carouselPreview.post, index)}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="carousel-step-actions">
+                      <button
+                        disabled={carouselPreview.index === 0}
+                        onClick={() => openCarouselSlide(carouselPreview.post, carouselPreview.index - 1)}
+                      >
+                        ← Anterior
+                      </button>
+                      <button
+                        disabled={carouselPreview.index === carouselPreview.post.slides.length - 1}
+                        onClick={() => openCarouselSlide(carouselPreview.post, carouselPreview.index + 1)}
+                      >
+                        Siguiente →
+                      </button>
+                    </div>
+                  </section>
+                ) : null}
                 <section className="brand-compass" aria-label="Personal brand strategy">
-                  <p className="idea-kicker">90-day north star · @jaywrkr</p>
+                  <p className="idea-kicker">RUMBO · @jaywrkr</p>
                   <h4>Que te recuerden por ideas precisas que hacen cuestionar lo que la gente tolera.</h4>
                   <div className="brand-flow" aria-label="Brand growth path">
                     <span>Entrada</span><i>→</i><span>Profundizar</span><i>→</i><span>Presionar</span><i>→</i><span>Aterrizar</span><i>→</i><span>Cerrar</span>
                   </div>
                   <div className="brand-baseline">
-                    <span><b>36</b> posts / 30d</span>
-                    <span><b>94.5K</b> record views</span>
-                    <span><b>115.5K</b> audience</span>
+                    <span><b>36</b> posts / 30 días</span>
+                    <span><b>94.5K</b> vistas récord</span>
+                    <span><b>115.5K</b> audiencia</span>
                   </div>
                 </section>
                 <label className="field">
@@ -3270,7 +3362,7 @@ export default function Home() {
                     onClick={findWeeklyThemes}
                   >
                     <Sparkles size={15} />
-                    {themeSearching ? "Pensando temas..." : "Dame temas estilo JAY"}
+                    {themeSearching ? "Pensando..." : "Temas JAY"}
                   </button>
                   <button
                     className="idea-generate"
@@ -3278,10 +3370,10 @@ export default function Home() {
                     onClick={() => createWeeklyBatch()}
                   >
                     <Sparkles size={15} />
-                    {batchGenerating ? "Construyendo semana..." : "Crear semana completa"}
+                    {batchGenerating ? "Creando..." : "Crear semana"}
                   </button>
                 </div>
-                <p className="queue-note">La IA define la estructura diaria, el formato, el objetivo y el caption. Tú solo eliges el tema y revisas la ejecución.</p>
+                <p className="queue-note">Elige un tema. La semana queda lista.</p>
                 {themeIdeas.length > 0 && (
                   <section className="weekly-themes" aria-label="Temas sugeridos por IA">
                     <p className="idea-kicker">Temas posibles para la semana</p>
@@ -3306,12 +3398,12 @@ export default function Home() {
                       <header>
                         <div>
                           <p className="idea-kicker">
-                            {batch.source === "ai" ? "Claude batch" : "JAY editorial batch"}
+                            {batch.source === "ai" ? "Semana con IA" : "Semana JAY"}
                           </p>
                           <h4>{batch.topic}</h4>
                         </div>
                         <button className="queue-approve-all" onClick={() => approveBatch(batch.id)}>
-                          Approve all
+                          Aprobar todo
                         </button>
                       </header>
                       {batch.thesis && <p className="batch-thesis">{batch.thesis}</p>}
@@ -3325,12 +3417,12 @@ export default function Home() {
                           return (
                             <article className={`queue-post ${post.status}`} key={post.id}>
                               <div className="queue-post-head">
-                                <p className="idea-kicker">{plan.day} · {plan.role || post.route.title} · {post.route.label}</p>
+                                <p className="idea-kicker">{plan.day} · {plan.role || post.route.title}</p>
                                 <span className={`brand-objective ${plan.objective}`}>{objective.label}</span>
                               </div>
                               <p className="queue-copy">{post.route.copy}</p>
                               <div className="queue-meta">
-                                <span>{plan.format}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
+                                <span>{brandFormatCopy[plan.format]}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
                               </div>
                               <p className="queue-intent"><b>{objective.description}</b></p>
                               {post.slides?.length ? (
@@ -3340,27 +3432,29 @@ export default function Home() {
                               ) : null}
                               {!isLegacyBatch && (
                                 <label className="queue-caption">
-                                  <span>Caption listo para publicar</span>
+                                  <span>Texto para publicar</span>
                                   <textarea
                                     value={post.caption || ""}
-                                    placeholder="El caption de este post aparecerá aquí."
+                                    placeholder="El texto del post aparecerá aquí."
                                     onChange={(event) => updateQueuePost(batch.id, post.id, { caption: event.target.value })}
                                   />
                                 </label>
                               )}
                               <div className="queue-actions">
-                                <button onClick={() => openIdeaRoute(post.route)}>Editar diseño</button>
+                                <button onClick={() => post.slides?.length ? openCarouselSlide(post, 0) : openIdeaRoute(post.route)}>
+                                  {post.slides?.length ? `Ver carrusel · ${post.slides.length} láminas` : "Editar diseño"}
+                                </button>
                                 <button
                                   className={post.status === "approved" ? "selected" : ""}
                                   onClick={() => setQueuePostStatus(batch.id, post.id, "approved")}
                                 >
-                                  <Check size={12} /> Approve
+                                  <Check size={12} /> Aprobar
                                 </button>
                                 <button
                                   className={post.status === "discarded" ? "selected" : ""}
                                   onClick={() => setQueuePostStatus(batch.id, post.id, "discarded")}
                                 >
-                                  <Trash2 size={12} /> Skip
+                                  <Trash2 size={12} /> Omitir
                                 </button>
                               </div>
                             </article>
@@ -3374,7 +3468,7 @@ export default function Home() {
             )}
             {tool === "text" && (
               <>
-                <h3>Text</h3>
+                <h3>Texto</h3>
                 <div className="add-list">
                   <button onClick={() => add(text("HEADLINE", 160, 300, 64))}>
                     <Type />
@@ -3418,7 +3512,7 @@ export default function Home() {
             )}
             {tool === "shapes" && (
               <>
-                <h3>Shapes</h3>
+                <h3>Formas</h3>
                 <div className="shape-grid">
                   <button
                     onClick={() =>
@@ -3507,7 +3601,7 @@ export default function Home() {
             )}
             {tool === "images" && (
               <>
-                <h3>Images</h3>
+                <h3>Imágenes</h3>
                 <p className="muted">
                   Add your own photo. It will cover its frame cleanly when you
                   resize it.
@@ -3540,7 +3634,7 @@ export default function Home() {
             )}{" "}
             {tool === "layers" && (
               <>
-                <h3>Layers</h3>
+                <h3>Capas</h3>
                 <div className="layers">
                   {[...design.elements].reverse().map((item) => (
                     <div
@@ -3612,13 +3706,13 @@ export default function Home() {
                 onClick={() => setSnap(!snap)}
               >
                 <MousePointer2 size={14} />
-                Snap {snap ? "on" : "off"}
+                Ajuste {snap ? "activo" : "inactivo"}
               </button>
               <select
                 value={zoom}
                 onChange={(e) => setZoom(Number(e.target.value))}
               >
-                <option value={0}>Fit</option>
+                <option value={0}>Ajustar</option>
                 <option value={0.25}>25%</option>
                 <option value={0.5}>50%</option>
                 <option value={0.75}>75%</option>
