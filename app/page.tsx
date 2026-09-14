@@ -154,6 +154,7 @@ type IdeaRoute = {
   copy: string;
   counterpoint?: string;
   uppercase?: boolean;
+  effectVariant?: number;
 };
 type IdeaAngle = "reflective" | "direct" | "contrarian";
 type QueueStatus = "review" | "approved" | "discarded";
@@ -184,6 +185,12 @@ type QueuePost = {
 type CarouselPreview = {
   post: QueuePost;
   index: number;
+};
+type ActiveQueueEdit = {
+  batchId: string;
+  postId: string;
+  slideIndex?: number;
+  elementId: string;
 };
 type ContentBatch = {
   id: string;
@@ -1368,6 +1375,34 @@ const cloneTemplate = (template: Template): Design => ({
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
+const compatibleTemplates: Record<BrandFormat, string[]> = {
+  "text art": ["jay-quiet-paper", "jay-quiet-ink", "jay-grain-left", "jay-grain-right", "jay-circle-quote", "jay-mirror", "jay-repeater"],
+  SIMPLE: ["jay-centered-caps", "jay-simple-paper", "jay-simple-ink", "jay-reminder"],
+  carousel: ["jay-four-sides", "jay-quiet-paper", "jay-quiet-ink", "jay-message", "jay-grain-left", "jay-grain-right"],
+  context: ["jay-message", "jay-quiet-paper", "jay-quiet-ink", "jay-grain-left", "jay-grain-right", "jay-mirror"],
+};
+const effectVariations: Array<Partial<Effects>> = [
+  { noise: true, noiseAmount: 48, noiseOpacity: 0.09, noiseScale: 2, scanlines: false, dotField: false, vignette: false, frame: false },
+  { noise: false, scanlines: true, scanlineOpacity: 0.035, scanlineSpacing: 13, dotField: false, vignette: true, vignetteOpacity: 0.09, frame: false },
+  { noise: false, scanlines: false, dotField: true, dotOpacity: 0.055, dotSpacing: 54, dotSize: 1.2, vignette: false, frame: true, frameInset: 48, frameOpacity: 0.16 },
+  { noise: true, noiseAmount: 66, noiseOpacity: 0.11, noiseScale: 2, scanlines: false, dotField: false, vignette: true, vignetteOpacity: 0.12, frame: false },
+  { noise: false, scanlines: false, dotField: false, vignette: false, frame: true, frameInset: 66, frameOpacity: 0.22 },
+  { noise: true, noiseAmount: 38, noiseOpacity: 0.075, noiseScale: 1, scanlines: false, dotField: true, dotOpacity: 0.04, dotSpacing: 62, dotSize: 1, vignette: false, frame: false },
+];
+const stableNumber = (value: string) => [...value].reduce((hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0, 17);
+const splitCopy = (value: string, parts: number) => {
+  const words = value.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (parts <= 1 || words.length <= parts) return Array.from({ length: parts }, (_, index) => words[index] || "");
+  const result: string[] = [];
+  let cursor = 0;
+  for (let index = 0; index < parts; index += 1) {
+    const remainingParts = parts - index;
+    const take = Math.ceil((words.length - cursor) / remainingParts);
+    result.push(words.slice(cursor, cursor + take).join(" "));
+    cursor += take;
+  }
+  return result;
+};
 const ideaFrames: Record<
   IdeaTension,
   { label: string; contrast: string; mirror: string }
@@ -2733,6 +2768,7 @@ export default function Home() {
   const [usedThemeTitles, setUsedThemeTitles] = useState<string[]>([]);
   const [contentBatches, setContentBatches] = useState<ContentBatch[]>([]);
   const [carouselPreview, setCarouselPreview] = useState<CarouselPreview | null>(null);
+  const [activeQueueEdit, setActiveQueueEdit] = useState<ActiveQueueEdit | null>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const leftContentRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -2805,13 +2841,41 @@ export default function Home() {
     selected.length === 1
       ? design.elements.find((item) => item.id === selected[0])
       : undefined;
-  const updateSelected = (patch: Partial<StudioElement>) =>
-    selectedItem &&
+  const syncQueueEditedText = (copy: string) => {
+    if (!activeQueueEdit) return;
+    setContentBatches((batches) => {
+      const next = batches.map((batch) => {
+        if (batch.id !== activeQueueEdit.batchId) return batch;
+        return {
+          ...batch,
+          posts: batch.posts.map((post) => {
+            if (post.id !== activeQueueEdit.postId) return post;
+            if (activeQueueEdit.slideIndex !== undefined && post.slides) {
+              const slides = [...post.slides];
+              slides[activeQueueEdit.slideIndex] = copy;
+              return { ...post, slides };
+            }
+            return { ...post, route: { ...post.route, copy } };
+          }),
+        };
+      });
+      try {
+        localStorage.setItem("jay-content-batches", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+  const updateSelected = (patch: Partial<StudioElement>) => {
+    if (!selectedItem) return;
     updateElements((items) =>
       items.map((item) =>
         item.id === selectedItem.id ? { ...item, ...patch } : item,
       ),
     );
+    if (patch.text !== undefined && activeQueueEdit?.elementId === selectedItem.id) {
+      syncQueueEditedText(String(patch.text));
+    }
+  };
   const newFrom = (d: Design) => {
     setDesign({ ...d, name: localizedDesignName(d.name) });
     setSelected([]);
@@ -2821,16 +2885,27 @@ export default function Home() {
     setSaved("Plantilla lista");
     setScreen("editor");
   };
-  const openIdeaRoute = (route: IdeaRoute, nextTool: Tool = "text") => {
+  const openIdeaRoute = (
+    route: IdeaRoute,
+    nextTool: Tool = "text",
+    options: { templateId?: string; selectText?: boolean } = {},
+  ) => {
+    const requestedTemplate = options.templateId || route.templateId;
     const templateId =
-      route.templateId === "jay-mirror" && route.copy.length > 92
+      requestedTemplate === "jay-mirror" && route.copy.length > 92
         ? "jay-quiet-ink"
-        : route.templateId === "jay-message" && route.copy.length > 90
+        : requestedTemplate === "jay-message" && route.copy.length > 90
           ? "jay-quiet-paper"
-        : route.templateId;
+        : requestedTemplate;
     const source = templates.find((template) => template.id === templateId);
     if (!source) return;
     const next = cloneTemplate(source);
+    const effectVariant = route.effectVariant ?? stableNumber(`${route.id}-${route.copy}`);
+    next.effects = {
+      ...next.effects,
+      ...effectVariations[effectVariant % effectVariations.length],
+      seed: 31 + (effectVariant % 67),
+    };
     const copyTargets = next.elements
       .filter(
         (item) =>
@@ -2852,6 +2927,7 @@ export default function Home() {
         uppercase: route.uppercase || item.uppercase,
       };
     };
+    const reminderParts = templateId === "jay-reminder" ? splitCopy(route.copy, copyTargets.length) : [];
     next.elements = next.elements.map((item) => {
       const index = copyTargets.findIndex((target) => target.id === item.id);
       if (index < 0) return item;
@@ -2859,27 +2935,33 @@ export default function Home() {
         if (index === 0) return rewrite(item, route.copy);
         return route.counterpoint ? rewrite(item, route.counterpoint) : { ...item, visible: false };
       }
+      if (templateId === "jay-reminder") return rewrite(item, reminderParts[index] || route.copy);
       return rewrite(item, route.copy);
     });
     next.name = route.title;
     newFrom(next);
+    if (!options.selectText) setActiveQueueEdit(null);
+    if (options.selectText && copyTargets[0]) setSelected([copyTargets[0].id]);
     if (nextTool !== "queue") setCarouselPreview(null);
     setTool(nextTool);
+    return copyTargets[0]?.id;
   };
-  const openCarouselSlide = (post: QueuePost, index: number) => {
+  const openCarouselSlide = (post: QueuePost, index: number, selectText = false) => {
     const slides = post.slides || [];
     if (!slides[index]) return;
     setCarouselPreview({ post, index });
     window.requestAnimationFrame(() => leftContentRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
-    openIdeaRoute(
+    return openIdeaRoute(
       {
         id: `${post.id}-slide-${index}`,
-      title: `${post.route.title} · ${index + 1}/${slides.length}`,
-      label: `Carrusel · lámina ${index + 1}`,
-      templateId: post.route.templateId || "jay-quiet-ink",
-      copy: slides[index],
+        title: `${post.route.title} · ${index + 1}/${slides.length}`,
+        label: `Carrusel · lámina ${index + 1}`,
+        templateId: post.route.templateId || "jay-quiet-ink",
+        copy: slides[index],
+        effectVariant: post.route.effectVariant,
       },
       "queue",
+      { selectText },
     );
   };
   const openQueuePost = (post: QueuePost) => {
@@ -3094,6 +3176,46 @@ export default function Home() {
       ),
     );
   };
+  const changeQueuePostDesign = (batchId: string, post: QueuePost) => {
+    setActiveQueueEdit(null);
+    const format = post.plan?.format || (post.slides?.length ? "carousel" : "text art");
+    const pool = compatibleTemplates[format];
+    const currentIndex = Math.max(0, pool.indexOf(post.route.templateId));
+    const templateId = pool[(currentIndex + 1) % pool.length];
+    const updatedPost: QueuePost = {
+      ...post,
+      route: {
+        ...post.route,
+        templateId,
+        effectVariant: (post.route.effectVariant ?? stableNumber(post.id)) + 1,
+      },
+    };
+    updateQueuePost(batchId, post.id, { route: updatedPost.route });
+    if (updatedPost.slides?.length) {
+      const currentSlide = carouselPreview?.post.id === post.id ? carouselPreview.index : 0;
+      openCarouselSlide(updatedPost, currentSlide);
+    } else {
+      setCarouselPreview(null);
+      openIdeaRoute(updatedPost.route, "queue");
+    }
+    setSaved("Diseño cambiado. Texto intacto.");
+  };
+  const editQueuePostText = (post: QueuePost) => {
+    const batchId = batchIdForPost(post.id);
+    if (!batchId) return;
+    if (post.slides?.length) {
+      const currentSlide = carouselPreview?.post.id === post.id ? carouselPreview.index : 0;
+      const elementId = openCarouselSlide(post, currentSlide, true);
+      if (elementId) setActiveQueueEdit({ batchId, postId: post.id, slideIndex: currentSlide, elementId });
+    } else {
+      setCarouselPreview(null);
+      const elementId = openIdeaRoute(post.route, "text", { selectText: true });
+      if (elementId) setActiveQueueEdit({ batchId, postId: post.id, elementId });
+    }
+    setSaved("Texto listo para editar.");
+  };
+  const batchIdForPost = (postId: string) =>
+    contentBatches.find((batch) => batch.posts.some((post) => post.id === postId))?.id;
   const approveBatch = (batchId: string) => {
     updateContentBatches((batches) =>
       batches.map((batch) =>
@@ -3463,6 +3585,19 @@ export default function Home() {
                       <button onClick={() => setCarouselPreview(null)}>Cerrar</button>
                     </header>
                     <p>{carouselPreview.post.slides[carouselPreview.index]}</p>
+                    <div className="carousel-edit-actions">
+                      <button
+                        onClick={() => {
+                          const batchId = batchIdForPost(carouselPreview.post.id);
+                          if (batchId) changeQueuePostDesign(batchId, carouselPreview.post);
+                        }}
+                      >
+                        <Palette size={11} /> Cambiar diseño
+                      </button>
+                      <button onClick={() => editQueuePostText(carouselPreview.post)}>
+                        <Type size={11} /> Editar esta lámina
+                      </button>
+                    </div>
                     <div className="carousel-slide-picker">
                       {carouselPreview.post.slides.map((_, index) => (
                         <button
@@ -3616,7 +3751,13 @@ export default function Home() {
                               </label>
                               <div className="queue-actions">
                                 <button onClick={() => post.slides?.length ? openCarouselSlide(post, 0) : openIdeaRoute(post.route)}>
-                                  {post.slides?.length ? `Ver carrusel · ${post.slides.length} láminas` : "Editar diseño"}
+                                  {post.slides?.length ? `Ver carrusel · ${post.slides.length} láminas` : "Abrir diseño"}
+                                </button>
+                                <button onClick={() => changeQueuePostDesign(batch.id, post)}>
+                                  <Palette size={11} /> Cambiar diseño
+                                </button>
+                                <button onClick={() => editQueuePostText(post)}>
+                                  <Type size={11} /> Editar texto
                                 </button>
                                 <button
                                   className={post.status === "approved" ? "selected" : ""}

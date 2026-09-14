@@ -361,9 +361,26 @@
 }
 
 .carousel-slide-picker,
-.carousel-step-actions {
+.carousel-step-actions,
+.carousel-edit-actions {
   display: flex;
   gap: 5px;
+}
+
+.carousel-edit-actions {
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.carousel-edit-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #666;
+  background: transparent;
+  color: #fff;
+  padding: 5px 6px;
+  font-size: 8px;
 }
 
 .carousel-slide-picker button {
