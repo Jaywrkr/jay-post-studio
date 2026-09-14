@@ -190,7 +190,7 @@ type ContentBatch = {
   topic: string;
   createdAt: string;
   source: "ai" | "editorial";
-  schemaVersion?: 4;
+  schemaVersion?: 5;
   posts: QueuePost[];
   arc?: string;
   thesis?: string;
@@ -1454,6 +1454,7 @@ const buildIdeaRoutes = (
     },
   ];
 };
+void buildIdeaRoutes;
 const emptyDesign = (): Design => ({
   id: uid(),
   name: "Post sin título",
@@ -2723,6 +2724,7 @@ export default function Home() {
   const [ideaRoutes, setIdeaRoutes] = useState<IdeaRoute[]>([]);
   const [ideaGenerating, setIdeaGenerating] = useState(false);
   const [ideaSource, setIdeaSource] = useState<"ai" | "editorial" | null>(null);
+  const [ideaError, setIdeaError] = useState("");
   const [batchTopic, setBatchTopic] = useState("");
   const [batchGenerating, setBatchGenerating] = useState(false);
   const [batchError, setBatchError] = useState("");
@@ -2891,6 +2893,7 @@ export default function Home() {
   const createIdeaDirections = async () => {
     const idea = cleanIdea(ideaInput);
     if (!idea || ideaGenerating) return;
+    setIdeaError("");
     setIdeaGenerating(true);
     try {
       const response = await fetch("/api/ideas", {
@@ -2898,7 +2901,10 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idea, tension: ideaTension, angle: ideaAngle }),
       });
-      if (!response.ok) throw new Error("Could not create directions");
+      if (!response.ok) {
+        const failure = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(failure?.error || "No se pudieron crear direcciones.");
+      }
       const result = (await response.json()) as {
         routes?: IdeaRoute[];
         source?: "ai" | "editorial";
@@ -2906,9 +2912,10 @@ export default function Home() {
       if (!result.routes?.length) throw new Error("No directions returned");
       setIdeaRoutes(result.routes);
       setIdeaSource(result.source || "editorial");
-    } catch {
-      setIdeaRoutes(buildIdeaRoutes(idea, ideaTension));
-      setIdeaSource("editorial");
+    } catch (error) {
+      setIdeaRoutes([]);
+      setIdeaSource(null);
+      setIdeaError(error instanceof Error ? error.message : "Claude no pudo crear direcciones JAY.");
     } finally {
       setIdeaGenerating(false);
     }
@@ -2929,6 +2936,7 @@ export default function Home() {
   };
   const findWeeklyThemes = async () => {
     if (themeSearching) return;
+    setBatchError("");
     setThemeSearching(true);
     try {
       const response = await fetch("/api/week", {
@@ -2943,19 +2951,18 @@ export default function Home() {
           ])).slice(-500),
         }),
       });
-      if (!response.ok) throw new Error("Could not find themes");
+      if (!response.ok) {
+        const failure = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(failure?.error || "No se pudieron crear temas JAY.");
+      }
       const result = (await response.json()) as { themes?: WeeklyTheme[] };
       const fresh = (result.themes || []).filter(
         (theme) => !usedThemeTitles.includes(theme.title),
       );
       setThemeIdeas(fresh);
-    } catch {
-      setThemeIdeas([
-        { id: "local-costumbre", title: "La costumbre anestesia", thesis: "Lo repetido deja de sorprenderte antes de que deje de hacerte daño.", tension: "routine" },
-        { id: "local-recibos", title: "Tus prioridades dejan recibos", thesis: "Lo que dices valorar y lo que pagas con tiempo no siempre coinciden.", tension: "time" },
-        { id: "local-silencio", title: "No toda paz merece silencio", thesis: "Hay silencios que parecen calma porque todavía no has contado lo que cuestan.", tension: "other" },
-        { id: "local-suficiente", title: "Lo suficiente necesita una definición", thesis: "Si nunca defines suficiente, cada logro encuentra una forma de quedarse corto.", tension: "money" },
-      ]);
+    } catch (error) {
+      setThemeIdeas([]);
+      setBatchError(error instanceof Error ? error.message : "Claude no pudo crear temas JAY.");
     } finally {
       setThemeSearching(false);
     }
@@ -3018,7 +3025,7 @@ export default function Home() {
         arc: result.week.arc,
         createdAt: new Date().toISOString(),
         source: result.source || "editorial",
-        schemaVersion: 4,
+        schemaVersion: 5,
         posts: result.week.posts.map((post) => ({
           id: uid(),
           route: {
@@ -3422,6 +3429,7 @@ export default function Home() {
                   <Sparkles size={15} />
                   {ideaGenerating ? "Buscando ángulos..." : "Crear direcciones"}
                 </button>
+                {ideaError && <p className="batch-error" role="alert">{ideaError}</p>}
                 {ideaRoutes.length > 0 && (
                   <div className="idea-routes">
                     <p className="idea-source">
@@ -3539,7 +3547,7 @@ export default function Home() {
                     ))}
                   </section>
                 )}
-                {contentBatches.filter((batch) => batch.schemaVersion === 4).map((batch) => {
+                {contentBatches.filter((batch) => batch.schemaVersion === 5).map((batch) => {
                   const approved = batch.posts.filter((post) => post.status === "approved").length;
                   return (
                     <section className="content-batch" key={batch.id}>
@@ -3630,7 +3638,7 @@ export default function Home() {
                     </section>
                   );
                 })}
-                {contentBatches.some((batch) => batch.schemaVersion !== 4) && (
+                {contentBatches.some((batch) => batch.schemaVersion !== 5) && (
                   <p className="batch-legacy">Los borradores del sistema anterior siguen guardados, pero ya no se mezclan con tus semanas nuevas.</p>
                 )}
               </>

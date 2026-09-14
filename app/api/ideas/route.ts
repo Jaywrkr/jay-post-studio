@@ -39,6 +39,10 @@ const reportGenerationFailure = (error: unknown) => {
   const detail = error instanceof Error ? `${error.name}: ${error.message}` : "Unknown provider error";
   console.error(`[JAY AI] idea generation failed with ${model}. ${detail}`);
 };
+const coreSolutionsPattern = /\b(cliente|clientes|empresa|empresas|equipo|equipos|liderazgo|líder|líderes|salario|ascenso|networking|mentor|mentoría|industria|ventas|marketing|empleabilidad|certificaci[oó]n|freelanc\w*|coaching|roi|impuestos|delegaci[oó]n|carrera profesional|marca personal)\b/i;
+const jayEditorialWorld = "JAY speaks about ordinary life: time and attention; identity and change; comfort and enough; money as margin and freedom; decisions, loss and sunk cost; relationships, parents, children and presence; technology and distraction; ambition, mortality and the quality of an ordinary Tuesday. JAY is not CoreSolutions. Never introduce clients, companies, teams, leadership, salaries, careers, sales, marketing, networking, mentoring, consulting, workplace performance or business productivity unless those subjects are explicitly present in the user's original idea.";
+const jayClarityRule = "Clarity matters more than brevity. Every line must be grammatical, complete and immediately understandable without a caption. Do not delete context to sound minimal. Avoid vague pseudo-profundity and avoid stacking metaphors. Keep one observation, one tension and one consequence.";
+const jayReferenceVoice = "Voice references: 'No necesitas recordar cada día de tu vida para haberlo desperdiciado. De hecho, ese puede ser precisamente el problema.' 'Puedes construir una vida llena de momentos impresionantes y seguir odiando los martes.' 'Una compra no cuesta únicamente dinero. También cuesta las horas de vida necesarias para producir ese dinero.' 'Hay conversaciones que aplazamos durante meses porque no queremos pasar veinte minutos incómodos.'";
 
 const frames: Record<Tension, { contrast: string; mirror: string; pressure: string }> = {
   time: {
@@ -145,7 +149,7 @@ const fallback = (idea: string, tension: Tension, angle: Angle): Direction[] => 
   ];
 };
 
-const parseDirections = (text: string): Direction[] | null => {
+const parseDirections = (text: string, allowProfessional = false): Direction[] | null => {
   const decoded = decodeJson(text);
   const value = Array.isArray(decoded)
     ? decoded
@@ -158,15 +162,16 @@ const parseDirections = (text: string): Direction[] | null => {
     const directions = value.map((item, index): Direction | null => {
       const templateId = normalize(item?.templateId, 50);
       const copy = graphicCopy(normalize(item?.copy), copyLimit(templateId));
-      if (!templateIds.has(templateId) || !copy) return null;
+      const counterpoint = normalize(item?.counterpoint);
+      if (!templateIds.has(templateId) || !copy || (!allowProfessional && coreSolutionsPattern.test(`${item?.title || ""} ${copy} ${counterpoint}`))) return null;
       return {
         id: `ai-${index}`,
         title: normalize(item?.title, 50) || "Nueva dirección",
         label: normalize(item?.label, 80) || "Dirección JAY",
         templateId,
         copy,
-        ...(templateId === "jay-four-sides" && normalize(item?.counterpoint)
-          ? { counterpoint: graphicCopy(normalize(item.counterpoint), 85) }
+        ...(templateId === "jay-four-sides" && counterpoint
+          ? { counterpoint: graphicCopy(counterpoint, 85) }
           : {}),
         ...(item?.uppercase === true ? { uppercase: true } : {}),
       };
@@ -205,10 +210,9 @@ export async function POST(request: Request) {
     : "reflective";
   if (!idea) return Response.json({ error: "Escribe una idea primero." }, { status: 400 });
 
-  const editorialRoutes = fallback(idea, tension, angle);
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; using the editorial library.");
-    return Response.json({ routes: editorialRoutes, source: "editorial" });
+    console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; refusing to create filler directions.");
+    return Response.json({ error: "Claude no está disponible. No se crearon direcciones de relleno." }, { status: 503 });
   }
   if (!process.env.ANTHROPIC_WORKSPACE_ID) {
     console.warn("[JAY AI] ANTHROPIC_WORKSPACE_ID is unavailable; an unscoped key may be rejected by Anthropic.");
@@ -218,26 +222,29 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { text } = await generateText({
-      model: anthropic(model),
-      // Reserve the response for the usable post ideas instead of invisible
-      // adaptive reasoning, which can otherwise leave text empty.
-      providerOptions: { anthropic: { thinking: { type: "disabled" } } },
-      maxOutputTokens: 1800,
-      system:
-        "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. " +
-        "The voice is observant, precise, restrained and human: never motivational, generic, therapeutic, decorative, or salesy; never use emojis, hashtags or calls to action. It names a hidden cost, a contradiction, an assumption, or the consequence people avoid seeing. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No todo límite es una limitación.' Preserve the emotional truth of the source idea; do not invent claims. " +
-        "Keep every route legible on a 1080px minimalist post: do not exceed 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. " +
-        "Return only valid JSON: an array of exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. " +
-        "Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. " +
-        "For jay-four-sides, provide a short counterpoint. Respect the exact character limit for every template.",
-      prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}`,
-    });
-    const routes = parseDirections(text);
-    if (!routes) console.warn(`[JAY AI] Idea response could not be parsed; using the editorial library. Raw response: ${text.slice(0, 2400)}`);
-    return Response.json({ routes: routes || editorialRoutes, source: routes ? "ai" : "editorial" });
+    const allowProfessional = coreSolutionsPattern.test(idea);
+    let text = "";
+    let routes: Direction[] | null = null;
+    for (let attempt = 0; attempt < 2 && !routes; attempt += 1) {
+      const result = await generateText({
+        model: anthropic(model),
+        providerOptions: { anthropic: { thinking: { type: "disabled" } } },
+        maxOutputTokens: 2100,
+        system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Preserve the exact human truth of the source idea instead of attaching an unrelated aphorism. Create four genuinely different treatments: a developed observation, a clean contrast, a human reframing and a direct claim. Never motivational, therapeutic, clickbait, generic, decorative or salesy. Never use emojis, hashtags or calls to action. Use complete sentences. Keep every route legible on a 1080px post: maximum 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. Return only valid JSON: exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. For jay-four-sides provide a short counterpoint.`,
+        prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}.${attempt ? " La respuesta anterior resultó confusa, ajena a JAY o incumplió la estructura. Reescríbela desde cero con más claridad." : ""}`,
+      });
+      text = result.text;
+      routes = parseDirections(text, allowProfessional);
+    }
+    if (!routes) {
+      console.warn(`[JAY AI] Idea response failed JAY scope or parsing. Raw response: ${text.slice(0, 2400)}`);
+      return Response.json({ error: "Claude no produjo direcciones con la calidad JAY requerida. Inténtalo otra vez." }, { status: 502 });
+    }
+    return Response.json({ routes, source: "ai" });
   } catch (error) {
     reportGenerationFailure(error);
-    return Response.json({ routes: editorialRoutes, source: "editorial" });
+    return Response.json({ error: "No se pudieron crear direcciones JAY con Claude. Inténtalo otra vez." }, { status: 502 });
   }
 }
+
+void fallback;

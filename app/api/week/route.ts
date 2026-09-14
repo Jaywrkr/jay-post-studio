@@ -38,6 +38,31 @@ const reportGenerationFailure = (area: string, error: unknown) => {
   console.error(`[JAY AI] ${area} failed with ${model}. ${detail}`);
 };
 
+const coreSolutionsPattern = /\b(cliente|clientes|empresa|empresas|equipo|equipos|liderazgo|líder|líderes|salario|ascenso|networking|mentor|mentoría|industria|ventas|marketing|empleabilidad|certificaci[oó]n|freelanc\w*|coaching|roi|impuestos|delegaci[oó]n|carrera profesional|marca personal)\b/i;
+const staysInJayWorld = (...values: unknown[]) => !coreSolutionsPattern.test(
+  values.filter((value): value is string => typeof value === "string").join(" "),
+);
+const jayEditorialWorld = "JAY is a personal editorial voice about ordinary life: time and attention; identity and change; comfort and enough; money as margin and freedom; decisions, loss and sunk cost; relationships, parents, children and presence; technology and distraction; ambition, mortality and the quality of an ordinary Tuesday. JAY is not CoreSolutions. Unless the user explicitly provides a professional subject, never discuss clients, companies, teams, leadership, salaries, careers, sales, marketing, networking, mentoring, consulting, workplace performance or business productivity.";
+const jayClarityRule = "Clarity matters more than brevity. A short line must still contain a complete, immediately understandable idea. Never remove necessary context just to sound minimal. Avoid vague pseudo-profundity, compressed abstractions and stacking several metaphors such as debts, contracts, receipts and interest in the same argument. Use one observation, one tension and one clear consequence.";
+const jayReferenceVoice = "Voice references: 'No necesitas recordar cada día de tu vida para haberlo desperdiciado. De hecho, ese puede ser precisamente el problema.' 'Hay conversaciones que aplazamos durante meses porque no queremos pasar veinte minutos incómodos.' 'Puedes construir una vida llena de momentos impresionantes y seguir odiando los martes.' 'No todo el mundo necesita perseguir una vida extraordinaria.' 'La inteligencia artificial puede ahorrarte tiempo. La pregunta incómoda es qué harás con el tiempo que te devuelva.' 'Una compra no cuesta únicamente dinero. También cuesta las horas de vida necesarias para producir ese dinero.'";
+
+const comparisonTokens = (value: string) => new Set(
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9ñ\s]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 3 && !["para", "como", "pero", "tambien", "porque", "cuando", "donde", "desde", "hasta", "puede", "puedes", "todo", "toda", "todos", "todas", "algo", "cada", "mismo", "misma"].includes(word)),
+);
+const tooSimilar = (left: string, right: string, threshold = 0.62) => {
+  const a = comparisonTokens(left);
+  const b = comparisonTokens(right);
+  if (!a.size || !b.size) return left.trim().toLocaleLowerCase() === right.trim().toLocaleLowerCase();
+  const shared = [...a].filter((token) => b.has(token)).length;
+  return shared / Math.min(a.size, b.size) >= threshold;
+};
+
 const normalize = (value: unknown, max = 420) =>
   typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "";
 const normalCaption = (value: unknown) =>
@@ -157,6 +182,12 @@ const twoParagraphCaption = (value: unknown) => {
   return `${sentences.slice(0, splitAt).join(" ")}\n\n${sentences.slice(splitAt).join(" ")}`;
 };
 
+const isCompleteJayCaption = (caption: string) => {
+  const paragraphs = caption.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
+  const words = caption.trim().split(/\s+/).filter(Boolean).length;
+  return paragraphs.length === 2 && words >= 65 && words <= 135;
+};
+
 const curatedEditorialThemes: Array<Omit<Theme, "id">> = [
   { title: "El costo de tolerar", thesis: "Lo que toleras no es neutral: también diseña la vida que luego intentas cambiar.", tension: "limits" },
   { title: "La versión que sostienes", thesis: "Cambiar no siempre exige empezar de cero; a veces exige dejar de sostener una identidad que ya venció.", tension: "identity" },
@@ -272,6 +303,7 @@ const themeFallback = (seed: string, excluded: string[] = []): Theme[] => {
     thesis: theme.thesis,
   }));
 };
+void themeFallback;
 
 const fallbackFrames: Record<Tension, { reframe: string; pressure: string; human: string; close: string; notes: [string, string, string, string, string] }> = {
   limits: {
@@ -419,9 +451,16 @@ const parseThemes = (text: string, excluded: string[] = []): Theme[] | null => {
       thesis: completeGraphicCopy(item?.thesis, 300),
       tension: tensions.has(item?.tension) ? item.tension as Tension : "other",
     }));
-    const blocked = new Set(excluded.map((title) => title.toLocaleLowerCase()));
-    const distinct = new Set(themes.map((item) => item.title.toLocaleLowerCase()));
-    return themes.every((item) => item.title && item.thesis && !blocked.has(item.title.toLocaleLowerCase())) && distinct.size === 4 ? themes : null;
+    const fresh = themes.every((item) =>
+      item.title
+      && item.thesis
+      && staysInJayWorld(item.title, item.thesis)
+      && !excluded.some((oldTitle) => tooSimilar(item.title, oldTitle)),
+    );
+    const mutuallyDistinct = themes.every((item, index) =>
+      themes.slice(index + 1).every((other) => !tooSimilar(item.title, other.title, 0.7)),
+    );
+    return fresh && mutuallyDistinct ? themes : null;
   } catch { return null; }
 };
 
@@ -448,7 +487,7 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
       const pillar = !rawPillar || rawPillar.startsWith("jay-") || rawPillar === templateId
         ? plan.role
         : rawPillar;
-      if (!copy || !caption) return null;
+      if (!copy || !caption || !isCompleteJayCaption(caption) || !staysInJayWorld(item.title, copy, caption, rawPillar, ...(slides || []))) return null;
       if (plan.format === "carousel" && (!slides || slides.length < 4)) return null;
       return {
         ...plan,
@@ -464,11 +503,18 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
       };
     });
     if (posts.some((post) => !post)) return null;
+    const completePosts = posts as WeekPost[];
+    const ideasAreDistinct = completePosts.every((post, index) =>
+      completePosts.slice(index + 1).every((other) =>
+        !tooSimilar(`${post.title} ${post.copy}`, `${other.title} ${other.copy}`, 0.72),
+      ),
+    );
+    if (!ideasAreDistinct) return null;
     return {
       title: completeLabel(payload.title, 90) || "Semana JAY",
       thesis: completeGraphicCopy(payload.thesis, 320),
       arc: completeGraphicCopy(payload.arc, 360) || "Observar → confrontar → integrar",
-      posts: posts as WeekPost[],
+      posts: completePosts,
     };
   } catch { return null; }
 };
@@ -501,12 +547,8 @@ export async function POST(request: Request) {
 
   if (mode === "week" && !topic) return Response.json({ error: "Elige un tema semanal." }, { status: 400 });
   if (!process.env.ANTHROPIC_API_KEY) {
-    if (mode === "themes") {
-      console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; using the editorial theme library.");
-      return Response.json({ themes: themeFallback(seed, excluded), source: "editorial" });
-    }
-    console.warn("[JAY AI] ANTHROPIC_API_KEY is unavailable; refusing to create a filler week.");
-    return Response.json({ error: "Claude no está disponible. No se creó una semana de relleno." }, { status: 503 });
+    console.warn(`[JAY AI] ANTHROPIC_API_KEY is unavailable; refusing to create filler ${mode}.`);
+    return Response.json({ error: "Claude no está disponible. No se creó contenido de relleno." }, { status: 503 });
   }
   if (!process.env.ANTHROPIC_WORKSPACE_ID) {
     console.warn("[JAY AI] ANTHROPIC_WORKSPACE_ID is unavailable; an unscoped key may be rejected by Anthropic.");
@@ -515,28 +557,38 @@ export async function POST(request: Request) {
 
   try {
     if (mode === "themes") {
-      const { text } = await generateText({
-        model: anthropic(model),
-        // The app needs finished editorial copy, not hidden reasoning. With
-        // adaptive thinking enabled, Claude could use the response budget
-        // before it ever returned the JSON the UI needs.
-        providerOptions: { anthropic: { thinking: { type: "disabled" } } },
-        maxOutputTokens: 1600,
-        system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. JAY's voice is precise, sober, observant and slightly uncomfortable; never motivational, therapeutic, poetic for its own sake, salesy, or abstract. It names a hidden cost, a contradiction, an assumption, or the consequence people avoid seeing. Prefer clean structures such as 'No todo X es Y', 'La X también Y', 'No necesitas X para Y', and 'Puedes X y aun así Y'. Avoid titles shaped like 'La X que...' and avoid filler such as 'Esta semana observa'. Reference lines: 'La comodidad también cobra intereses.' 'Tus prioridades dejan recibos.' 'La velocidad no corrige el rumbo.' 'No todo límite es una limitación.' 'La rutina puede esconder una renuncia.' 'No necesitas ganar un juego absurdo.' Return only valid JSON: exactly 4 objects with title, thesis, tension. tension must be one of time, freedom, limits, money, identity, routine, other. Each idea must sustain five distinct but coherent posts across one week. Every request must explore fresh angles and never recycle a title the user already saw.",
-        prompt: `Optional starting thought: ${seed || "No seed. Find a fresh tension for JAY."}\nDo not repeat these previous titles: ${excluded.length ? excluded.join(" | ") : "none"}.`,
-      });
-      const themes = parseThemes(text, excluded);
-      if (!themes) console.warn(`[JAY AI] Theme response could not be parsed; using the editorial library. Raw response: ${text.slice(0, 2400)}`);
-      return Response.json({ themes: themes || themeFallback(seed, excluded), source: themes ? "ai" : "editorial" });
+      let text = "";
+      let themes: Theme[] | null = null;
+      for (let attempt = 0; attempt < 2 && !themes; attempt += 1) {
+        const result = await generateText({
+          model: anthropic(model),
+          providerOptions: { anthropic: { thinking: { type: "disabled" } } },
+          maxOutputTokens: 1900,
+          system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Suggest themes, not professional lessons and not generic self-help categories. A theme should expose a recognizable human contradiction and sustain five different posts without repeating the same sentence. Avoid clickbait such as 'la verdad incómoda', formulas such as 'cómo saber', and titles about growth mindset, talent, leadership or careers. Return only valid JSON: exactly 4 objects with title, thesis, tension. tension must be one of time, freedom, limits, money, identity, routine, other. Every request must explore fresh angles and never recycle a title already seen.`,
+          prompt: `Optional starting thought: ${seed || "No seed. Find a fresh tension inside JAY's personal editorial world."}\nDo not repeat these previous titles: ${excluded.length ? excluded.join(" | ") : "none"}.${attempt ? " The previous attempt failed the JAY scope or JSON requirements. Correct it completely." : ""}`,
+        });
+        text = result.text;
+        themes = parseThemes(text, excluded);
+      }
+      if (!themes) {
+        console.warn(`[JAY AI] Theme response failed JAY scope or parsing. Raw response: ${text.slice(0, 2400)}`);
+        return Response.json({ error: "Claude no produjo temas con la calidad JAY requerida. Inténtalo otra vez." }, { status: 502 });
+      }
+      return Response.json({ themes, source: "ai" });
     }
-    const { text } = await generateText({
-      model: anthropic(model),
-      providerOptions: { anthropic: { thinking: { type: "disabled" } } },
-      maxOutputTokens: 4000,
-      system: "You are the editorial partner for JAY POST STUDIO. Write only in Spanish. Build one complete five-post week in the JAY voice: precise, sober, specific and slightly uncomfortable. Never motivational, therapeutic, salesy, decorative, generic, or sentimental. JAY observes a hidden cost, names a contradiction and stops before over-explaining. Its language is plain, not academic. Reference lines: 'La costumbre anestesia.' 'Tus prioridades dejan recibos.' 'La comodidad también cobra intereses.' 'No toda seguridad es libertad.' 'Lo suficiente necesita una definición.' 'La vida no guarda borradores.' 'La paz puede requerir decepcionar.' Every post must be an independent, complete JAY idea; do not write a sequel, tease, or part number. Together they must follow the exact five roles supplied by the user while orbiting the same weekly tension. Never make the five posts say the same thing with different words. Return only a valid JSON object with title, thesis, arc, and exactly 5 posts in the supplied order. Every post needs title, label, copy, caption and pillar. Titles must name that post's exact claim, never generic labels such as 'La entrada', 'El golpe', or 'El cierre'. Every caption has two concise paragraphs: a concrete observation first, then a precise implication. Graphic copy limits are strict: text art max 145 characters, carousel cover max 100, SIMPLE max 85, context max 155. Only the carousel post gets slides: 4 or 5 coherent steps, each max 85 characters, moving through claim, reframe, consequence and closure. Omit slides from every other post. counterpoint is optional and only useful for a split composition. Do not merely restate the visual copy in a caption. Make every post useful, specific, and ready to publish.",
-      prompt: `Tema semanal: ${topic}\nNombre del tema: ${title || "Semana JAY"}\nTensión: ${tension}\nEstructura visual obligatoria: ${weeklyPlans.map((plan) => `${plan.day}: ${plan.format} (${plan.templateId})`).join(" | ")}\nObjetivo: crecer una marca personal reconocible por ideas precisas que cuestionan lo que la gente tolera.`,
-    });
-    const parsedWeek = parseWeek(text, weeklyPlans);
+    let text = "";
+    let parsedWeek: Week | null = null;
+    for (let attempt = 0; attempt < 2 && !parsedWeek; attempt += 1) {
+      const result = await generateText({
+        model: anthropic(model),
+        providerOptions: { anthropic: { thinking: { type: "disabled" } } },
+        maxOutputTokens: 5200,
+        system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Build one complete five-post week. Every post must be an independent, complete idea; together they explore one theme from five genuinely different angles following the supplied roles. Do not write sequels, teasers, numbered parts or five paraphrases. Do not turn the theme into advice for professionals. Use ordinary human scenes: a Tuesday, a meal, a screen, a purchase, a conversation, a parent, a child, a quiet room, an avoided decision. Do not use clients, teams, companies or workplace examples. Graphic writing rules: SIMPLE uses one clear claim of 6–14 words. Text art uses a complete thought of 12–28 words. Context uses a concrete observation of 22–42 words that makes sense without the caption. The carousel contains 4 or 5 steps of 10–20 words each. Never sacrifice grammar or meaning to meet a limit. Captions must contain exactly two paragraphs and 70–120 words total: paragraph one develops a recognizable observation or scene; paragraph two explains the tension or consequence. Captions clarify the graphic instead of repeating it. Return only a valid JSON object with title, thesis, arc and exactly 5 posts in the supplied order. Every post needs title, label, copy, caption and pillar. Only the carousel post gets slides. Omit slides from every other post. counterpoint is optional and only useful for a split composition. Limits: text art 145 characters, carousel cover 100, SIMPLE 85, context 155.`,
+        prompt: `Tema semanal: ${topic}\nNombre del tema: ${title || "Semana JAY"}\nTensión: ${tension}\nEstructura obligatoria: ${weeklyPlans.map((plan) => `${plan.day}: rol ${plan.role}, formato ${plan.format}, plantilla ${plan.templateId}`).join(" | ")}\nObjetivo: crear ideas personales claras, memorables y comprensibles en la voz de JAY.${attempt ? " La respuesta anterior falló por mezclar CoreSolutions, resultar demasiado breve o no cumplir la estructura. Reescríbela desde cero." : ""}`,
+      });
+      text = result.text;
+      parsedWeek = parseWeek(text, weeklyPlans);
+    }
     const week = parsedWeek ? { ...parsedWeek, title: title || parsedWeek.title } : null;
     if (!week) {
       console.warn(`[JAY AI] Weekly response could not be parsed. Raw response: ${text.slice(0, 4000)}`);
@@ -545,7 +597,7 @@ export async function POST(request: Request) {
     return Response.json({ week, source: "ai" });
   } catch (error) {
     reportGenerationFailure(mode === "themes" ? "theme generation" : "weekly generation", error);
-    if (mode === "themes") return Response.json({ themes: themeFallback(seed, excluded), source: "editorial" });
+    if (mode === "themes") return Response.json({ error: "No se pudieron crear temas JAY con Claude. Inténtalo otra vez." }, { status: 502 });
     return Response.json({ error: "No se pudo crear la semana con Claude. Inténtalo otra vez." }, { status: 502 });
   }
 }
