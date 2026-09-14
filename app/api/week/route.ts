@@ -482,8 +482,9 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
     const posts: Array<WeekPost | null> = payload.posts.map((item: Record<string, unknown>, index: number): WeekPost | null => {
       const plan = weeklyPlans[index];
       const templateId = plan.templateId;
-      const slides = plan.format === "carousel" && Array.isArray(item.slides)
-        ? item.slides.map((slide: unknown) => strictGraphicCopy(slide, 85)).filter(Boolean).slice(0, 5)
+      const rawSlides = plan.format === "carousel" && Array.isArray(item.slides) ? item.slides.slice(0, 5) : [];
+      const slides = plan.format === "carousel"
+        ? rawSlides.map((slide: unknown) => strictGraphicCopy(slide, 85)).filter(Boolean)
         : undefined;
       // Claude naturally treats the first carousel slide as its visual copy.
       // Accept that valid shape instead of discarding a complete weekly plan.
@@ -495,8 +496,13 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
       const pillar = !rawPillar || rawPillar.startsWith("jay-") || rawPillar === templateId
         ? plan.role
         : rawPillar;
-      if (!copy || !caption || !postTitle || postTitle.split(/\s+/).length < 4 || genericPostTitle.test(postTitle) || !isCompleteJayCaption(caption) || !staysInJayWorld(postTitle, copy, caption, rawPillar, ...(slides || []))) return null;
-      if (plan.format === "carousel" && (!slides || slides.length < 4)) return null;
+      const captionWords = caption.trim().split(/\s+/).filter(Boolean).length;
+      const captionParagraphs = caption.split(/\n\s*\n/).filter(Boolean).length;
+      if (!copy) { console.warn(`[JAY AI] rejected post ${index + 1}: graphic copy is empty, incomplete, or over ${graphicLimit(plan.format)} characters.`); return null; }
+      if (!caption || !isCompleteJayCaption(caption)) { console.warn(`[JAY AI] rejected post ${index + 1}: caption has ${captionWords} words and ${captionParagraphs} paragraphs.`); return null; }
+      if (!postTitle || postTitle.split(/\s+/).length < 4 || genericPostTitle.test(postTitle)) { console.warn(`[JAY AI] rejected post ${index + 1}: title is generic or too short (${postTitle}).`); return null; }
+      if (!staysInJayWorld(postTitle, copy, caption, rawPillar, ...(slides || []))) { console.warn(`[JAY AI] rejected post ${index + 1}: content left the JAY editorial world.`); return null; }
+      if (plan.format === "carousel" && (rawSlides.length < 4 || rawSlides.length > 5 || !slides || slides.length !== rawSlides.length)) { console.warn(`[JAY AI] rejected post ${index + 1}: ${rawSlides.length} carousel slides supplied, ${slides?.length || 0} passed the complete-copy limit.`); return null; }
       return {
         ...plan,
         title: postTitle,
@@ -517,7 +523,7 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
         !tooSimilar(`${post.title} ${post.copy}`, `${other.title} ${other.copy}`, 0.72),
       ),
     );
-    if (!ideasAreDistinct) return null;
+    if (!ideasAreDistinct) { console.warn("[JAY AI] rejected week: two or more posts repeat the same idea."); return null; }
     return {
       title: completeLabel(payload.title, 120) || "Semana JAY",
       thesis: completeGraphicCopy(payload.thesis, 320),
