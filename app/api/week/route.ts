@@ -44,6 +44,15 @@ const normalCaption = (value: unknown) =>
   typeof value === "string"
     ? value.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 900)
     : "";
+const decodeJson = (text: string): unknown => {
+  const clean = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const candidates = [clean, clean.match(/\[[\s\S]*\]/)?.[0], clean.match(/\{[\s\S]*\}/)?.[0]];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try { return JSON.parse(candidate); } catch { /* Try the next JSON shape. */ }
+  }
+  return null;
+};
 
 const plans: Array<Pick<WeekPost, "day" | "role" | "objective" | "format" | "successMetric" | "templateId">> = [
   { day: "LUN", role: "Observación", objective: "discovery", format: "text art", successMetric: "Alcance + compartidos", templateId: "jay-quiet-ink" },
@@ -322,11 +331,15 @@ const fallbackWeek = (
 };
 
 const parseThemes = (text: string, excluded: string[] = []): Theme[] | null => {
-  const match = text.match(/\[[\s\S]*\]/);
-  if (!match) return null;
+  const decoded = decodeJson(text);
+  const value = Array.isArray(decoded)
+    ? decoded
+    : decoded && typeof decoded === "object" && Array.isArray((decoded as { themes?: unknown }).themes)
+      ? (decoded as { themes: unknown[] }).themes
+      : null;
+  if (!value) return null;
   try {
-    const value = JSON.parse(match[0]);
-    if (!Array.isArray(value) || value.length !== 4) return null;
+    if (value.length !== 4) return null;
     const themes = value.map((item, index) => ({
       id: `ai-theme-${index}`,
       title: normalize(item?.title, 55),
@@ -340,12 +353,12 @@ const parseThemes = (text: string, excluded: string[] = []): Theme[] | null => {
 };
 
 const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
+  const value = decodeJson(text);
+  if (!value || typeof value !== "object") return null;
   try {
-    const value = JSON.parse(match[0]);
-    if (!Array.isArray(value?.posts) || value.posts.length !== 5) return null;
-    const posts: Array<WeekPost | null> = value.posts.map((item: Record<string, unknown>, index: number): WeekPost | null => {
+    const payload = value as { title?: unknown; thesis?: unknown; arc?: unknown; posts?: unknown };
+    if (!Array.isArray(payload.posts) || payload.posts.length !== 5) return null;
+    const posts: Array<WeekPost | null> = payload.posts.map((item: Record<string, unknown>, index: number): WeekPost | null => {
       const plan = weeklyPlans[index];
       const templateId = plan.templateId;
       const copy = normalCaption(item.copy);
@@ -370,9 +383,9 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
     });
     if (posts.some((post) => !post)) return null;
     return {
-      title: normalize(value.title, 65) || "Semana JAY",
-      thesis: normalize(value.thesis, 240),
-      arc: normalize(value.arc, 180) || "Observar → confrontar → integrar",
+      title: normalize(payload.title, 65) || "Semana JAY",
+      thesis: normalize(payload.thesis, 240),
+      arc: normalize(payload.arc, 180) || "Observar → confrontar → integrar",
       posts: posts as WeekPost[],
     };
   } catch { return null; }
