@@ -161,16 +161,25 @@ type BrandObjective = "discovery" | "depth" | "human" | "direction";
 type BrandFormat = "text art" | "SIMPLE" | "carousel" | "context";
 type BrandPlan = {
   day: string;
+  role?: string;
   objective: BrandObjective;
   format: BrandFormat;
   pillar: string;
   successMetric: string;
+};
+type WeeklyTheme = {
+  id: string;
+  title: string;
+  thesis: string;
+  tension: IdeaTension;
 };
 type QueuePost = {
   id: string;
   route: IdeaRoute;
   status: QueueStatus;
   plan?: BrandPlan;
+  caption?: string;
+  slides?: string[];
 };
 type ContentBatch = {
   id: string;
@@ -178,11 +187,14 @@ type ContentBatch = {
   createdAt: string;
   source: "ai" | "editorial";
   posts: QueuePost[];
+  arc?: string;
+  thesis?: string;
 };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const brandWeekPlan: BrandPlan[] = [
   {
     day: "MON",
+    role: "Entrada",
     objective: "discovery",
     format: "text art",
     pillar: "Autorresponsabilidad",
@@ -190,6 +202,7 @@ const brandWeekPlan: BrandPlan[] = [
   },
   {
     day: "TUE",
+    role: "Profundizar",
     objective: "depth",
     format: "carousel",
     pillar: "La idea detrás de la frase",
@@ -197,6 +210,7 @@ const brandWeekPlan: BrandPlan[] = [
   },
   {
     day: "THU",
+    role: "Presionar",
     objective: "discovery",
     format: "SIMPLE",
     pillar: "Límites y libertad",
@@ -204,6 +218,7 @@ const brandWeekPlan: BrandPlan[] = [
   },
   {
     day: "FRI",
+    role: "Aterrizar",
     objective: "human",
     format: "context",
     pillar: "Proceso real",
@@ -211,6 +226,7 @@ const brandWeekPlan: BrandPlan[] = [
   },
   {
     day: "SUN",
+    role: "Cerrar",
     objective: "direction",
     format: "text art",
     pillar: "Tu idea central",
@@ -2560,6 +2576,8 @@ export default function Home() {
   const [ideaSource, setIdeaSource] = useState<"ai" | "editorial" | null>(null);
   const [batchTopic, setBatchTopic] = useState("");
   const [batchGenerating, setBatchGenerating] = useState(false);
+  const [themeIdeas, setThemeIdeas] = useState<WeeklyTheme[]>([]);
+  const [themeSearching, setThemeSearching] = useState(false);
   const [contentBatches, setContentBatches] = useState<ContentBatch[]>([]);
   const stageRef = useRef<Konva.Stage>(null);
   useEffect(() => {
@@ -2707,71 +2725,119 @@ export default function Home() {
       return next;
     });
   };
-  const createWeeklyBatch = async () => {
-    const topic = cleanIdea(batchTopic);
+  const findWeeklyThemes = async () => {
+    if (themeSearching) return;
+    setThemeSearching(true);
+    try {
+      const response = await fetch("/api/week", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "themes", seed: cleanIdea(batchTopic) }),
+      });
+      if (!response.ok) throw new Error("Could not find themes");
+      const result = (await response.json()) as { themes?: WeeklyTheme[] };
+      setThemeIdeas(result.themes || []);
+    } catch {
+      setThemeIdeas([
+        { id: "local-tolerar", title: "El costo de tolerar", thesis: "Lo que toleras no es neutral: también diseña la vida que luego intentas cambiar.", tension: "limits" },
+        { id: "local-version", title: "La versión que sostienes", thesis: "Cambiar no siempre exige empezar de cero; a veces exige dejar de sostener una identidad que ya venció.", tension: "identity" },
+        { id: "local-urgencia", title: "La urgencia prestada", thesis: "No todo lo que exige atención merece dirigir tu semana.", tension: "time" },
+        { id: "local-libertad", title: "La libertad incómoda", thesis: "La libertad empieza cuando dejas de negociar lo esencial.", tension: "freedom" },
+      ]);
+    } finally {
+      setThemeSearching(false);
+    }
+  };
+  const createWeeklyBatch = async (selectedTheme?: WeeklyTheme) => {
+    const topic = selectedTheme?.thesis || cleanIdea(batchTopic);
+    const tension = selectedTheme?.tension || "other";
     if (!topic || batchGenerating) return;
     setBatchGenerating(true);
-    const passes: IdeaAngle[] = ["reflective", "contrarian"];
-    const results: { routes: IdeaRoute[]; source: "ai" | "editorial" }[] = [];
     try {
-      for (const angle of passes) {
-        const response = await fetch("/api/ideas", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idea: topic, tension: ideaTension, angle }),
-        });
-        if (!response.ok) throw new Error("Could not create weekly batch");
-        const result = (await response.json()) as {
-          routes?: IdeaRoute[];
-          source?: "ai" | "editorial";
+      const response = await fetch("/api/week", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "week", topic, tension }),
+      });
+      if (!response.ok) throw new Error("Could not create weekly arc");
+      const result = (await response.json()) as {
+        source?: "ai" | "editorial";
+        week?: {
+          title: string;
+          thesis?: string;
+          arc?: string;
+          posts: Array<{
+            day: string;
+            role: string;
+            objective: BrandObjective;
+            format: BrandFormat;
+            pillar: string;
+            successMetric: string;
+            title: string;
+            label: string;
+            templateId: string;
+            copy: string;
+            caption: string;
+            counterpoint?: string;
+            uppercase?: boolean;
+            slides?: string[];
+          }>;
         };
-        if (!result.routes?.length) throw new Error("No batch routes returned");
-        results.push({
-          routes: result.routes,
-          source: result.source || "editorial",
-        });
-      }
+      };
+      if (!result.week?.posts?.length) throw new Error("No weekly posts returned");
       const batch: ContentBatch = {
         id: uid(),
-        topic,
+        topic: result.week.title,
+        thesis: result.week.thesis || topic,
+        arc: result.week.arc,
         createdAt: new Date().toISOString(),
-        source: results.every((result) => result.source === "ai") ? "ai" : "editorial",
-        posts: results.flatMap((result, pass) =>
-          result.routes.map((route) => ({
-            id: `${pass}-${route.id}-${uid()}`,
-            route: { ...route, id: `${pass}-${route.id}` },
-            status: "review" as QueueStatus,
-          })),
-        ).map((post, index) => ({
-          ...post,
-          plan: { ...brandWeekPlan[index % brandWeekPlan.length] },
+        source: result.source || "editorial",
+        posts: result.week.posts.map((post) => ({
+          id: uid(),
+          route: {
+            id: uid(),
+            title: post.title,
+            label: post.label,
+            templateId: post.templateId,
+            copy: post.copy,
+            ...(post.counterpoint ? { counterpoint: post.counterpoint } : {}),
+            ...(post.uppercase ? { uppercase: true } : {}),
+          },
+          plan: {
+            day: post.day,
+            role: post.role,
+            objective: post.objective,
+            format: post.format,
+            pillar: post.pillar,
+            successMetric: post.successMetric,
+          },
+          caption: post.caption,
+          ...(post.slides?.length ? { slides: post.slides } : {}),
+          status: "review" as QueueStatus,
         })),
       };
       updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
       setBatchTopic("");
+      setThemeIdeas([]);
     } catch {
+      const routes = buildIdeaRoutes(topic, tension);
       const batch: ContentBatch = {
         id: uid(),
-        topic,
+        topic: selectedTheme?.title || "Semana JAY",
+        thesis: topic,
+        arc: "Observar → confrontar → integrar",
         createdAt: new Date().toISOString(),
         source: "editorial",
-        posts: passes.flatMap((angle, pass) =>
-          buildIdeaRoutes(topic, ideaTension).map((route) => ({
-            id: `${pass}-${route.id}-${uid()}`,
-            route: {
-              ...route,
-              id: `${pass}-${route.id}`,
-              copy:
-                angle === "contrarian"
-                  ? `${ideaFrames[ideaTension].contrast}\n\n${route.copy}`
-                  : route.copy,
-            },
+        posts: brandWeekPlan.map((plan, index) => {
+          const route = routes[index % routes.length];
+          return {
+            id: uid(),
+            route: { ...route, id: uid() },
+            plan: { ...plan },
+            caption: `Una idea no cambia nada por estar bien escrita. Cambia algo cuando te ayuda a mirar de frente lo que estabas evitando.\n\n${topic}`,
             status: "review" as QueueStatus,
-          })),
-        ).map((post, index) => ({
-          ...post,
-          plan: { ...brandWeekPlan[index % brandWeekPlan.length] },
-        })),
+          };
+        }),
       };
       updateContentBatches((batches) => [batch, ...batches].slice(0, 12));
     } finally {
@@ -2792,19 +2858,19 @@ export default function Home() {
       ),
     );
   };
-  const updateQueuePostPlan = (
+  const updateQueuePost = (
     batchId: string,
     postId: string,
-    patch: Partial<BrandPlan>,
+    patch: Partial<QueuePost>,
   ) => {
     updateContentBatches((batches) =>
       batches.map((batch) =>
         batch.id === batchId
           ? {
               ...batch,
-              posts: batch.posts.map((post, index) =>
+              posts: batch.posts.map((post) =>
                 post.id === postId
-                  ? { ...post, plan: { ...(post.plan || brandWeekPlan[index % brandWeekPlan.length]), ...patch } }
+                  ? { ...post, ...patch }
                   : post,
               ),
             }
@@ -3172,15 +3238,15 @@ export default function Home() {
             )}
             {tool === "queue" && (
               <>
-                <h3>Brand growth queue</h3>
+                <h3>Semana editorial</h3>
                 <p className="muted">
-                  Grow a recognizable personal brand: a reason to stop, a reason to trust, a reason to return.
+                  Una idea central. Cinco piezas que se sostienen solas y, juntas, dejan una impresión completa.
                 </p>
                 <section className="brand-compass" aria-label="Personal brand strategy">
                   <p className="idea-kicker">90-day north star · @jaywrkr</p>
-                  <h4>Be remembered for precise ideas that make people rethink what they tolerate.</h4>
+                  <h4>Que te recuerden por ideas precisas que hacen cuestionar lo que la gente tolera.</h4>
                   <div className="brand-flow" aria-label="Brand growth path">
-                    <span>Discover</span><i>→</i><span>Trust</span><i>→</i><span>Return</span>
+                    <span>Entrada</span><i>→</i><span>Profundizar</span><i>→</i><span>Presionar</span><i>→</i><span>Aterrizar</span><i>→</i><span>Cerrar</span>
                   </div>
                   <div className="brand-baseline">
                     <span><b>36</b> posts / 30d</span>
@@ -3189,40 +3255,52 @@ export default function Home() {
                   </div>
                 </section>
                 <label className="field">
-                  <span>What is this week about?</span>
+                  <span>Una idea para esta semana (opcional)</span>
                   <textarea
                     className="idea-input"
                     value={batchTopic}
-                    placeholder="Building a life with more freedom and less performance."
+                    placeholder="Ej.: la diferencia entre tener una vida ocupada y una vida elegida."
                     onChange={(event) => setBatchTopic(event.target.value)}
                   />
                 </label>
-                <label className="field">
-                  <span>Core tension</span>
-                  <select
-                    value={ideaTension}
-                    onChange={(event) => setIdeaTension(event.target.value as IdeaTension)}
+                <div className="weekly-theme-actions">
+                  <button
+                    className="idea-generate secondary"
+                    disabled={themeSearching || batchGenerating}
+                    onClick={findWeeklyThemes}
                   >
-                    <option value="time">Time</option>
-                    <option value="freedom">Freedom</option>
-                    <option value="limits">Limits</option>
-                    <option value="money">Money</option>
-                    <option value="identity">Identity</option>
-                    <option value="routine">Routine</option>
-                    <option value="other">Something else</option>
-                  </select>
-                </label>
-                <button
-                  className="idea-generate"
-                  disabled={!cleanIdea(batchTopic) || batchGenerating}
-                  onClick={createWeeklyBatch}
-                >
-                  <Sparkles size={15} />
-                  {batchGenerating ? "Building your set..." : "Create brand week"}
-                </button>
-                <p className="queue-note">Two creative passes · each direction gets a purpose, format and metric before you make it.</p>
+                    <Sparkles size={15} />
+                    {themeSearching ? "Pensando temas..." : "Dame temas estilo JAY"}
+                  </button>
+                  <button
+                    className="idea-generate"
+                    disabled={!cleanIdea(batchTopic) || batchGenerating}
+                    onClick={() => createWeeklyBatch()}
+                  >
+                    <Sparkles size={15} />
+                    {batchGenerating ? "Construyendo semana..." : "Crear semana completa"}
+                  </button>
+                </div>
+                <p className="queue-note">La IA define la estructura diaria, el formato, el objetivo y el caption. Tú solo eliges el tema y revisas la ejecución.</p>
+                {themeIdeas.length > 0 && (
+                  <section className="weekly-themes" aria-label="Temas sugeridos por IA">
+                    <p className="idea-kicker">Temas posibles para la semana</p>
+                    {themeIdeas.map((theme) => (
+                      <article className="weekly-theme" key={theme.id}>
+                        <div>
+                          <h4>{theme.title}</h4>
+                          <p>{theme.thesis}</p>
+                        </div>
+                        <button disabled={batchGenerating} onClick={() => createWeeklyBatch(theme)}>
+                          Construir esta semana <Plus size={12} />
+                        </button>
+                      </article>
+                    ))}
+                  </section>
+                )}
                 {contentBatches.map((batch) => {
                   const approved = batch.posts.filter((post) => post.status === "approved").length;
+                  const isLegacyBatch = !batch.arc && batch.posts.length !== 5;
                   return (
                     <section className="content-batch" key={batch.id}>
                       <header>
@@ -3236,7 +3314,10 @@ export default function Home() {
                           Approve all
                         </button>
                       </header>
-                      <p className="queue-count">{approved} approved · {batch.posts.length} posts</p>
+                      {batch.thesis && <p className="batch-thesis">{batch.thesis}</p>}
+                      {batch.arc && <p className="batch-arc">{batch.arc}</p>}
+                      {isLegacyBatch && <p className="batch-legacy">Borrador anterior: no sigue el nuevo arco semanal ni incluye captions. Puedes conservarlo o crear una semana nueva arriba.</p>}
+                      <p className="queue-count">{approved} aprobados · {batch.posts.length} posts</p>
                       <div className="queue-posts">
                         {batch.posts.map((post, index) => {
                           const plan = post.plan || brandWeekPlan[index % brandWeekPlan.length];
@@ -3244,44 +3325,31 @@ export default function Home() {
                           return (
                             <article className={`queue-post ${post.status}`} key={post.id}>
                               <div className="queue-post-head">
-                                <p className="idea-kicker">{plan.day} · {String(index + 1).padStart(2, "0")} · {post.route.label}</p>
+                                <p className="idea-kicker">{plan.day} · {plan.role || post.route.title} · {post.route.label}</p>
                                 <span className={`brand-objective ${plan.objective}`}>{objective.label}</span>
                               </div>
                               <p className="queue-copy">{post.route.copy}</p>
-                              <p className="queue-intent"><b>{objective.description}</b> Measure: {plan.successMetric}.</p>
-                              <div className="queue-plan-controls">
-                                <label>
-                                  <span>Purpose</span>
-                                  <select
-                                    value={plan.objective}
-                                    onChange={(event) => updateQueuePostPlan(batch.id, post.id, { objective: event.target.value as BrandObjective })}
-                                  >
-                                    {Object.entries(brandObjectiveCopy).map(([value, item]) => <option key={value} value={value}>{item.label}</option>)}
-                                  </select>
-                                </label>
-                                <label>
-                                  <span>Format</span>
-                                  <select
-                                    value={plan.format}
-                                    onChange={(event) => updateQueuePostPlan(batch.id, post.id, { format: event.target.value as BrandFormat })}
-                                  >
-                                    <option value="text art">Text art</option>
-                                    <option value="SIMPLE">SIMPLE</option>
-                                    <option value="carousel">Carousel</option>
-                                    <option value="context">Photo / context</option>
-                                  </select>
-                                </label>
+                              <div className="queue-meta">
+                                <span>{plan.format}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
                               </div>
-                              <label className="queue-pillar">
-                                <span>Pillar</span>
-                                <input
-                                  value={plan.pillar}
-                                  onChange={(event) => updateQueuePostPlan(batch.id, post.id, { pillar: event.target.value })}
-                                  aria-label="Content pillar"
-                                />
-                              </label>
+                              <p className="queue-intent"><b>{objective.description}</b></p>
+                              {post.slides?.length ? (
+                                <ol className="queue-slides" aria-label="Guion del carrusel">
+                                  {post.slides.map((slide, slideIndex) => <li key={`${post.id}-slide-${slideIndex}`}>{slide}</li>)}
+                                </ol>
+                              ) : null}
+                              {!isLegacyBatch && (
+                                <label className="queue-caption">
+                                  <span>Caption listo para publicar</span>
+                                  <textarea
+                                    value={post.caption || ""}
+                                    placeholder="El caption de este post aparecerá aquí."
+                                    onChange={(event) => updateQueuePost(batch.id, post.id, { caption: event.target.value })}
+                                  />
+                                </label>
+                              )}
                               <div className="queue-actions">
-                                <button onClick={() => openIdeaRoute(post.route)}>Edit</button>
+                                <button onClick={() => openIdeaRoute(post.route)}>Editar diseño</button>
                                 <button
                                   className={post.status === "approved" ? "selected" : ""}
                                   onClick={() => setQueuePostStatus(batch.id, post.id, "approved")}

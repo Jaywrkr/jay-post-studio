@@ -231,6 +231,67 @@
   line-height: 1.4;
 }
 
+.weekly-theme-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 12px 0 10px;
+}
+
+.weekly-theme-actions .idea-generate {
+  margin: 0;
+}
+
+.idea-generate.secondary {
+  border: 1px solid #111;
+  background: #fff;
+  color: #111;
+}
+
+.weekly-themes {
+  display: grid;
+  gap: 7px;
+  margin: 18px 0;
+}
+
+.weekly-themes > .idea-kicker {
+  margin-bottom: 0;
+}
+
+.weekly-theme {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #d9d9d4;
+  background: #fff;
+  padding: 11px;
+}
+
+.weekly-theme h4 {
+  margin: 0 0 5px;
+  color: #111;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.weekly-theme p {
+  margin: 0;
+  color: #555;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.weekly-theme button {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  padding: 6px 7px;
+  font-size: 8px;
+}
+
 .brand-compass {
   margin: 0 0 18px;
   border: 1px solid #111;
@@ -304,6 +365,29 @@
   line-height: 1.3;
 }
 
+.batch-thesis,
+.batch-arc,
+.batch-legacy {
+  margin: 8px 0 0;
+  color: #555;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.batch-arc {
+  color: #777;
+  font-size: 8px;
+}
+
+.batch-legacy {
+  margin: 8px 0 0;
+  border-left: 2px solid #a6a6a1;
+  padding-left: 7px;
+  color: #777;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
 .queue-approve-all {
   flex: 0 0 auto;
   border: 0;
@@ -356,6 +440,61 @@
 .queue-intent b {
   color: #444;
   font-weight: 500;
+}
+
+.queue-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.queue-meta span {
+  border: 1px solid #d9d9d4;
+  color: #666;
+  padding: 3px 4px;
+  font-size: 7px;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.queue-slides {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 9px 9px 9px 23px;
+  border-left: 2px solid #111;
+  background: #f4f4f1;
+  color: #333;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.queue-caption {
+  display: grid;
+  gap: 5px;
+  margin-top: 11px;
+  color: #777;
+  font-size: 7px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.queue-caption textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  border: 1px solid #d9d9d4;
+  border-radius: 0;
+  background: #fff;
+  color: #222;
+  padding: 7px;
+  font-family: inherit;
+  font-size: 9px;
+  line-height: 1.45;
+  outline: none;
+  text-transform: none;
 }
 
 .queue-plan-controls {
