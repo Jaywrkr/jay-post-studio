@@ -166,6 +166,12 @@ const completeGraphicCopy = (value: unknown, max: number) => {
   const shortened = clean.slice(0, Math.max(1, max - 1)).replace(/\s+\S*$/, "").replace(/[,:;\-–—]+$/, "").trim();
   return `${shortened}.`;
 };
+const strictGraphicCopy = (value: unknown, max: number) => {
+  const clean = normalCaption(value).replace(/\s+/g, " ").trim();
+  if (!clean || clean.length > max) return "";
+  if (/\b(que|de|del|la|el|los|las|un|una|con|sin|por|para|sobre|porque|aunque|cuando|como|si|y|o)$/i.test(clean.replace(/[¿?¡!.,;:]+$/, "").trim())) return "";
+  return clean;
+};
 const completeLabel = (value: unknown, max: number) => {
   const clean = normalCaption(value).replace(/\s+/g, " ").trim();
   if (clean.length <= max) return clean;
@@ -187,6 +193,7 @@ const isCompleteJayCaption = (caption: string) => {
   const words = caption.trim().split(/\s+/).filter(Boolean).length;
   return paragraphs.length === 2 && words >= 65 && words <= 135;
 };
+const genericPostTitle = /^(lo normalizado|lo que cobra|la implicaci[oó]n|la pregunta|el l[ií]mite|la entrada|el cierre|el golpe|el problema|la idea|la conclusi[oó]n)$/i;
 
 const curatedEditorialThemes: Array<Omit<Theme, "id">> = [
   { title: "El costo de tolerar", thesis: "Lo que toleras no es neutral: también diseña la vida que luego intentas cambiar.", tension: "limits" },
@@ -476,28 +483,29 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
       const plan = weeklyPlans[index];
       const templateId = plan.templateId;
       const slides = plan.format === "carousel" && Array.isArray(item.slides)
-        ? item.slides.map((slide: unknown) => completeGraphicCopy(slide, 85)).filter(Boolean).slice(0, 5)
+        ? item.slides.map((slide: unknown) => strictGraphicCopy(slide, 85)).filter(Boolean).slice(0, 5)
         : undefined;
       // Claude naturally treats the first carousel slide as its visual copy.
       // Accept that valid shape instead of discarding a complete weekly plan.
       const copySource = normalCaption(item.copy) || (plan.format === "carousel" ? normalCaption(slides?.[0]) : normalize(item.title));
-      const copy = completeGraphicCopy(copySource, graphicLimit(plan.format));
+      const copy = strictGraphicCopy(copySource, graphicLimit(plan.format));
       const caption = twoParagraphCaption(item.caption);
       const rawPillar = completeLabel(item.pillar, 65);
+      const postTitle = completeLabel(item.title, 120);
       const pillar = !rawPillar || rawPillar.startsWith("jay-") || rawPillar === templateId
         ? plan.role
         : rawPillar;
-      if (!copy || !caption || !isCompleteJayCaption(caption) || !staysInJayWorld(item.title, copy, caption, rawPillar, ...(slides || []))) return null;
+      if (!copy || !caption || !postTitle || postTitle.split(/\s+/).length < 4 || genericPostTitle.test(postTitle) || !isCompleteJayCaption(caption) || !staysInJayWorld(postTitle, copy, caption, rawPillar, ...(slides || []))) return null;
       if (plan.format === "carousel" && (!slides || slides.length < 4)) return null;
       return {
         ...plan,
-        title: completeLabel(item.title, 90) || plan.role,
+        title: postTitle,
         label: completeLabel(item.label, 100) || `${plan.format} · ${plan.role}`,
         templateId,
         copy,
         caption,
         pillar,
-        ...(templateId === "jay-four-sides" && normalize(item.counterpoint) ? { counterpoint: completeGraphicCopy(item.counterpoint, 85) } : {}),
+        ...(templateId === "jay-four-sides" && strictGraphicCopy(item.counterpoint, 85) ? { counterpoint: strictGraphicCopy(item.counterpoint, 85) } : {}),
         ...(plan.format === "SIMPLE" ? { uppercase: true } : {}),
         ...(slides?.length ? { slides } : {}),
       };
@@ -511,7 +519,7 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
     );
     if (!ideasAreDistinct) return null;
     return {
-      title: completeLabel(payload.title, 90) || "Semana JAY",
+      title: completeLabel(payload.title, 120) || "Semana JAY",
       thesis: completeGraphicCopy(payload.thesis, 320),
       arc: completeGraphicCopy(payload.arc, 360) || "Observar → confrontar → integrar",
       posts: completePosts,
@@ -537,8 +545,8 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return Response.json({ error: "Solicitud inválida." }, { status: 400 }); }
   const mode = body.mode === "themes" ? "themes" : "week";
   const seed = normalize(body.seed, 220);
-  const topic = normalize(body.topic, 240);
-  const title = normalize(body.title, 65);
+  const topic = normalize(body.topic, 600);
+  const title = normalize(body.title, 120);
   const tension = tensions.has(String(body.tension) as Tension) ? body.tension as Tension : "other";
   const excluded = Array.isArray(body.exclude)
     ? body.exclude.map((item) => normalize(item, 55)).filter(Boolean).slice(-500)
@@ -564,7 +572,7 @@ export async function POST(request: Request) {
           model: anthropic(model),
           providerOptions: { anthropic: { thinking: { type: "disabled" } } },
           maxOutputTokens: 1900,
-          system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Suggest themes, not professional lessons and not generic self-help categories. A theme should expose a recognizable human contradiction and sustain five different posts without repeating the same sentence. Avoid clickbait such as 'la verdad incómoda', formulas such as 'cómo saber', and titles about growth mindset, talent, leadership or careers. Return only valid JSON: exactly 4 objects with title, thesis, tension. tension must be one of time, freedom, limits, money, identity, routine, other. Every request must explore fresh angles and never recycle a title already seen.`,
+          system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Suggest themes, not professional lessons and not generic self-help categories. A theme should expose a recognizable human contradiction and sustain five different posts without repeating the same sentence. Every title must be a literal, grammatical claim that a 15-year-old understands on the first reading. Do not personify days, time, money or abstract ideas. Do not invert sentence logic to sound clever. Silently reread each title and replace it if the subject, action or consequence is ambiguous. Avoid clickbait such as 'la verdad incómoda', formulas such as 'cómo saber', and titles about growth mindset, talent, leadership or careers. Return only valid JSON: exactly 4 objects with title, thesis, tension. tension must be one of time, freedom, limits, money, identity, routine, other. Every request must explore fresh angles and never recycle a title already seen.`,
           prompt: `Optional starting thought: ${seed || "No seed. Find a fresh tension inside JAY's personal editorial world."}\nDo not repeat these previous titles: ${excluded.length ? excluded.join(" | ") : "none"}.${attempt ? " The previous attempt failed the JAY scope or JSON requirements. Correct it completely." : ""}`,
         });
         text = result.text;
@@ -583,7 +591,7 @@ export async function POST(request: Request) {
         model: anthropic(model),
         providerOptions: { anthropic: { thinking: { type: "disabled" } } },
         maxOutputTokens: 5200,
-        system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Build one complete five-post week. Every post must be an independent, complete idea; together they explore one theme from five genuinely different angles following the supplied roles. Do not write sequels, teasers, numbered parts or five paraphrases. Do not turn the theme into advice for professionals. Use ordinary human scenes: a Tuesday, a meal, a screen, a purchase, a conversation, a parent, a child, a quiet room, an avoided decision. Do not use clients, teams, companies or workplace examples. Graphic writing rules: SIMPLE uses one clear claim of 6–14 words. Text art uses a complete thought of 12–28 words. Context uses a concrete observation of 22–42 words that makes sense without the caption. The carousel contains 4 or 5 steps of 10–20 words each. Never sacrifice grammar or meaning to meet a limit. Captions must contain exactly two paragraphs and 70–120 words total: paragraph one develops a recognizable observation or scene; paragraph two explains the tension or consequence. Captions clarify the graphic instead of repeating it. Return only a valid JSON object with title, thesis, arc and exactly 5 posts in the supplied order. Every post needs title, label, copy, caption and pillar. Only the carousel post gets slides. Omit slides from every other post. counterpoint is optional and only useful for a split composition. Limits: text art 145 characters, carousel cover 100, SIMPLE 85, context 155.`,
+        system: `You are the editorial partner for JAY POST STUDIO. Write only in Spanish. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} Build one complete five-post week. Every post must be an independent, complete idea; together they explore one theme from five genuinely different angles following the supplied roles. Do not write sequels, teasers, numbered parts or five paraphrases. Do not turn the theme into advice for professionals. Use ordinary human scenes: a Tuesday, a meal, a screen, a purchase, a conversation, a parent, a child, a quiet room, an avoided decision. Do not use clients, teams, companies or workplace examples. Every post title must state its exact claim in at least four words; never use role labels such as 'La implicación', 'La pregunta', 'El límite' or 'Lo normalizado' as titles. Graphic writing rules: SIMPLE uses one clear claim of 6–14 words and at most 85 characters. Text art uses a complete thought of 12–24 words and at most 145 characters. Context uses a concrete observation of 16–25 words and at most 155 characters. The carousel contains 4 or 5 complete steps of 7–13 words and at most 85 characters each. No graphic text may end in a connector such as 'que', 'de', 'con', 'porque' or 'y'. Never sacrifice grammar or meaning to meet a limit and never expect the app to truncate your writing. Captions must contain exactly two paragraphs and 70–120 words total: paragraph one develops a recognizable observation or scene; paragraph two explains the tension or consequence. Captions clarify the graphic instead of repeating it. Before returning JSON, silently verify every character limit and rewrite any field that exceeds it. Return only a valid JSON object with title, thesis, arc and exactly 5 posts in the supplied order. Every post needs title, label, copy, caption and pillar. Only the carousel post gets slides. Omit slides from every other post. counterpoint is optional and only useful for a split composition.`,
         prompt: `Tema semanal: ${topic}\nNombre del tema: ${title || "Semana JAY"}\nTensión: ${tension}\nEstructura obligatoria: ${weeklyPlans.map((plan) => `${plan.day}: rol ${plan.role}, formato ${plan.format}, plantilla ${plan.templateId}`).join(" | ")}\nObjetivo: crear ideas personales claras, memorables y comprensibles en la voz de JAY.${attempt ? " La respuesta anterior falló por mezclar CoreSolutions, resultar demasiado breve o no cumplir la estructura. Reescríbela desde cero." : ""}`,
       });
       text = result.text;
