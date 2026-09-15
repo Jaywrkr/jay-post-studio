@@ -202,12 +202,6 @@ type ActiveQueueEdit = {
   slideIndex?: number;
   elementId: string;
 };
-type TemplateAiResult = {
-  templateId: string;
-  title: string;
-  copy: string;
-  caption: string;
-};
 type ContentBatch = {
   id: string;
   topic: string;
@@ -3129,15 +3123,19 @@ export default function Home() {
   const [carouselPreview, setCarouselPreview] = useState<CarouselPreview | null>(null);
   const [activeQueueEdit, setActiveQueueEdit] = useState<ActiveQueueEdit | null>(null);
   const [exportingBatchId, setExportingBatchId] = useState<string | null>(null);
-  const [templateGeneratingId, setTemplateGeneratingId] = useState<string | null>(null);
-  const [templateAiResult, setTemplateAiResult] = useState<TemplateAiResult | null>(null);
-  const [templateAiError, setTemplateAiError] = useState("");
+  const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const stageRef = useRef<Konva.Stage>(null);
   const leftContentRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
         setMyDesigns(JSON.parse(localStorage.getItem("jay-post-designs") || "[]"));
+        const savedTemplates = JSON.parse(localStorage.getItem("jay-post-templates") || "[]");
+        if (Array.isArray(savedTemplates)) {
+          setMyTemplates(savedTemplates.filter((item): item is Template => (
+            Boolean(item) && typeof item.id === "string" && typeof item.name === "string" && Boolean(item.design)
+          )));
+        }
         const storedBatches = JSON.parse(localStorage.getItem("jay-content-batches") || "[]") as ContentBatch[];
         const batches = storedBatches.some((batch) => batch.id === firstEvidenceWeek.id)
           ? storedBatches
@@ -3306,65 +3304,29 @@ export default function Home() {
     setCarouselPreview(null);
     openIdeaRoute(post.route, "queue");
   };
-  const createFromTemplate = async (template: Template) => {
-    const builtIn = lockedReferenceTemplates.has(template.id);
+  const createFromTemplate = (template: Template) => {
     newFrom(cloneTemplate(template));
     setTool("templates");
-    setTemplateAiResult(null);
-    setTemplateAiError("");
-    if (!builtIn || templateGeneratingId) {
-      if (!builtIn) setSaved("Plantilla abierta. La IA automática está disponible en las plantillas JAY.");
-      return;
-    }
-    setTemplateGeneratingId(template.id);
-    setSaved("La IA está escribiendo para este espacio…");
-    try {
-      let recent: string[] = [];
-      try {
-        const stored = JSON.parse(localStorage.getItem("jay-template-ai-copies") || "[]");
-        if (Array.isArray(stored)) recent = stored.filter((item): item is string => typeof item === "string");
-      } catch { /* Start a clean local history if old data is damaged. */ }
-      const response = await fetch("/api/template-copy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ templateId: template.id, exclude: recent.slice(-80) }),
-      });
-      const result = (await response.json().catch(() => null)) as {
-        error?: string;
-        title?: string;
-        copy?: string;
-        caption?: string;
-        counterpoint?: string;
-        segments?: string[];
-      } | null;
-      if (!response.ok || !result?.copy || !result.title || !result.caption) {
-        throw new Error(result?.error || "No se pudo generar el texto.");
-      }
-      const route: IdeaRoute = {
-        id: `template-ai-${uid()}`,
-        title: result.title,
-        label: `${templateName(template)} · IA JAY`,
-        templateId: template.id,
-        copy: result.copy,
-        ...(result.counterpoint ? { counterpoint: result.counterpoint } : {}),
-        ...(result.segments?.length ? { segments: result.segments } : {}),
-        effectVariant: stableNumber(`${template.id}-${result.title}-${result.copy}`),
-      };
-      const generated = buildIdeaDesign(route, template.id);
-      if (!generated) throw new Error("La plantilla no pudo preparar el texto.");
-      newFrom(generated.design);
-      setTool("templates");
-      setTemplateAiResult({ templateId: template.id, title: result.title, copy: result.copy, caption: result.caption });
-      const nextRecent = [...recent, result.copy].slice(-120);
-      localStorage.setItem("jay-template-ai-copies", JSON.stringify(nextRecent));
-      setSaved("Texto JAY generado y ajustado.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "No se pudo generar el texto.";
-      setTemplateAiError(message);
-      setSaved("La plantilla quedó abierta sin cambiar su texto.");
-    } finally {
-      setTemplateGeneratingId(null);
-    }
+    setSaved("Plantilla abierta");
+  };
+  const saveAsTemplate = () => {
+    const name = design.name.trim() || "Mi plantilla";
+    const template: Template = {
+      id: `custom-${uid()}`,
+      name,
+      subtitle: "Plantilla personal",
+      design: {
+        background: { ...design.background },
+        effects: { ...design.effects },
+        elements: design.elements.map((item) => ({ ...item, id: uid() })),
+      },
+    };
+    setMyTemplates((current) => {
+      const next = [template, ...current].slice(0, 30);
+      localStorage.setItem("jay-post-templates", JSON.stringify(next));
+      return next;
+    });
+    setSaved("Plantilla guardada");
   };
   const createIdeaDirections = async () => {
     const idea = cleanIdea(ideaInput);
@@ -3787,9 +3749,10 @@ export default function Home() {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   });
-  const templateList = referenceTemplateIds
+  const referenceTemplates = referenceTemplateIds
     .map((id) => templates.find((template) => template.id === id))
     .filter((template): template is Template => Boolean(template));
+  const templateList = [...referenceTemplates, ...myTemplates];
   if (screen === "library")
     return (
       <main className="library">
@@ -3817,7 +3780,7 @@ export default function Home() {
               newFrom(emptyDesign());
             }}
           >
-            Elegir una plantilla <Sparkles size={16} />
+            Abrir plantillas <Plus size={16} />
           </button>
         </section>
         <section className={myDesigns.length ? "design-grid" : "design-empty"}>
@@ -3853,7 +3816,7 @@ export default function Home() {
                 newFrom(emptyDesign());
               }}
             >
-              Ver plantillas <Plus size={15} />
+              Crear plantilla <Plus size={15} />
             </button>
           </div>
           <div className="template-row">
@@ -3861,7 +3824,6 @@ export default function Home() {
               <button
                 key={template.id}
                 className="template-card"
-                disabled={Boolean(templateGeneratingId)}
                 onClick={() => createFromTemplate(template)}
               >
                 <MiniPreview template={template} />
@@ -3909,6 +3871,10 @@ export default function Home() {
             <Save size={16} />
             Guardar
           </button>
+          <button onClick={saveAsTemplate}>
+            <Grid2X2 size={16} />
+            Guardar plantilla
+          </button>
           <button
             onClick={() =>
               newFrom({ ...design, id: uid(), name: `${design.name} copia` })
@@ -3951,49 +3917,14 @@ export default function Home() {
             {tool === "templates" && (
               <>
                 <h3>Plantillas</h3>
-                <p className="muted">Elige una. La IA escribe y ajusta el texto.</p>
-                {templateGeneratingId && (
-                  <div className="template-ai-status" role="status">
-                    <Sparkles size={14} />
-                    <span>Creando una idea JAY para esta plantilla…</span>
-                  </div>
-                )}
-                {templateAiError && <p className="batch-error" role="alert">{templateAiError}</p>}
-                {templateAiResult && !templateGeneratingId && (
-                  <article className="template-ai-result">
-                    <p className="idea-kicker">Texto listo</p>
-                    <strong>{templateAiResult.title}</strong>
-                    <p>{templateAiResult.copy}</p>
-                    <label>
-                      <span>Caption</span>
-                      <textarea readOnly value={templateAiResult.caption} />
-                    </label>
-                    <div className="template-ai-result-actions">
-                      <button
-                        onClick={() => {
-                          const template = templateList.find((item) => item.id === templateAiResult.templateId);
-                          if (template) createFromTemplate(template);
-                        }}
-                      >
-                        <Sparkles size={12} /> Probar otro texto
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(templateAiResult.caption)
-                            .then(() => setSaved("Caption copiado."))
-                            .catch(() => setSaved("Selecciona el caption para copiarlo."));
-                        }}
-                      >
-                        <Copy size={12} /> Copiar caption
-                      </button>
-                    </div>
-                  </article>
-                )}
+                <p className="muted">Abre una y edítala a tu manera.</p>
+                <button className="create-template" onClick={() => newFrom(emptyDesign())}>
+                  <Plus size={14} /> Nueva plantilla
+                </button>
                 <div className="template-grid">
                   {templateList.map((template) => (
                     <button
                       key={template.id}
-                      disabled={Boolean(templateGeneratingId)}
                       onClick={() => createFromTemplate(template)}
                     >
                       <MiniPreview template={template} />
