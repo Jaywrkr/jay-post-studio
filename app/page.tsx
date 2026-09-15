@@ -156,6 +156,14 @@ type IdeaRoute = {
   uppercase?: boolean;
   effectVariant?: number;
 };
+type TextRegion = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  align: "left" | "center" | "right";
+  verticalAlign?: "top" | "middle" | "bottom";
+};
 type IdeaAngle = "reflective" | "direct" | "contrarian";
 type QueueStatus = "review" | "approved" | "discarded";
 type BrandObjective = "discovery" | "depth" | "human" | "direction";
@@ -1507,12 +1515,19 @@ const compatibleTemplates: Record<BrandFormat, string[]> = {
   context: ["jay-message", "jay-quiet-paper", "jay-quiet-ink", "jay-grain-left", "jay-grain-right", "jay-mirror"],
 };
 const effectVariations: Array<Partial<Effects>> = [
+  { noise: false, scanlines: false, dotField: false, vignette: false, frame: false },
   { noise: true, noiseAmount: 48, noiseOpacity: 0.09, noiseScale: 2, scanlines: false, dotField: false, vignette: false, frame: false },
   { noise: false, scanlines: true, scanlineOpacity: 0.035, scanlineSpacing: 13, dotField: false, vignette: true, vignetteOpacity: 0.09, frame: false },
   { noise: false, scanlines: false, dotField: true, dotOpacity: 0.055, dotSpacing: 54, dotSize: 1.2, vignette: false, frame: true, frameInset: 48, frameOpacity: 0.16 },
   { noise: true, noiseAmount: 66, noiseOpacity: 0.11, noiseScale: 2, scanlines: false, dotField: false, vignette: true, vignetteOpacity: 0.12, frame: false },
   { noise: false, scanlines: false, dotField: false, vignette: false, frame: true, frameInset: 66, frameOpacity: 0.22 },
   { noise: true, noiseAmount: 38, noiseOpacity: 0.075, noiseScale: 1, scanlines: false, dotField: true, dotOpacity: 0.04, dotSpacing: 62, dotSize: 1, vignette: false, frame: false },
+  { noise: true, noiseAmount: 28, noiseOpacity: 0.055, noiseScale: 3, scanlines: true, scanlineOpacity: 0.025, scanlineSpacing: 18, dotField: false, vignette: false, frame: false },
+  { noise: false, scanlines: false, dotField: true, dotOpacity: 0.075, dotSpacing: 36, dotSize: 0.9, vignette: true, vignetteOpacity: 0.08, frame: false },
+  { noise: true, noiseAmount: 74, noiseOpacity: 0.08, noiseScale: 1, scanlines: false, dotField: false, vignette: false, frame: true, frameInset: 84, frameOpacity: 0.14 },
+  { noise: false, scanlines: true, scanlineOpacity: 0.022, scanlineSpacing: 8, dotField: false, vignette: false, frame: true, frameInset: 52, frameOpacity: 0.12 },
+  { noise: true, noiseAmount: 44, noiseOpacity: 0.065, noiseScale: 2, scanlines: false, dotField: true, dotOpacity: 0.03, dotSpacing: 42, dotSize: 1.4, vignette: true, vignetteOpacity: 0.1, frame: false },
+  { noise: false, scanlines: false, dotField: false, vignette: true, vignetteOpacity: 0.18, frame: true, frameInset: 72, frameOpacity: 0.11 },
 ];
 const stableNumber = (value: string) => [...value].reduce((hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0, 17);
 const splitCopy = (value: string, parts: number) => {
@@ -1527,6 +1542,136 @@ const splitCopy = (value: string, parts: number) => {
     cursor += take;
   }
   return result;
+};
+const layoutRegions: TextRegion[] = [
+  { x: 96, y: 198, width: 790, height: 660, align: "left", verticalAlign: "top" },
+  { x: 96, y: 280, width: 790, height: 520, align: "left", verticalAlign: "middle" },
+  { x: 96, y: 640, width: 790, height: 300, align: "left", verticalAlign: "bottom" },
+  { x: 120, y: 198, width: 840, height: 660, align: "center", verticalAlign: "top" },
+  { x: 120, y: 280, width: 840, height: 520, align: "center", verticalAlign: "middle" },
+  { x: 120, y: 640, width: 840, height: 300, align: "center", verticalAlign: "bottom" },
+  { x: 194, y: 198, width: 790, height: 660, align: "right", verticalAlign: "top" },
+  { x: 194, y: 280, width: 790, height: 520, align: "right", verticalAlign: "middle" },
+  { x: 194, y: 640, width: 790, height: 300, align: "right", verticalAlign: "bottom" },
+];
+const movableLayoutTemplates = new Set([
+  "jay-quiet-paper",
+  "jay-quiet-ink",
+  "jay-centered-caps",
+  "jay-simple-paper",
+  "jay-simple-ink",
+  "jay-repeater",
+]);
+const fitTextInRegion = (
+  item: StudioElement,
+  value: string,
+  region?: Partial<TextRegion>,
+  uppercase = false,
+) => {
+  const x = Math.max(36, Math.min(region?.x ?? item.x, SIZE - 180));
+  const y = Math.max(92, Math.min(region?.y ?? item.y, SIZE - 120));
+  const width = Math.max(180, Math.min(region?.width ?? item.width, SIZE - x - 44));
+  const availableHeight = Math.max(90, Math.min(region?.height ?? (SIZE - y - 44), SIZE - y - 44));
+  const maximum = Math.min(item.fontSize || 36, value.length < 55 ? 46 : 38);
+  const minimum = 14;
+  let fontSize = maximum;
+  let copy = value;
+  let requiredHeight = availableHeight;
+  while (fontSize >= minimum) {
+    copy = wrapCanvasCopy(value, width, fontSize, item.letterSpacing || 0);
+    requiredHeight = Math.ceil(fontSize * (item.lineHeight || 1.2) * Math.max(1, copy.split("\n").length) + 22);
+    if (requiredHeight <= availableHeight) break;
+    fontSize -= 1;
+  }
+  const align = region?.align ?? item.align ?? "left";
+  const fittedY = region?.verticalAlign === "bottom"
+    ? Math.max(92, y + availableHeight - requiredHeight)
+    : region?.verticalAlign === "middle"
+      ? Math.max(92, y + (availableHeight - requiredHeight) / 2)
+      : y;
+  const safeY = Math.max(40, Math.min(fittedY, SIZE - requiredHeight - 40));
+  return {
+    ...item,
+    x,
+    y: safeY,
+    width,
+    height: Math.min(requiredHeight, SIZE - safeY - 40),
+    fontSize,
+    align,
+    text: copy,
+    name: value.slice(0, 24) || item.name,
+    uppercase: uppercase || item.uppercase,
+  };
+};
+const variedBackground = (background: Background, variant: number): Background => {
+  const dark = background.color.toLowerCase() !== "#ffffff" && background.color.toLowerCase() !== "#f5f5f5";
+  const mode = variant % 6;
+  if (mode === 0) return background;
+  if (mode === 1) return { type: "linear", color: dark ? "#000000" : "#FFFFFF", colorB: dark ? "#242424" : "#DEDEDE", angle: 0 };
+  if (mode === 2) return { type: "linear", color: dark ? "#050505" : "#FFFFFF", colorB: dark ? "#303030" : "#E8E8E8", angle: 90 };
+  if (mode === 3) return { type: "radial", color: dark ? "#242424" : "#FFFFFF", colorB: dark ? "#000000" : "#D8D8D8", angle: 0 };
+  if (mode === 4) return { type: "linear", color: dark ? "#2B2B2B" : "#DADADA", colorB: dark ? "#000000" : "#FFFFFF", angle: 32 };
+  return { type: "linear", color: dark ? "#000000" : "#FFFFFF", colorB: dark ? "#181818" : "#E7E7E7", angle: 145 };
+};
+const isDarkHex = (value: string) => {
+  const hex = value.replace("#", "");
+  if (!/^[0-9a-f]{6}$/i.test(hex)) return false;
+  const red = Number.parseInt(hex.slice(0, 2), 16);
+  const green = Number.parseInt(hex.slice(2, 4), 16);
+  const blue = Number.parseInt(hex.slice(4, 6), 16);
+  return (red * 299 + green * 587 + blue * 114) / 1000 < 128;
+};
+const buildIdeaDesign = (
+  route: IdeaRoute,
+  requestedTemplateId?: string,
+) => {
+  const requestedTemplate = requestedTemplateId || route.templateId;
+  const templateId =
+    requestedTemplate === "jay-mirror" && route.copy.length > 92
+      ? "jay-quiet-ink"
+      : requestedTemplate === "jay-message" && route.copy.length > 90
+        ? "jay-quiet-paper"
+        : requestedTemplate;
+  const source = templates.find((template) => template.id === templateId);
+  if (!source) return null;
+  const next = cloneTemplate(source);
+  const variant = route.effectVariant ?? stableNumber(`${route.id}-${route.copy}`);
+  next.effects = {
+    ...next.effects,
+    ...effectVariations[(variant * 5 + 3) % effectVariations.length],
+    seed: 31 + (variant % 67),
+  };
+  next.background = variedBackground(next.background, Math.floor(variant / 2));
+  const copyTargets = next.elements
+    .filter((item) => item.type === "text" && (item.fontSize || 0) >= 28 && item.text?.toUpperCase() !== "SIMPLE")
+    .sort((a, b) => a.y - b.y);
+  const primaryId = copyTargets[0]?.id;
+  const selectedLayout = movableLayoutTemplates.has(templateId)
+    ? layoutRegions[(variant * 7 + stableNumber(templateId)) % layoutRegions.length]
+    : undefined;
+  const layout = selectedLayout && templateId.startsWith("jay-simple-") && selectedLayout.y < 250
+    ? { ...selectedLayout, y: 260, height: selectedLayout.height - 62 }
+    : selectedLayout;
+  const reminderParts = templateId === "jay-reminder" ? splitCopy(route.copy, copyTargets.length) : [];
+  next.elements = next.elements.map((item) => {
+    const index = copyTargets.findIndex((target) => target.id === item.id);
+    if (index < 0) return item;
+    if (templateId === "jay-four-sides") {
+      if (index === 0) return fitTextInRegion(item, route.copy, { height: 470 }, Boolean(route.uppercase));
+      return route.counterpoint
+        ? fitTextInRegion(item, route.counterpoint, { height: 210 }, Boolean(route.uppercase))
+        : { ...item, visible: false };
+    }
+    if (templateId === "jay-reminder") {
+      return fitTextInRegion(item, reminderParts[index] || route.copy, undefined, Boolean(route.uppercase));
+    }
+    if (templateId === "jay-mirror") {
+      return fitTextInRegion(item, route.copy, { height: 330 }, Boolean(route.uppercase));
+    }
+    return fitTextInRegion(item, route.copy, index === 0 ? layout : undefined, Boolean(route.uppercase));
+  });
+  next.name = route.title;
+  return { design: next, primaryId };
 };
 const ideaFrames: Record<
   IdeaTension,
@@ -1870,7 +2015,7 @@ function PostDetails({
   effects: Effects;
   background: Background;
 }) {
-  const isDark = background.color.toLowerCase() === "#000000";
+  const isDark = isDarkHex(background.color);
   const detailColor = isDark ? "#FFFFFF" : "#000000";
   const vignetteTone = isDark ? "255,255,255" : "0,0,0";
   const spacing = Math.max(4, effects.scanlineSpacing || 12);
@@ -2894,6 +3039,7 @@ export default function Home() {
   const [contentBatches, setContentBatches] = useState<ContentBatch[]>([]);
   const [carouselPreview, setCarouselPreview] = useState<CarouselPreview | null>(null);
   const [activeQueueEdit, setActiveQueueEdit] = useState<ActiveQueueEdit | null>(null);
+  const [exportingBatchId, setExportingBatchId] = useState<string | null>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const leftContentRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -2997,9 +3143,24 @@ export default function Home() {
   const updateSelected = (patch: Partial<StudioElement>) => {
     if (!selectedItem) return;
     updateElements((items) =>
-      items.map((item) =>
-        item.id === selectedItem.id ? { ...item, ...patch } : item,
-      ),
+      items.map((item) => {
+        if (item.id !== selectedItem.id) return item;
+        const updated = { ...item, ...patch };
+        return patch.text !== undefined && updated.type === "text"
+          ? fitTextInRegion(
+              updated,
+              String(patch.text),
+              {
+                x: updated.x,
+                y: updated.y,
+                width: updated.width,
+                height: SIZE - updated.y - 40,
+                align: updated.align || "left",
+              },
+              Boolean(updated.uppercase),
+            )
+          : updated;
+      }),
     );
     if (patch.text !== undefined && activeQueueEdit?.elementId === selectedItem.id) {
       syncQueueEditedText(String(patch.text));
@@ -3019,61 +3180,14 @@ export default function Home() {
     nextTool: Tool = "text",
     options: { templateId?: string; selectText?: boolean } = {},
   ) => {
-    const requestedTemplate = options.templateId || route.templateId;
-    const templateId =
-      requestedTemplate === "jay-mirror" && route.copy.length > 92
-        ? "jay-quiet-ink"
-        : requestedTemplate === "jay-message" && route.copy.length > 90
-          ? "jay-quiet-paper"
-        : requestedTemplate;
-    const source = templates.find((template) => template.id === templateId);
-    if (!source) return;
-    const next = cloneTemplate(source);
-    const effectVariant = route.effectVariant ?? stableNumber(`${route.id}-${route.copy}`);
-    next.effects = {
-      ...next.effects,
-      ...effectVariations[effectVariant % effectVariations.length],
-      seed: 31 + (effectVariant % 67),
-    };
-    const copyTargets = next.elements
-      .filter(
-        (item) =>
-          item.type === "text" &&
-          (item.fontSize || 0) >= 28 &&
-          item.text?.toUpperCase() !== "SIMPLE",
-      )
-      .sort((a, b) => a.y - b.y);
-    const rewrite = (item: StudioElement, value: string) => {
-      const copy = wrapCanvasCopy(value, item.width, item.fontSize || 36);
-      return {
-        ...item,
-        text: copy,
-        name: value.slice(0, 24) || item.name,
-        height: Math.min(
-          SIZE - Math.max(0, item.y) - 36,
-          (item.fontSize || 36) * (item.lineHeight || 1.2) * Math.max(1, copy.split("\n").length) + 6,
-        ),
-        uppercase: route.uppercase || item.uppercase,
-      };
-    };
-    const reminderParts = templateId === "jay-reminder" ? splitCopy(route.copy, copyTargets.length) : [];
-    next.elements = next.elements.map((item) => {
-      const index = copyTargets.findIndex((target) => target.id === item.id);
-      if (index < 0) return item;
-      if (templateId === "jay-four-sides") {
-        if (index === 0) return rewrite(item, route.copy);
-        return route.counterpoint ? rewrite(item, route.counterpoint) : { ...item, visible: false };
-      }
-      if (templateId === "jay-reminder") return rewrite(item, reminderParts[index] || route.copy);
-      return rewrite(item, route.copy);
-    });
-    next.name = route.title;
-    newFrom(next);
+    const built = buildIdeaDesign(route, options.templateId);
+    if (!built) return;
+    newFrom(built.design);
     if (!options.selectText) setActiveQueueEdit(null);
-    if (options.selectText && copyTargets[0]) setSelected([copyTargets[0].id]);
+    if (options.selectText && built.primaryId) setSelected([built.primaryId]);
     if (nextTool !== "queue") setCarouselPreview(null);
     setTool(nextTool);
-    return copyTargets[0]?.id;
+    return built.primaryId;
   };
   const openCarouselSlide = (post: QueuePost, index: number, selectText = false) => {
     const slides = post.slides || [];
@@ -3327,7 +3441,7 @@ export default function Home() {
       setCarouselPreview(null);
       openIdeaRoute(updatedPost.route, "queue");
     }
-    setSaved("Diseño cambiado. Texto intacto.");
+    setSaved("Nueva composición. Texto intacto y ajustado.");
   };
   const editQueuePostText = (post: QueuePost) => {
     const batchId = batchIdForPost(post.id);
@@ -3375,15 +3489,102 @@ export default function Home() {
     setFuture((f) => f.slice(1));
     setDesign(next);
   };
-  const exportPng = () => {
+  const safeFileName = (value: string) => value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 64) || "jay-post";
+  const waitForCanvas = () => new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
+  });
+  const stagePng = () => {
+    const stage = stageRef.current;
+    if (!stage) return "";
+    const previousScale = { x: stage.scaleX(), y: stage.scaleY() };
+    stage.scale({ x: 1, y: 1 });
+    stage.batchDraw();
+    const data = stage.toDataURL({ pixelRatio: 1, mimeType: "image/png" });
+    stage.scale(previousScale);
+    stage.batchDraw();
+    return data;
+  };
+  const downloadBlob = (blob: Blob, name: string) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.download = name;
+    anchor.href = url;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const exportPng = async () => {
     if (!stageRef.current) return;
     setSelected([]);
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-      const a = document.createElement("a");
-      a.download = `${design.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "jay-post"}.png`;
-      a.href = stageRef.current!.toDataURL({ pixelRatio: 1 });
-      a.click();
-    }));
+    await waitForCanvas();
+    const data = stagePng();
+    if (!data) return;
+    const anchor = document.createElement("a");
+    anchor.download = `${safeFileName(design.name)}.png`;
+    anchor.href = data;
+    anchor.click();
+  };
+  const exportWeek = async (batch: ContentBatch) => {
+    if (!stageRef.current || exportingBatchId) return;
+    setExportingBatchId(batch.id);
+    const previousDesign = design;
+    const previousSelected = selected;
+    const exportItems = batch.posts.flatMap((post, postIndex) => {
+      const day = post.plan?.day || `post-${postIndex + 1}`;
+      if (post.slides?.length) {
+        return post.slides.map((copy, slideIndex) => ({
+          name: `${String(postIndex + 1).padStart(2, "0")}-${safeFileName(day)}-${safeFileName(post.route.title)}-lamina-${String(slideIndex + 1).padStart(2, "0")}`,
+          route: {
+            ...post.route,
+            id: `${post.id}-export-slide-${slideIndex}`,
+            title: `${post.route.title} · ${slideIndex + 1}/${post.slides!.length}`,
+            copy,
+          },
+        }));
+      }
+      return [{
+        name: `${String(postIndex + 1).padStart(2, "0")}-${safeFileName(day)}-${safeFileName(post.route.title)}`,
+        route: post.route,
+      }];
+    });
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+      const imageFolder = zip.folder("imagenes");
+      setSelected([]);
+      for (let index = 0; index < exportItems.length; index += 1) {
+        const item = exportItems[index];
+        const built = buildIdeaDesign(item.route);
+        if (!built) continue;
+        setSaved(`Exportando ${index + 1} de ${exportItems.length}…`);
+        setDesign(built.design);
+        await waitForCanvas();
+        const data = stagePng();
+        if (data) imageFolder?.file(`${item.name}.png`, data.split(",")[1], { base64: true });
+      }
+      const captions = batch.posts.map((post, index) => [
+        `${index + 1}. ${post.plan?.day || "POST"} — ${post.route.title}`,
+        post.plan?.publishAt ? `Publicar: ${post.plan.publishAt}` : "",
+        `Texto en diseño: ${post.route.copy}`,
+        post.slides?.length ? `Carrusel:\n${post.slides.map((slide, slideIndex) => `${slideIndex + 1}. ${slide}`).join("\n")}` : "",
+        `Caption:\n${post.caption || ""}`,
+      ].filter(Boolean).join("\n")).join("\n\n--------------------\n\n");
+      zip.file("captions-y-plan.txt", `${batch.topic}\n\n${batch.thesis || ""}\n\n${captions}`);
+      const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
+      downloadBlob(blob, `${safeFileName(batch.topic)}-semana-completa.zip`);
+      setSaved(`${exportItems.length} imágenes y captions exportados.`);
+    } catch {
+      setSaved("No se pudo exportar. Intenta otra vez.");
+    } finally {
+      setDesign(previousDesign);
+      setSelected(previousSelected);
+      setExportingBatchId(null);
+    }
   };
   const saveTemplate = () => {
     const template: Template = {
@@ -3822,9 +4023,19 @@ export default function Home() {
                           </p>
                           <h4>{batch.topic}</h4>
                         </div>
-                        <button className="queue-approve-all" onClick={() => approveBatch(batch.id)}>
-                          Aprobar todo
-                        </button>
+                        <div className="batch-header-actions">
+                          <button
+                            className="queue-export-week"
+                            disabled={Boolean(exportingBatchId)}
+                            onClick={() => exportWeek(batch)}
+                          >
+                            <Download size={12} />
+                            {exportingBatchId === batch.id ? "Exportando…" : "Exportar semana"}
+                          </button>
+                          <button className="queue-approve-all" onClick={() => approveBatch(batch.id)}>
+                            Aprobar todo
+                          </button>
+                        </div>
                       </header>
                       {batch.thesis && <p className="batch-thesis">{batch.thesis}</p>}
                       {batch.arc && <p className="batch-arc">{batch.arc}</p>}
