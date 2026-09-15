@@ -8,6 +8,7 @@ type TemplateProfile = {
   min: number;
   max: number;
   segmentMax?: number;
+  segmentLimits?: number[];
   guidance: string;
 };
 
@@ -16,9 +17,10 @@ const profiles: Record<string, TemplateProfile> = {
     name: "Recordatorio vertical",
     kind: "segments",
     min: 12,
-    max: 55,
+    max: 52,
     segmentMax: 18,
-    guidance: "Divide una afirmación contundente en tres fragmentos muy cortos, de 1 a 3 palabras cada uno. Los tres deben formar una sola oración clara al leerse de arriba hacia abajo.",
+    segmentLimits: [18, 18, 18],
+    guidance: "Divide una afirmación contundente en tres fragmentos cortos. Cada fragmento debe caber en una sola o dos líneas sin cambiar la tipografía: máximo 18 caracteres. Los tres deben formar una sola oración clara al leerse de arriba hacia abajo.",
   },
   "jay-repeater": {
     name: "Repetición",
@@ -31,23 +33,24 @@ const profiles: Record<string, TemplateProfile> = {
     name: "Frase centrada",
     kind: "single",
     min: 45,
-    max: 105,
-    guidance: "Escribe una observación completa y concreta de una o dos líneas visuales.",
+    max: 76,
+    guidance: "Escribe una observación completa y concreta que quepa exactamente en una o dos líneas visuales a tamaño fijo.",
   },
   "jay-venn": {
     name: "Diagrama",
     kind: "segments",
     min: 12,
     max: 75,
-    segmentMax: 28,
-    guidance: "Devuelve una sola oración dividida en tres fragmentos. Debe conservar gramática y sentido al leerse: fragmento superior, fragmento central y fragmento inferior.",
+    segmentMax: 32,
+    segmentLimits: [14, 32, 16],
+    guidance: "Devuelve una sola oración dividida en tres fragmentos que conserven gramática y sentido. El fragmento superior mide máximo 14 caracteres; el central máximo 32; el inferior máximo 16. Deben quedar dentro de los tres círculos sin cambiar su tipografía ni posición.",
   },
   "jay-wide-statement": {
     name: "Frase amplia",
     kind: "single",
     min: 70,
-    max: 145,
-    guidance: "Desarrolla una idea completa en dos o tres líneas, con una observación reconocible y una consecuencia clara.",
+    max: 120,
+    guidance: "Desarrolla una idea completa que quepa en dos o tres líneas a tamaño fijo, con una observación reconocible y una consecuencia clara.",
   },
 };
 
@@ -151,7 +154,9 @@ export async function POST(request: Request) {
       const paragraphs = caption.split(/\n\n+/).filter(Boolean);
       const captionWords = caption.split(/\s+/).filter(Boolean).length;
       const segmentsValid = profile.kind !== "segments" || (
-        segments.length === 3 && segments.every((segment) => segment.length >= 3 && segment.length <= (profile.segmentMax || 28))
+        segments.length === 3 && segments.every((segment, index) => (
+          segment.length >= 3 && segment.length <= (profile.segmentLimits?.[index] || profile.segmentMax || 28)
+        ))
       );
       if (!copy || !title || captionWords < 70 || captionWords > 115 || paragraphs.length !== 2 || !segmentsValid || (profile.kind === "split" && !counterpoint)) continue;
       if (blockedProfessional.test(combined) || foreignLeak.test(combined) || voseoLeak.test(combined) || duplicate || isTooCloseToJayHistory([title, copy, counterpoint, ...segments].join(" "))) continue;

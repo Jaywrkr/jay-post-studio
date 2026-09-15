@@ -1644,6 +1644,25 @@ const fitTextInRegion = (
     uppercase: uppercase || item.uppercase,
   };
 };
+// The five reference templates are compositions, not flexible layouts. Their
+// typography and coordinates must remain exactly as drawn in the references.
+// AI copy is constrained at the API boundary; here we only wrap it at the
+// fixed font size and retain every original coordinate and measurement.
+const fitLockedReferenceText = (
+  item: StudioElement,
+  value: string,
+  uppercase = false,
+) => {
+  const copy = wrapCanvasCopy(value, item.width, item.fontSize || 31, item.letterSpacing || 0);
+  const lines = Math.max(1, copy.split("\n").length);
+  return {
+    ...item,
+    text: copy,
+    height: Math.ceil((item.fontSize || 31) * (item.lineHeight || 1.2) * lines + 18),
+    name: value.slice(0, 24) || item.name,
+    uppercase: uppercase || item.uppercase,
+  };
+};
 const variedBackground = (background: Background, variant: number): Background => {
   const dark = background.color.toLowerCase() !== "#ffffff" && background.color.toLowerCase() !== "#f5f5f5";
   const mode = variant % 6;
@@ -1708,15 +1727,17 @@ const buildIdeaDesign = (
         : { ...item, visible: false };
     }
     if (templateId === "jay-repeater") {
-      return fitTextInRegion(item, route.copy, undefined, true);
+      return fitLockedReferenceText(item, route.copy, true);
     }
     if (templateId === "jay-reminder") {
       const segment = segmentedParts[index] || route.copy;
-      const stacked = index === 0 ? segment : segment.split(/\s+/).join("\n");
-      return fitTextInRegion(item, stacked, undefined, true);
+      return fitLockedReferenceText(item, segment, true);
     }
     if (templateId === "jay-venn") {
-      return fitTextInRegion(item, segmentedParts[index] || route.copy, undefined, false);
+      return fitLockedReferenceText(item, segmentedParts[index] || route.copy, false);
+    }
+    if (lockedReferenceTemplates.has(templateId)) {
+      return fitLockedReferenceText(item, route.copy, Boolean(route.uppercase));
     }
     if (templateId === "jay-mirror") {
       return fitTextInRegion(item, route.copy, { height: 330 }, Boolean(route.uppercase));
