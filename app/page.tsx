@@ -167,6 +167,7 @@ type BrandPlan = {
   format: BrandFormat;
   pillar: string;
   successMetric: string;
+  publishAt?: string;
 };
 type WeeklyTheme = {
   id: string;
@@ -228,6 +229,7 @@ const firstEvidenceWeek: ContentBatch = {
         format: "text art",
         pillar: "Integridad personal",
         successMetric: "Alcance",
+        publishAt: "Lun 21 sep · 10:00",
       },
       caption: "Te levantas temprano cuando alguien depende de ese horario. Cuando la meta es solo tuya, la fecha se mueve sin culpa. Cancelas la caminata o dejas para mañana lo que te prometiste hoy porque nadie notará la diferencia.\n\nEsa flexibilidad silenciosa parece inofensiva, pero enseña algo preciso: tu palabra vale menos cuando no hay testigos. Con el tiempo dejas de confiar en lo que te dices, porque sabes cuántas veces no cumpliste.",
     },
@@ -248,6 +250,7 @@ const firstEvidenceWeek: ContentBatch = {
         format: "carousel",
         pillar: "Confianza propia",
         successMetric: "Guardados",
+        publishAt: "Mar 22 sep · 10:00",
       },
       caption: "Nadie te vio faltar a ese compromiso contigo, así que parece que no ocurrió nada grave. Pero la próxima vez que intentas algo distinto, una parte de ti ya duda porque recuerda las veces anteriores.\n\nEsa duda no aparece de golpe. Se acumula hasta que necesitas que alguien más confirme tus decisiones, porque dejaste de ser una fuente confiable de tu propia palabra.",
       slides: [
@@ -275,6 +278,7 @@ const firstEvidenceWeek: ContentBatch = {
         format: "context",
         pillar: "Vida cotidiana",
         successMetric: "Comentarios con sentido",
+        publishAt: "Jue 24 sep · 10:00",
       },
       caption: "Dijiste que ibas a dormir temprano y a las once y media sigues revisando el celular sin ningún motivo real. No hay reproche esperando mañana porque nadie registró esa promesa salvo tú.\n\nSi solo cumples lo que otros pueden verificar, tu palabra depende de la vigilancia ajena y no de tu criterio. Cuando nadie observa, descubres cuánto respeto tienen realmente tus propias decisiones.",
     },
@@ -296,6 +300,7 @@ const firstEvidenceWeek: ContentBatch = {
         format: "SIMPLE",
         pillar: "Criterio personal",
         successMetric: "Compartidos",
+        publishAt: "Vie 25 sep · 10:00",
       },
       caption: "Piensa en la última meta que te propusiste sin decírsela a nadie. Tal vez fue leer, dejar una costumbre o comenzar algo un lunes cualquiera sin anunciarlo ni pedir apoyo.\n\nLa pregunta honesta es si la habrías sostenido sabiendo que nadie lo notaría. Esa respuesta dice más de tu criterio que cualquier logro visible, porque elimina el reconocimiento como incentivo.",
     },
@@ -316,6 +321,7 @@ const firstEvidenceWeek: ContentBatch = {
         format: "text art",
         pillar: "Integridad personal",
         successMetric: "Seguidores ganados",
+        publishAt: "Dom 27 sep · 10:00",
       },
       caption: "Deja de dividir tus compromisos entre los que cuentan porque alguien los vio y los que puedes olvidar porque fueron silenciosos. Esa separación solo decide cuándo te permites fallarte según quién esté mirando.\n\nMantén el mismo estándar exista testigo o no. Si tu palabra únicamente vale frente a otros, todavía no se ha convertido en una parte estable de ti.",
     },
@@ -3835,7 +3841,7 @@ export default function Home() {
                                   key={`${post.id}-plan`}
                                   onClick={() => openQueuePost(post)}
                                 >
-                                  <span>{plan.day} · {plan.role || "Post"}</span>
+                                  <span>{plan.day} · {plan.role || "Post"}{plan.publishAt ? ` · ${plan.publishAt.split(" · ").at(-1)}` : ""}</span>
                                   <strong>{post.route.title}</strong>
                                   <small>{brandFormatCopy[plan.format]} · {templateNameFromId(post.route.templateId)}</small>
                                 </button>
@@ -3856,7 +3862,7 @@ export default function Home() {
                               </div>
                               <p className="queue-copy">{post.route.copy}</p>
                               <div className="queue-meta">
-                                <span>{brandFormatCopy[plan.format]}</span><span>{templateNameFromId(post.route.templateId)}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>
+                                <span>{brandFormatCopy[plan.format]}</span><span>{templateNameFromId(post.route.templateId)}</span><span>{plan.pillar}</span><span>{plan.successMetric}</span>{plan.publishAt && <span>{plan.publishAt}</span>}
                               </div>
                               <p className="queue-intent"><b>{objective.description}</b></p>
                               {post.slides?.length ? (
