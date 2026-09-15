@@ -238,13 +238,13 @@ export async function POST(request: Request) {
     const allowProfessional = coreSolutionsPattern.test(idea);
     let text = "";
     let routes: Direction[] | null = null;
-    for (let attempt = 0; attempt < 2 && !routes; attempt += 1) {
+    for (let attempt = 0; attempt < 3 && !routes; attempt += 1) {
       const result = await generateText({
         model: anthropic(model),
         providerOptions: { anthropic: { thinking: { type: "disabled" } } },
         maxOutputTokens: 2100,
         system: `You are the editorial partner for JAY POST STUDIO. Write only in neutral Latin American Spanish using tú forms; never use voseo or insert an English word. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} ${jayEvidence} ${jayQualityGate} Preserve the exact human truth of the source idea instead of attaching an unrelated aphorism. Create four genuinely different treatments: a developed observation, a clean contrast, a human reframing and a direct claim. Never motivational, therapeutic, clickbait, generic, decorative or salesy. Never use emojis, hashtags or calls to action. Use complete sentences with at least six words. Every copy must communicate its full idea by itself; never put the missing consequence in a second sentence that would exceed the visual limit. Keep every route legible on a 1080px post: maximum 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. Count characters before returning; the app rejects instead of truncating. Return only valid JSON: exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. For jay-four-sides provide a short counterpoint.`,
-        prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}.${attempt ? " La respuesta anterior resultó confusa, ajena a JAY o incumplió la estructura. Reescríbela desde cero con más claridad." : ""}`,
+        prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}.${attempt ? " La respuesta anterior fue rechazada. Reescribe las cuatro rutas desde cero. Cuenta cada carácter, incluidos espacios: quiet-paper debe tener 105–145; four-sides 45–100 y counterpoint 30–85; mirror 45–85; centered-caps 35–85. Ningún copy puede depender de una oración que quede fuera del límite." : ""}`,
       });
       text = result.text;
       routes = parseDirections(text, allowProfessional);
