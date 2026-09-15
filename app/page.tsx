@@ -1584,6 +1584,20 @@ const splitCopy = (value: string, parts: number) => {
   }
   return result;
 };
+const forceVisualLines = (value: string, lines: number) => {
+  const words = value.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (lines <= 1 || words.length <= 1) return words.join(" ");
+  const groups: string[] = [];
+  let cursor = 0;
+  for (let index = 0; index < lines; index += 1) {
+    const remainingGroups = lines - index;
+    const remainingWords = words.length - cursor;
+    const take = Math.max(1, Math.ceil(remainingWords / remainingGroups));
+    groups.push(words.slice(cursor, cursor + take).join(" "));
+    cursor += take;
+  }
+  return groups.join("\n");
+};
 const layoutRegions: TextRegion[] = [
   { x: 96, y: 198, width: 790, height: 660, align: "left", verticalAlign: "top" },
   { x: 96, y: 280, width: 790, height: 520, align: "left", verticalAlign: "middle" },
@@ -1731,13 +1745,15 @@ const buildIdeaDesign = (
     }
     if (templateId === "jay-reminder") {
       const segment = segmentedParts[index] || route.copy;
-      return fitLockedReferenceText(item, segment, true);
+      return fitLockedReferenceText(item, index === 0 ? segment : forceVisualLines(segment, 2), true);
     }
     if (templateId === "jay-venn") {
-      return fitLockedReferenceText(item, segmentedParts[index] || route.copy, false);
+      const segment = segmentedParts[index] || route.copy;
+      return fitLockedReferenceText(item, index === 0 ? segment : forceVisualLines(segment, 2), false);
     }
     if (lockedReferenceTemplates.has(templateId)) {
-      return fitLockedReferenceText(item, route.copy, Boolean(route.uppercase));
+      const fixedLines = templateId === "jay-centered-statement" ? 2 : templateId === "jay-wide-statement" ? 3 : 1;
+      return fitLockedReferenceText(item, forceVisualLines(route.copy, fixedLines), Boolean(route.uppercase));
     }
     if (templateId === "jay-mirror") {
       return fitTextInRegion(item, route.copy, { height: 330 }, Boolean(route.uppercase));

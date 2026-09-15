@@ -20,7 +20,7 @@ const profiles: Record<string, TemplateProfile> = {
     max: 52,
     segmentMax: 18,
     segmentLimits: [18, 18, 18],
-    guidance: "Divide una afirmación contundente en tres fragmentos cortos. Cada fragmento debe caber en una sola o dos líneas sin cambiar la tipografía: máximo 18 caracteres. Los tres deben formar una sola oración clara al leerse de arriba hacia abajo.",
+    guidance: "Divide una afirmación contundente en tres fragmentos cortos. El primero puede tener una o dos palabras; el segundo y el tercero deben tener al menos dos palabras para ocupar dos líneas. Cada fragmento debe caber sin cambiar la tipografía: máximo 18 caracteres. Los tres deben formar una sola oración clara al leerse de arriba hacia abajo.",
   },
   "jay-repeater": {
     name: "Repetición",
@@ -43,7 +43,7 @@ const profiles: Record<string, TemplateProfile> = {
     max: 75,
     segmentMax: 32,
     segmentLimits: [14, 32, 16],
-    guidance: "Devuelve una sola oración dividida en tres fragmentos que conserven gramática y sentido. El fragmento superior mide máximo 14 caracteres; el central máximo 32; el inferior máximo 16. Deben quedar dentro de los tres círculos sin cambiar su tipografía ni posición.",
+    guidance: "Devuelve una sola oración dividida en tres fragmentos que conserven gramática y sentido. El fragmento superior mide máximo 14 caracteres; el central máximo 32 y al menos dos palabras; el inferior máximo 16 y al menos dos palabras. Deben quedar dentro de los tres círculos sin cambiar su tipografía ni posición.",
   },
   "jay-wide-statement": {
     name: "Frase amplia",
@@ -158,7 +158,10 @@ export async function POST(request: Request) {
           segment.length >= 3 && segment.length <= (profile.segmentLimits?.[index] || profile.segmentMax || 28)
         ))
       );
-      if (!copy || !title || captionWords < 70 || captionWords > 115 || paragraphs.length !== 2 || !segmentsValid || (profile.kind === "split" && !counterpoint)) continue;
+      const multiLineSegmentsValid = profile.kind !== "segments" || (
+        templateId !== "jay-reminder" && templateId !== "jay-venn"
+      ) || segments.slice(1).every((segment) => segment.split(/\s+/).filter(Boolean).length >= 2);
+      if (!copy || !title || captionWords < 70 || captionWords > 115 || paragraphs.length !== 2 || !segmentsValid || !multiLineSegmentsValid || (profile.kind === "split" && !counterpoint)) continue;
       if (blockedProfessional.test(combined) || foreignLeak.test(combined) || voseoLeak.test(combined) || duplicate || isTooCloseToJayHistory([title, copy, counterpoint, ...segments].join(" "))) continue;
       return Response.json({
         title,
