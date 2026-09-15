@@ -652,6 +652,12 @@
   font-size: 8px;
 }
 
+.template-ai-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .template-grid button:disabled,
 .template-card:disabled {
   cursor: wait;

@@ -8,24 +8,47 @@ type TemplateProfile = {
   min: number;
   max: number;
   segmentMax?: number;
+  guidance: string;
 };
 
 const profiles: Record<string, TemplateProfile> = {
-  "jay-quiet-paper": { name: "Papel sobrio", kind: "single", min: 55, max: 145 },
-  "jay-quiet-ink": { name: "Tinta sobria", kind: "single", min: 45, max: 115 },
-  "jay-centered-caps": { name: "Mayúsculas centradas", kind: "single", min: 30, max: 85 },
-  "jay-simple-paper": { name: "SIMPLE claro", kind: "single", min: 45, max: 125 },
-  "jay-simple-ink": { name: "SIMPLE oscuro", kind: "single", min: 35, max: 105 },
-  "jay-mirror": { name: "Espejo", kind: "single", min: 40, max: 92 },
-  "jay-four-sides": { name: "Cuatro lados", kind: "split", min: 35, max: 100 },
-  "jay-circle-quote": { name: "Cita circular", kind: "single", min: 35, max: 95 },
-  "jay-venn": { name: "Diagrama", kind: "segments", min: 12, max: 75, segmentMax: 28 },
-  "jay-repeater": { name: "Repetición", kind: "single", min: 25, max: 72 },
-  "jay-grain-left": { name: "Grano izquierdo", kind: "single", min: 55, max: 145 },
-  "jay-grain-right": { name: "Grano derecho", kind: "single", min: 55, max: 145 },
-  "jay-message": { name: "Mensaje", kind: "single", min: 42, max: 90 },
-  "jay-reminder": { name: "Recordatorio", kind: "segments", min: 12, max: 72, segmentMax: 26 },
-  "jay-photo-reference": { name: "Foto con texto", kind: "photo", min: 42, max: 105 },
+  "jay-reminder": {
+    name: "Recordatorio vertical",
+    kind: "segments",
+    min: 12,
+    max: 55,
+    segmentMax: 18,
+    guidance: "Divide una afirmación contundente en tres fragmentos muy cortos, de 1 a 3 palabras cada uno. Los tres deben formar una sola oración clara al leerse de arriba hacia abajo.",
+  },
+  "jay-repeater": {
+    name: "Repetición",
+    kind: "single",
+    min: 25,
+    max: 38,
+    guidance: "Escribe una sola afirmación contundente que funcione repetida trece veces y que no necesite contexto adicional.",
+  },
+  "jay-centered-statement": {
+    name: "Frase centrada",
+    kind: "single",
+    min: 45,
+    max: 105,
+    guidance: "Escribe una observación completa y concreta de una o dos líneas visuales.",
+  },
+  "jay-venn": {
+    name: "Diagrama",
+    kind: "segments",
+    min: 12,
+    max: 75,
+    segmentMax: 28,
+    guidance: "Devuelve una sola oración dividida en tres fragmentos. Debe conservar gramática y sentido al leerse: fragmento superior, fragmento central y fragmento inferior.",
+  },
+  "jay-wide-statement": {
+    name: "Frase amplia",
+    kind: "single",
+    min: 70,
+    max: 145,
+    guidance: "Desarrolla una idea completa en dos o tres líneas, con una observación reconocible y una consecuencia clara.",
+  },
 };
 
 const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
@@ -103,7 +126,7 @@ export async function POST(request: Request) {
         providerOptions: { anthropic: { thinking: { type: "disabled" } } },
         maxOutputTokens: 1200,
         system: `Eres el editor de JAY POST STUDIO. Escribe únicamente en español latino neutro y usa conjugaciones de tú. Nunca uses voseo ni formas como notás, respondés, decís, sentís, podés, tenés, querés, hacés, sabés o sos. JAY habla de decisiones privadas que forman una vida ordinaria: cumplir la palabra sin aplausos, hábitos tolerados, conversaciones aplazadas, atención, tiempo, dinero como margen de libertad, identidad, comodidad, responsabilidad y consecuencias de seguir igual. JAY no es CoreSolutions: prohíbe clientes, empresas, equipos, liderazgo, ventas, marketing, carreras y productividad profesional. La claridad importa más que sonar profundo. Cada texto debe describir una conducta, decisión o escena reconocible; mostrar una tensión; y dejar una consecuencia o criterio concreto. No uses motivación genérica, terapia, clickbait, metáforas apiladas, emojis, hashtags ni llamadas a la acción. ${jayPerformanceEvidence} ${jayWinningMechanism} No reutilices ni parafrasees frases históricas. Devuelve solo JSON válido con title, copy, caption, optional counterpoint y optional segments. El caption debe tener exactamente dos párrafos separados por \\n\\n, entre 70 y 115 palabras, y desarrollar la idea sin repetir el copy.`,
-        prompt: `Crea una idea JAY completamente nueva para la plantilla ${profile.name}. El copy debe medir entre ${profile.min} y ${profile.max} caracteres, contar una idea completa y no terminar en un conector. ${splitInstruction} ${segmentInstruction} El título debe describir la idea en 4 a 9 palabras. Semilla creativa: ${Date.now()}-${attempt}. No uses estas ideas recientes ni variaciones cercanas:\n${exclude.join("\n") || "Ninguna."}${attempt ? "\nLa respuesta anterior no pasó la validación. Reescribe desde cero, cuenta caracteres y revisa claridad, gramática y estructura antes de responder." : ""}`,
+        prompt: `Crea una idea JAY completamente nueva para la plantilla ${profile.name}. El copy debe medir entre ${profile.min} y ${profile.max} caracteres, contar una idea completa y no terminar en un conector. Instrucción específica: ${profile.guidance} ${splitInstruction} ${segmentInstruction} El título debe describir la idea en 4 a 9 palabras. Semilla creativa: ${Date.now()}-${attempt}. No uses estas ideas recientes ni variaciones cercanas:\n${exclude.join("\n") || "Ninguna."}${attempt ? "\nLa respuesta anterior no pasó la validación. Reescribe desde cero, cuenta caracteres y revisa claridad, gramática y estructura antes de responder." : ""}`,
       });
       raw = result.text;
       const parsed = decode(raw);

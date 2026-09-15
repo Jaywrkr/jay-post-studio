@@ -412,6 +412,8 @@ const templateNameCopy: Record<string, string> = {
   "jay-venn": "JAY / Diagrama",
   "jay-repeater": "JAY / Repetición",
   "jay-reminder": "JAY / Recordatorio",
+  "jay-centered-statement": "JAY / Frase centrada",
+  "jay-wide-statement": "JAY / Frase amplia",
   "jay-photo-reference": "JAY / Referencia con foto",
 };
 const originalTemplateNameCopy: Record<string, string> = {
@@ -429,6 +431,8 @@ const originalTemplateNameCopy: Record<string, string> = {
   "JAY / Venn": "JAY / Diagrama",
   "JAY / Repeater": "JAY / Repetición",
   "JAY / Reminder": "JAY / Recordatorio",
+  "JAY / Centered Statement": "JAY / Frase centrada",
+  "JAY / Wide Statement": "JAY / Frase amplia",
   "JAY / Photo Reference": "JAY / Referencia con foto",
   "Untitled post": "Post sin título",
 };
@@ -683,6 +687,28 @@ const templates: Template[] = [
       825,
     ),
   ]),
+  make("JAY / Centered Statement", white, [
+    ...brand(),
+    text(
+      "Puedes leer cien libros sobre valentía\nsin hacer una sola cosa valiente.",
+      165,
+      512,
+      31,
+      "#000000",
+      750,
+    ),
+  ]),
+  make("JAY / Wide Statement", white, [
+    ...brand(),
+    text(
+      "Quizá el verdadero lujo no sea tener más\ncosas. Sea poder decir que no sin calcular\ncuánto te costará.",
+      130,
+      485,
+      31,
+      "#000000",
+      820,
+    ),
+  ]),
   make("JAY / Quiet Ink", black, [
     ...brand("#8C8C8C"),
     text(
@@ -796,7 +822,7 @@ const templates: Template[] = [
     ),
   ]),
   make("JAY / Venn", white, [
-    ...brand(),
+    ...brand("#000000"),
     base("ellipse", { name: "Outer orbit", x: 121, y: 120, width: 838, height: 840, fill: "transparent", stroke: "#000000", strokeWidth: 3 }),
     base("ellipse", { name: "Middle orbit", x: 121, y: 370, width: 838, height: 330, fill: "transparent", stroke: "#000000", strokeWidth: 3 }),
     base("circle", { name: "Choice", x: 380, y: 643, width: 320, height: 320, fill: "transparent", stroke: "#000000", strokeWidth: 3 }),
@@ -804,15 +830,13 @@ const templates: Template[] = [
     { ...text("exitosa\nviviendo vidas", 310, 494, 31, "#000000", 460), align: "center" },
     { ...text("que no\nquieres", 414, 790, 31, "#000000", 250), align: "center" },
   ]),
-  make("JAY / Repeater", black, [
-    ...brand("#8C8C8C"),
-    ...[
-      [452, 110], [90, 260], [800, 216], [-34, 379], [590, 375], [835, 618],
-      [-22, 640], [356, 750], [628, 869], [195, 947],
-    ].map(([x, y]) =>
-      text("LA MUERTE MEJORA MUCHAS PRIORIDADES.", x, y, 20, "#555555", 530),
-    ),
-    text("LA MUERTE MEJORA MUCHAS PRIORIDADES.", 195, 540, 30, "#FFFFFF", 720),
+  make("JAY / Repeater", white, [
+    ...brand(),
+    ...Array.from({ length: 13 }, (_, index) => ({
+      ...text("LA ANSIEDAD AMA LA INCERTIDUMBRE.", 200, 172 + index * 60, 29, "#000000", 700),
+      name: "Repeated copy",
+      uppercase: true,
+    })),
   ]),
   make("JAY / Grain Left", {
     type: "linear", color: "#FFFFFF", colorB: "#1A1A1A", angle: 0,
@@ -856,9 +880,9 @@ const templates: Template[] = [
   ]),
   make("JAY / Reminder", white, [
     ...brand(),
-    { ...text("EL FUTURO", 220, 151, 31, "#000000", 640), align: "center", letterSpacing: 1 },
-    { ...text("NO\nRESPETA", 350, 494, 31, "#000000", 380), align: "center", letterSpacing: 1 },
-    { ...text("TUS\nEXCUSAS", 350, 888, 31, "#000000", 380), align: "center", letterSpacing: 1 },
+    { ...text("EL FUTURO", 220, 151, 31, "#000000", 640), align: "center", letterSpacing: 1, uppercase: true },
+    { ...text("NO\nRESPETA", 350, 494, 31, "#000000", 380), align: "center", letterSpacing: 1, uppercase: true },
+    { ...text("TUS\nEXCUSAS", 350, 888, 31, "#000000", 380), align: "center", letterSpacing: 1, uppercase: true },
   ]),
   make("JAY / Photo Reference", black, [
     postImage("/reference/jay-shadow.png", "JAY shadow reference"),
@@ -1517,6 +1541,14 @@ const cloneTemplate = (template: Template): Design => ({
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
+const referenceTemplateIds = [
+  "jay-reminder",
+  "jay-repeater",
+  "jay-centered-statement",
+  "jay-venn",
+  "jay-wide-statement",
+] as const;
+const lockedReferenceTemplates = new Set<string>(referenceTemplateIds);
 const compatibleTemplates: Record<BrandFormat, string[]> = {
   "text art": ["jay-quiet-paper", "jay-quiet-ink", "jay-grain-left", "jay-grain-right", "jay-circle-quote", "jay-mirror", "jay-repeater"],
   SIMPLE: ["jay-centered-caps", "jay-simple-paper", "jay-simple-ink", "jay-reminder"],
@@ -1645,17 +1677,19 @@ const buildIdeaDesign = (
   if (!source) return null;
   const next = cloneTemplate(source);
   const variant = route.effectVariant ?? stableNumber(`${route.id}-${route.copy}`);
-  next.effects = {
-    ...next.effects,
-    ...effectVariations[(variant * 5 + 3) % effectVariations.length],
-    seed: 31 + (variant % 67),
-  };
-  next.background = variedBackground(next.background, Math.floor(variant / 2));
+  if (!lockedReferenceTemplates.has(templateId)) {
+    next.effects = {
+      ...next.effects,
+      ...effectVariations[(variant * 5 + 3) % effectVariations.length],
+      seed: 31 + (variant % 67),
+    };
+    next.background = variedBackground(next.background, Math.floor(variant / 2));
+  }
   const copyTargets = next.elements
     .filter((item) => item.type === "text" && (item.fontSize || 0) >= 28 && item.text?.toUpperCase() !== "SIMPLE")
     .sort((a, b) => a.y - b.y);
   const primaryId = copyTargets[0]?.id;
-  const selectedLayout = movableLayoutTemplates.has(templateId)
+  const selectedLayout = !lockedReferenceTemplates.has(templateId) && movableLayoutTemplates.has(templateId)
     ? layoutRegions[(variant * 7 + stableNumber(templateId)) % layoutRegions.length]
     : undefined;
   const layout = selectedLayout && templateId.startsWith("jay-simple-") && selectedLayout.y < 250
@@ -1673,8 +1707,16 @@ const buildIdeaDesign = (
         ? fitTextInRegion(item, route.counterpoint, { height: 210 }, Boolean(route.uppercase))
         : { ...item, visible: false };
     }
-    if (templateId === "jay-reminder" || templateId === "jay-venn") {
-      return fitTextInRegion(item, segmentedParts[index] || route.copy, undefined, Boolean(route.uppercase));
+    if (templateId === "jay-repeater") {
+      return fitTextInRegion(item, route.copy, undefined, true);
+    }
+    if (templateId === "jay-reminder") {
+      const segment = segmentedParts[index] || route.copy;
+      const stacked = index === 0 ? segment : segment.split(/\s+/).join("\n");
+      return fitTextInRegion(item, stacked, undefined, true);
+    }
+    if (templateId === "jay-venn") {
+      return fitTextInRegion(item, segmentedParts[index] || route.copy, undefined, false);
     }
     if (templateId === "jay-mirror") {
       return fitTextInRegion(item, route.copy, { height: 330 }, Boolean(route.uppercase));
@@ -3031,7 +3073,6 @@ export default function Home() {
   const [history, setHistory] = useState<Design[]>([]);
   const [future, setFuture] = useState<Design[]>([]);
   const [myDesigns, setMyDesigns] = useState<Design[]>([]);
-  const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const [shouldPersist, setShouldPersist] = useState(false);
   const [imageMessage, setImageMessage] = useState("");
   const [ideaInput, setIdeaInput] = useState("");
@@ -3060,7 +3101,6 @@ export default function Home() {
     const frame = window.requestAnimationFrame(() => {
       try {
         setMyDesigns(JSON.parse(localStorage.getItem("jay-post-designs") || "[]"));
-        setMyTemplates(JSON.parse(localStorage.getItem("jay-post-templates") || "[]"));
         const storedBatches = JSON.parse(localStorage.getItem("jay-content-batches") || "[]") as ContentBatch[];
         const batches = storedBatches.some((batch) => batch.id === firstEvidenceWeek.id)
           ? storedBatches
@@ -3230,7 +3270,7 @@ export default function Home() {
     openIdeaRoute(post.route, "queue");
   };
   const createFromTemplate = async (template: Template) => {
-    const builtIn = templates.slice(0, 15).some((item) => item.id === template.id);
+    const builtIn = lockedReferenceTemplates.has(template.id);
     newFrom(cloneTemplate(template));
     setTool("templates");
     setTemplateAiResult(null);
@@ -3660,23 +3700,6 @@ export default function Home() {
       setExportingBatchId(null);
     }
   };
-  const saveTemplate = () => {
-    const template: Template = {
-      id: uid(),
-      name: design.name,
-      subtitle: "My template",
-      design: {
-        background: design.background,
-        effects: design.effects,
-        elements: design.elements.map((e) => ({ ...e, id: uid() })),
-      },
-    };
-    setMyTemplates((list) => {
-      const next = [template, ...list];
-      localStorage.setItem("jay-post-templates", JSON.stringify(next));
-      return next;
-    });
-  };
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       const mod = event.metaKey || event.ctrlKey;
@@ -3727,7 +3750,9 @@ export default function Home() {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   });
-  const templateList = [...templates.slice(0, 15), ...myTemplates];
+  const templateList = referenceTemplateIds
+    .map((id) => templates.find((template) => template.id === id))
+    .filter((template): template is Template => Boolean(template));
   if (screen === "library")
     return (
       <main className="library">
@@ -3751,11 +3776,11 @@ export default function Home() {
           </h1>
           <button
             onClick={() => {
-              setTool("ideas");
+              setTool("templates");
               newFrom(emptyDesign());
             }}
           >
-            Convertir una idea en post <Sparkles size={16} />
+            Elegir una plantilla <Sparkles size={16} />
           </button>
         </section>
         <section className={myDesigns.length ? "design-grid" : "design-empty"}>
@@ -3855,10 +3880,6 @@ export default function Home() {
             <Copy size={16} />
             Duplicar
           </button>
-          <button onClick={saveTemplate}>
-            <Sparkles size={16} />
-            Plantilla
-          </button>
           <button className="export" onClick={exportPng}>
             <Download size={16} />
             Exportar PNG
@@ -3871,8 +3892,6 @@ export default function Home() {
             {(
               [
                 { id: "templates", icon: Grid2X2, label: "Plantillas" },
-                { id: "ideas", icon: Sparkles, label: "Idea" },
-                { id: "queue", icon: Check, label: "Semana" },
                 { id: "text", icon: Type, label: "Texto" },
                 { id: "shapes", icon: Shapes, label: "Formas" },
                 { id: "images", icon: ImagePlus, label: "Imágenes" },
@@ -3912,15 +3931,25 @@ export default function Home() {
                       <span>Caption</span>
                       <textarea readOnly value={templateAiResult.caption} />
                     </label>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(templateAiResult.caption)
-                          .then(() => setSaved("Caption copiado."))
-                          .catch(() => setSaved("Selecciona el caption para copiarlo."));
-                      }}
-                    >
-                      <Copy size={12} /> Copiar caption
-                    </button>
+                    <div className="template-ai-result-actions">
+                      <button
+                        onClick={() => {
+                          const template = templateList.find((item) => item.id === templateAiResult.templateId);
+                          if (template) createFromTemplate(template);
+                        }}
+                      >
+                        <Sparkles size={12} /> Probar otro texto
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(templateAiResult.caption)
+                            .then(() => setSaved("Caption copiado."))
+                            .catch(() => setSaved("Selecciona el caption para copiarlo."));
+                        }}
+                      >
+                        <Copy size={12} /> Copiar caption
+                      </button>
+                    </div>
                   </article>
                 )}
                 <div className="template-grid">
