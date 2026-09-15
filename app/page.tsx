@@ -3627,14 +3627,14 @@ export default function Home() {
                 ) : null}
                 <section className="brand-compass" aria-label="Estrategia de marca personal">
                   <p className="idea-kicker">RUMBO · @jaywrkr</p>
-                  <h4>Que te recuerden por ideas precisas que hacen cuestionar lo que la gente tolera.</h4>
+                  <h4>Ideas precisas sobre lo que haces, toleras y decides cuando nadie mira.</h4>
                 <div className="brand-flow" aria-label="Cinco ángulos del mismo tema">
                   <span>Observar</span><i>·</i><span>Contrastar</span><i>·</i><span>Presionar</span><i>·</i><span>Aterrizar</span><i>·</i><span>Decidir</span>
                   </div>
                   <div className="brand-baseline">
-                    <span><b>36</b> posts / 30 días</span>
-                    <span><b>94.5K</b> vistas récord</span>
-                    <span><b>115.5K</b> audiencia</span>
+                    <span><b>67</b> posts analizados</span>
+                    <span><b>250K</b> vistas récord</span>
+                    <span><b>263</b> seguidores ganados</span>
                   </div>
                 </section>
                 <label className="field">
