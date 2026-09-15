@@ -110,6 +110,13 @@ const decodeJson = (text: string): unknown => {
 };
 const copyLimit = (templateId: string) =>
   templateId === "jay-quiet-paper" ? 145 : templateId === "jay-four-sides" ? 100 : 85;
+const strictCopy = (value: unknown, max: number) => {
+  const clean = typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+  if (!clean || clean.length > max) return "";
+  if (clean.split(/\s+/).length < 6) return "";
+  if (/\b(que|de|del|la|el|los|las|un|una|con|sin|por|para|sobre|porque|aunque|cuando|como|si|y|o)$/i.test(clean.replace(/[¿?¡!.,;:]+$/, "").trim())) return "";
+  return clean;
+};
 
 const fallback = (idea: string, tension: Tension, angle: Angle): Direction[] => {
   const frame = frames[tension];
@@ -165,18 +172,19 @@ const parseDirections = (text: string, allowProfessional = false): Direction[] |
     if (value.length !== 4) return null;
     const directions = value.map((item, index): Direction | null => {
       const templateId = normalize(item?.templateId, 50);
-      const copy = graphicCopy(normalize(item?.copy), copyLimit(templateId));
-      const counterpoint = normalize(item?.counterpoint);
+      const copy = strictCopy(item?.copy, copyLimit(templateId));
+      const counterpoint = strictCopy(item?.counterpoint, 85);
       const completeRoute = `${item?.title || ""} ${copy} ${counterpoint}`;
       if (!templateIds.has(templateId) || !copy || foreignLeakPattern.test(completeRoute) || (!allowProfessional && coreSolutionsPattern.test(completeRoute)) || isTooCloseToJayHistory(completeRoute)) return null;
+      if (templateId === "jay-four-sides" && !counterpoint) return null;
       return {
         id: `ai-${index}`,
         title: normalize(item?.title, 50) || "Nueva dirección",
         label: normalize(item?.label, 80) || "Dirección JAY",
         templateId,
         copy,
-        ...(templateId === "jay-four-sides" && counterpoint
-          ? { counterpoint: graphicCopy(counterpoint, 85) }
+        ...(templateId === "jay-four-sides"
+          ? { counterpoint }
           : {}),
         ...(item?.uppercase === true ? { uppercase: true } : {}),
       };
@@ -235,7 +243,7 @@ export async function POST(request: Request) {
         model: anthropic(model),
         providerOptions: { anthropic: { thinking: { type: "disabled" } } },
         maxOutputTokens: 2100,
-        system: `You are the editorial partner for JAY POST STUDIO. Write only in neutral Latin American Spanish using tú forms; never use voseo or insert an English word. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} ${jayEvidence} ${jayQualityGate} Preserve the exact human truth of the source idea instead of attaching an unrelated aphorism. Create four genuinely different treatments: a developed observation, a clean contrast, a human reframing and a direct claim. Never motivational, therapeutic, clickbait, generic, decorative or salesy. Never use emojis, hashtags or calls to action. Use complete sentences. Keep every route legible on a 1080px post: maximum 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. Return only valid JSON: exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. For jay-four-sides provide a short counterpoint.`,
+        system: `You are the editorial partner for JAY POST STUDIO. Write only in neutral Latin American Spanish using tú forms; never use voseo or insert an English word. ${jayEditorialWorld} ${jayClarityRule} ${jayReferenceVoice} ${jayEvidence} ${jayQualityGate} Preserve the exact human truth of the source idea instead of attaching an unrelated aphorism. Create four genuinely different treatments: a developed observation, a clean contrast, a human reframing and a direct claim. Never motivational, therapeutic, clickbait, generic, decorative or salesy. Never use emojis, hashtags or calls to action. Use complete sentences with at least six words. Every copy must communicate its full idea by itself; never put the missing consequence in a second sentence that would exceed the visual limit. Keep every route legible on a 1080px post: maximum 145 characters for quiet paper, 100 for four sides, 85 for mirror or centered caps. Count characters before returning; the app rejects instead of truncating. Return only valid JSON: exactly 4 objects with title, label, templateId, copy, optional counterpoint and optional uppercase. Use these exact templateIds once each: jay-quiet-paper, jay-four-sides, jay-mirror, jay-centered-caps. For jay-four-sides provide a short counterpoint.`,
         prompt: `Idea original: ${idea}\nTensión: ${tension}\nÁngulo editorial: ${angle}.${attempt ? " La respuesta anterior resultó confusa, ajena a JAY o incumplió la estructura. Reescríbela desde cero con más claridad." : ""}`,
       });
       text = result.text;
