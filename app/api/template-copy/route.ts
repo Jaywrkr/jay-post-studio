@@ -65,6 +65,41 @@ const blockedProfessional = /\b(cliente|clientes|empresa|empresas|equipo|equipos
 const foreignLeak = /\b(after|before|because|actually|however|though|maybe|still|work|job|business|career|team|client|meeting|deadline|feedback|growth|leadership)\b/i;
 const voseoLeak = /\b(notás|respondés|decís|sentís|podés|tenés|querés|hacés|sabés|elegís|seguís|dejás|mirás|pensás|creés|ganás|perdés|vivís|cumplís|evitás|cambiás|esperás|buscás|encontrás|llegás|usás|dás|sos)\b/i;
 const trailingConnector = /\b(que|de|del|la|el|los|las|un|una|con|sin|por|para|sobre|porque|aunque|cuando|como|si|y|o)$/i;
+type SafeFallback = { title: string; copy: string; segments?: [string, string, string] };
+const safeFallbacks: Record<string, SafeFallback[]> = {
+  "jay-reminder": [
+    { title: "Cumplir cuando nadie mira", copy: "Nadie mira, igual lo haces, así te formas", segments: ["Nadie mira", "igual lo haces", "así te formas"] },
+    { title: "El estándar que sostienes", copy: "No era urgente, pero lo hiciste sin explicarlo", segments: ["No era urgente", "pero lo hiciste", "sin explicarlo"] },
+    { title: "La promesa privada", copy: "Podías dejarlo, nadie iba a saber, pero cumpliste", segments: ["Podías dejarlo", "nadie iba a saber", "pero cumpliste"] },
+  ],
+  "jay-repeater": [
+    { title: "La palabra sin público", copy: "Tu palabra pesa más sin público" },
+    { title: "El estándar pequeño", copy: "Lo pequeño también revela tu estándar" },
+    { title: "Promesas que escuchas", copy: "Lo que prometes también te escucha" },
+  ],
+  "jay-centered-statement": [
+    { title: "El peso de aplazar", copy: "Lo que evitas cinco minutos puede pesarte todo el día." },
+    { title: "Sostener la decisión", copy: "Puedes explicar tu decisión o empezar a sostenerla." },
+    { title: "La conversación pendiente", copy: "Esa conversación no se resuelve mientras la ensayas en silencio." },
+  ],
+  "jay-venn": [
+    { title: "Una promesa hecha", copy: "Te prometiste algo sencillo y lo hiciste", segments: ["Te prometiste", "algo sencillo", "y lo hiciste"] },
+    { title: "Cumplir sin escenario", copy: "Nadie mira, pero cumpliste, igual cuenta", segments: ["Nadie mira", "pero cumpliste", "igual cuenta"] },
+    { title: "Hacerlo sin insistencia", copy: "Ibas a hacerlo, nadie insistió, pero lo hiciste", segments: ["Ibas a hacerlo", "nadie insistió", "pero lo hiciste"] },
+  ],
+  "jay-wide-statement": [
+    { title: "El precio de tolerar", copy: "Lo que toleras para no incomodarte termina enseñándote cuánto te cuesta cambiar." },
+    { title: "La decisión que ocupa", copy: "Una decisión pendiente no desaparece cuando la pospones. Solo ocupa más espacio dentro de ti." },
+    { title: "El límite que sabes", copy: "Decir que sí para evitar un momento incómodo puede robarte semanas de tranquilidad." },
+  ],
+};
+const fallbackCaption = (copy: string) => `Hay decisiones que no necesitan testigos para revelar algo de ti. No son grandes escenas ni momentos que alguien vaya a recordar. Son detalles: responder lo que has evitado, terminar lo que empezaste, decir la verdad aunque sea más incómodo. Ahí se forma el estándar con el que vives.\n\n${copy} No para demostrar nada, sino para dejar de depender de la versión de ti que aparece cuando alguien está mirando. La confianza propia no llega por una declaración grande. Se construye cuando haces lo que dijiste que harías, incluso cuando nadie tendría cómo comprobarlo.`;
+const chooseSafeFallback = (templateId: string, exclude: string[]) => {
+  const options = safeFallbacks[templateId] || safeFallbacks["jay-centered-statement"];
+  const available = options.filter((option) => !exclude.some((item) => comparable(item) === comparable(option.copy)));
+  const pool = available.length ? available : options;
+  return pool[Date.now() % pool.length];
+};
 
 const normalize = (value: unknown, max = 500) => typeof value === "string"
   ? value.replace(/\s+/g, " ").trim().slice(0, max)
@@ -122,7 +157,7 @@ export async function POST(request: Request) {
     ? "Devuelve counterpoint: una segunda idea completa de 30 a 85 caracteres que tensione la primera sin repetirla."
     : "Omite counterpoint.";
   let raw = "";
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
       const result = await generateText({
         model: anthropic(model),
@@ -174,6 +209,10 @@ export async function POST(request: Request) {
       console.error(`[JAY AI] template copy failed with ${model}.`, error);
     }
   }
-  console.warn(`[JAY AI] template copy rejected after validation. ${raw.slice(0, 1200)}`);
-  return Response.json({ error: "Claude no produjo un texto con la calidad JAY requerida. Inténtalo otra vez." }, { status: 502 });
+  console.warn(`[JAY AI] template copy rejected after validation; using calibrated fallback. ${raw.slice(0, 1200)}`);
+  const fallback = chooseSafeFallback(templateId, exclude);
+  return Response.json({
+    ...fallback,
+    caption: fallbackCaption(fallback.copy),
+  });
 }
