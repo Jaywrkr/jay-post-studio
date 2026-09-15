@@ -202,6 +202,125 @@ type ContentBatch = {
   arc?: string;
   thesis?: string;
 };
+const firstEvidenceWeek: ContentBatch = {
+  id: "jay-evidence-week-01",
+  topic: "El estándar que mantienes en privado",
+  thesis: "Tu relación contigo cambia cuando decides que una promesa no necesita testigos para ser seria.",
+  arc: "Observar el doble estándar → medir su costo → reconocerlo en la vida diaria → elegir un criterio propio.",
+  createdAt: "2026-09-15T12:00:00-05:00",
+  source: "editorial",
+  schemaVersion: 7,
+  posts: [
+    {
+      id: "evidence-week-01-mon",
+      status: "review",
+      route: {
+        id: "evidence-route-01-mon",
+        title: "Bajas el estándar cuando nadie te está mirando",
+        label: "Lo normalizado",
+        templateId: "jay-circle-quote",
+        copy: "Cumples una promesa cuando alguien mira, y la aplazas cuando estás completamente solo.",
+      },
+      plan: {
+        day: "LUN",
+        role: "Lo normalizado",
+        objective: "discovery",
+        format: "text art",
+        pillar: "Integridad personal",
+        successMetric: "Alcance",
+      },
+      caption: "Te levantas temprano cuando alguien depende de ese horario. Cuando la meta es solo tuya, la fecha se mueve sin culpa. Cancelas la caminata o dejas para mañana lo que te prometiste hoy porque nadie notará la diferencia.\n\nEsa flexibilidad silenciosa parece inofensiva, pero enseña algo preciso: tu palabra vale menos cuando no hay testigos. Con el tiempo dejas de confiar en lo que te dices, porque sabes cuántas veces no cumpliste.",
+    },
+    {
+      id: "evidence-week-01-tue",
+      status: "review",
+      route: {
+        id: "evidence-route-01-tue",
+        title: "Incumplirte a solas también tiene un costo real",
+        label: "Lo que cobra",
+        templateId: "jay-quiet-ink",
+        copy: "Cada promesa rota en privado deja una duda que no desaparece sola.",
+      },
+      plan: {
+        day: "MAR",
+        role: "Lo que cobra",
+        objective: "depth",
+        format: "carousel",
+        pillar: "Confianza propia",
+        successMetric: "Guardados",
+      },
+      caption: "Nadie te vio faltar a ese compromiso contigo, así que parece que no ocurrió nada grave. Pero la próxima vez que intentas algo distinto, una parte de ti ya duda porque recuerda las veces anteriores.\n\nEsa duda no aparece de golpe. Se acumula hasta que necesitas que alguien más confirme tus decisiones, porque dejaste de ser una fuente confiable de tu propia palabra.",
+      slides: [
+        "Prometes algo solo para ti y lo rompes sin dar explicaciones.",
+        "La ruptura no deja una marca visible, pero queda registrada.",
+        "La próxima vez que decides algo, dudas de tu propia palabra.",
+        "Empiezas a necesitar testigos externos para tomarte en serio.",
+        "La confianza privada se recupera cumpliendo algo pequeño.",
+      ],
+    },
+    {
+      id: "evidence-week-01-thu",
+      status: "review",
+      route: {
+        id: "evidence-route-01-thu",
+        title: "Solo cumples lo que otros pueden comprobar después",
+        label: "La escena",
+        templateId: "jay-quiet-paper",
+        copy: "Revisas el celular a medianoche después de prometerte que hoy dormirías temprano.",
+      },
+      plan: {
+        day: "JUE",
+        role: "La escena",
+        objective: "human",
+        format: "context",
+        pillar: "Vida cotidiana",
+        successMetric: "Comentarios con sentido",
+      },
+      caption: "Dijiste que ibas a dormir temprano y a las once y media sigues revisando el celular sin ningún motivo real. No hay reproche esperando mañana porque nadie registró esa promesa salvo tú.\n\nSi solo cumples lo que otros pueden verificar, tu palabra depende de la vigilancia ajena y no de tu criterio. Cuando nadie observa, descubres cuánto respeto tienen realmente tus propias decisiones.",
+    },
+    {
+      id: "evidence-week-01-fri",
+      status: "review",
+      route: {
+        id: "evidence-route-01-fri",
+        title: "¿A quién le cumples cuando nadie pregunta?",
+        label: "La pregunta",
+        templateId: "jay-simple-paper",
+        copy: "¿Mantendrías esa promesa si nadie más se enterara jamás?",
+        uppercase: true,
+      },
+      plan: {
+        day: "VIE",
+        role: "La pregunta",
+        objective: "discovery",
+        format: "SIMPLE",
+        pillar: "Criterio personal",
+        successMetric: "Compartidos",
+      },
+      caption: "Piensa en la última meta que te propusiste sin decírsela a nadie. Tal vez fue leer, dejar una costumbre o comenzar algo un lunes cualquiera sin anunciarlo ni pedir apoyo.\n\nLa pregunta honesta es si la habrías sostenido sabiendo que nadie lo notaría. Esa respuesta dice más de tu criterio que cualquier logro visible, porque elimina el reconocimiento como incentivo.",
+    },
+    {
+      id: "evidence-week-01-sun",
+      status: "review",
+      route: {
+        id: "evidence-route-01-sun",
+        title: "Tu palabra necesita el mismo estándar en privado",
+        label: "El criterio",
+        templateId: "jay-grain-right",
+        copy: "Una promesa privada merece el mismo respeto que una pronunciada frente a todos.",
+      },
+      plan: {
+        day: "DOM",
+        role: "El criterio",
+        objective: "direction",
+        format: "text art",
+        pillar: "Integridad personal",
+        successMetric: "Seguidores ganados",
+      },
+      caption: "Deja de dividir tus compromisos entre los que cuentan porque alguien los vio y los que puedes olvidar porque fueron silenciosos. Esa separación solo decide cuándo te permites fallarte según quién esté mirando.\n\nMantén el mismo estándar exista testigo o no. Si tu palabra únicamente vale frente a otros, todavía no se ha convertido en una parte estable de ti.",
+    },
+  ],
+};
 const uid = () => Math.random().toString(36).slice(2, 9);
 const brandWeekPlan: BrandPlan[] = [
   {
@@ -2776,7 +2895,11 @@ export default function Home() {
       try {
         setMyDesigns(JSON.parse(localStorage.getItem("jay-post-designs") || "[]"));
         setMyTemplates(JSON.parse(localStorage.getItem("jay-post-templates") || "[]"));
-        const batches = JSON.parse(localStorage.getItem("jay-content-batches") || "[]") as ContentBatch[];
+        const storedBatches = JSON.parse(localStorage.getItem("jay-content-batches") || "[]") as ContentBatch[];
+        const batches = storedBatches.some((batch) => batch.id === firstEvidenceWeek.id)
+          ? storedBatches
+          : [firstEvidenceWeek, ...storedBatches].slice(0, 12);
+        localStorage.setItem("jay-content-batches", JSON.stringify(batches));
         const rememberedThemes = JSON.parse(localStorage.getItem("jay-used-weekly-themes") || "[]") as string[];
         setContentBatches(batches);
         setUsedThemeTitles(Array.from(new Set([
