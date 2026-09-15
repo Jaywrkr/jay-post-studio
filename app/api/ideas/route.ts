@@ -1,5 +1,6 @@
 import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { isTooCloseToJayHistory, jayPerformanceEvidence, jayWinningMechanism } from "@/lib/jay-evidence";
 
 type Tension =
   | "time"
@@ -44,7 +45,7 @@ const foreignLeakPattern = /\b(after|before|because|actually|however|though|mayb
 const jayEditorialWorld = "JAY speaks about the private decisions that shape an ordinary life: keeping your word when nobody applauds; what repeated silence and tolerated habits eventually cost; changing before a crisis forces you; time, attention and postponed conversations; money as margin and freedom; identity, comfort, responsibility and the consequences of staying the same. JAY is not CoreSolutions. Never introduce clients, companies, teams, leadership, salaries, careers, sales, marketing, networking, mentoring, consulting, workplace performance or business productivity unless those subjects are explicitly present in the user's original idea.";
 const jayClarityRule = "Clarity matters more than brevity. Every line must be grammatical, complete and immediately understandable without a caption. Do not delete context to sound minimal. Avoid vague pseudo-profundity and avoid stacking metaphors. Keep one observation, one tension and one consequence.";
 const jayReferenceVoice = "Verified high-performing JAY references: 'El orgullo silencioso de cumplir tu palabra vale más que cualquier reconocimiento externo que puedas recibir.' 'Lo que repites en silencio termina pesando más que lo que prometes en voz alta.' 'No todo cambio necesita una gran razón. A veces basta con que ya no quieras seguir igual.' 'Puedes agradecer profundamente una etapa y no querer regresar jamás.' 'El futuro no respeta tus excusas.' 'El tiempo no avisa cuándo deja de esperar.' 'Quien resuelve gana tiempo. Quien solo explica, lo pierde justificándose.' Study their mechanisms: a recognizable behavior, a moral or emotional tension, and a consequence. Do not reuse, remix or closely paraphrase their wording.";
-const jayEvidence = "Performance evidence from 67 recent posts: the two strongest posts reached 250,117 and 160,332 views and produced 197 followers together. Both connect a private repeated behavior with a visible consequence. Prefer integrity, repetition, responsibility, change, time and consequences over generic inspiration. A post must sound true before it sounds clever.";
+const jayEvidence = `${jayPerformanceEvidence} ${jayWinningMechanism}`;
 const jayQualityGate = "Silently reject and rewrite any direction that fails one of these tests: it is immediately understandable; it identifies a real behavior, decision or scene; it contains one tension or consequence; it avoids generic coaching; it is not a paraphrase of a reference or another direction.";
 
 const frames: Record<Tension, { contrast: string; mirror: string; pressure: string }> = {
@@ -167,7 +168,7 @@ const parseDirections = (text: string, allowProfessional = false): Direction[] |
       const copy = graphicCopy(normalize(item?.copy), copyLimit(templateId));
       const counterpoint = normalize(item?.counterpoint);
       const completeRoute = `${item?.title || ""} ${copy} ${counterpoint}`;
-      if (!templateIds.has(templateId) || !copy || foreignLeakPattern.test(completeRoute) || (!allowProfessional && coreSolutionsPattern.test(completeRoute))) return null;
+      if (!templateIds.has(templateId) || !copy || foreignLeakPattern.test(completeRoute) || (!allowProfessional && coreSolutionsPattern.test(completeRoute)) || isTooCloseToJayHistory(completeRoute)) return null;
       return {
         id: `ai-${index}`,
         title: normalize(item?.title, 50) || "Nueva dirección",

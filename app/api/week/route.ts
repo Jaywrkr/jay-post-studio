@@ -1,5 +1,6 @@
 import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { isTooCloseToJayHistory, jayPerformanceEvidence, jayWinningMechanism } from "@/lib/jay-evidence";
 
 type Tension = "time" | "freedom" | "limits" | "money" | "identity" | "routine" | "other";
 type Objective = "discovery" | "depth" | "human" | "direction";
@@ -47,7 +48,7 @@ const staysInJayWorld = (...values: unknown[]) => {
 const jayEditorialWorld = "JAY is a personal editorial voice about the private decisions that shape an ordinary life: keeping your word when nobody applauds; what repeated silence and tolerated habits eventually cost; changing before a crisis forces you; time, attention and postponed conversations; money as margin and freedom; identity, comfort, responsibility and the consequences of staying the same. JAY is not CoreSolutions. Unless the user explicitly provides a professional subject, never discuss clients, companies, teams, leadership, salaries, careers, sales, marketing, networking, mentoring, consulting, workplace performance or business productivity.";
 const jayClarityRule = "Clarity matters more than brevity. A short line must still contain a complete, immediately understandable idea. Never remove necessary context just to sound minimal. Avoid vague pseudo-profundity, compressed abstractions and stacking several metaphors such as debts, contracts, receipts and interest in the same argument. Use one observation, one tension and one clear consequence.";
 const jayReferenceVoice = "Verified high-performing JAY references: 'El orgullo silencioso de cumplir tu palabra vale más que cualquier reconocimiento externo que puedas recibir.' 'Lo que repites en silencio termina pesando más que lo que prometes en voz alta.' 'No todo cambio necesita una gran razón. A veces basta con que ya no quieras seguir igual.' 'Puedes agradecer profundamente una etapa y no querer regresar jamás.' 'El futuro no respeta tus excusas.' 'El tiempo no avisa cuándo deja de esperar.' 'Quien resuelve gana tiempo. Quien solo explica, lo pierde justificándose.' 'Algunas personas solo conocen una versión antigua de ti. Se sorprenden cuando dejas de actuar según sus recuerdos.' Study their mechanisms: a recognizable behavior, a moral or emotional tension, and a consequence. Do not reuse, remix or closely paraphrase their wording.";
-const jayEvidence = "Performance evidence from 67 recent posts: the two strongest posts reached 250,117 and 160,332 views and produced 197 followers together. Both connect a private repeated behavior with a visible consequence. A carousel that replaced 'necesito motivación' with 'necesito cumplir incluso sin ganas' achieved the best save-plus-share rate among the leading posts. Prefer integrity, repetition, responsibility, change, time and consequences over generic inspiration. A post must sound true before it sounds clever.";
+const jayEvidence = `${jayPerformanceEvidence} ${jayWinningMechanism}`;
 const jayQualityGate = "Silently reject and rewrite any idea that fails one of these tests: (1) a reader understands the literal claim on the first read; (2) the claim identifies a real behavior, decision or scene; (3) it contains one tension or consequence; (4) it does not sound like generic coaching; (5) it is not a paraphrase of a reference or another post in the week.";
 
 const comparisonTokens = (value: string) => new Set(
@@ -506,6 +507,7 @@ const parseWeek = (text: string, weeklyPlans = plans): Week | null => {
       if (!caption || !isCompleteJayCaption(caption)) { console.warn(`[JAY AI] rejected post ${index + 1}: caption has ${captionWords} words and ${captionParagraphs} paragraphs.`); return null; }
       if (!postTitle || postTitle.split(/\s+/).length < 4 || genericPostTitle.test(postTitle)) { console.warn(`[JAY AI] rejected post ${index + 1}: title is generic or too short (${postTitle}).`); return null; }
       if (!staysInJayWorld(postTitle, copy, caption, rawPillar, ...(slides || []))) { console.warn(`[JAY AI] rejected post ${index + 1}: content left the JAY editorial world.`); return null; }
+      if (isTooCloseToJayHistory([postTitle, copy, ...(slides || [])].join(" "))) { console.warn(`[JAY AI] rejected post ${index + 1}: content is too close to a historical JAY phrase.`); return null; }
       if (plan.format === "carousel" && (rawSlides.length < 4 || rawSlides.length > 5 || !slides || slides.length !== rawSlides.length)) { console.warn(`[JAY AI] rejected post ${index + 1}: ${rawSlides.length} carousel slides supplied, ${slides?.length || 0} passed the complete-copy limit.`); return null; }
       return {
         ...plan,

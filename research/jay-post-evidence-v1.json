@@ -1,0 +1,2040 @@
+{
+  "account": "@jaywrkr",
+  "extracted_at": "2026-09-15",
+  "timezone": "America/Guayaquil",
+  "source": "Metricool Instagram posts connector",
+  "period_requested": {
+    "from": "2026-06-16",
+    "to": "2026-09-15"
+  },
+  "records_returned": 67,
+  "method_notes": [
+    "Metricool is the source of truth for numeric post metrics.",
+    "Post wording and visual format were recovered from each public Instagram URL using accessibility alt text and direct visual inspection.",
+    "Seven posts that Instagram did not transcribe were read directly from the rendered post image.",
+    "Seven phrases unavailable through Instagram accessibility data were matched from the user-supplied audit; these are marked medium confidence.",
+    "The September 12 breakout phrase was also corroborated by a visible post comment.",
+    "value_rate_pct = (saves + shares) / reach * 100.",
+    "follow_rate_per_10k_reach = follows / reach * 10000."
+  ],
+  "posts": [
+    {
+      "shortcode": "DboBXTlu8Uy",
+      "url": "https://www.instagram.com/p/DboBXTlu8Uy/",
+      "published_at": "2026-08-04T16:43:54-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "El orgullo silencioso de cumplir tu palabra vale más que cualquier reconocimiento externo que puedas recibir.",
+      "visual_format": "tweet_style",
+      "topic": "identidad_y_validación",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 7,
+        "engagement_pct": 8.2009,
+        "interactions": 14318,
+        "likes": 10255,
+        "reach": 174590,
+        "saves": 2585,
+        "shares": 1471,
+        "views": 250117,
+        "follows": 133
+      },
+      "derived": {
+        "saves_plus_shares": 4056,
+        "value_rate_pct": 2.3232,
+        "follow_rate_per_10k_reach": 7.62,
+        "interaction_rate_pct": 8.2009
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 04, 2026. Puede ser una captura de pantalla de Twitter de texto que dice \"@jaywrkr Neimple orgullo silencioso de cumplir tu palabra vale más que cualquier reconocimiento externo que puedas recibir. #simple @jayhıkI\"."
+    },
+    {
+      "shortcode": "DdNH73hIS8y",
+      "url": "https://www.instagram.com/p/DdNH73hIS8y/",
+      "published_at": "2026-09-12T23:04:40-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Lo que repites en silencio termina pesando más que lo que prometes en voz alta.",
+      "visual_format": "text_art",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "user_supplied_audit_plus_instagram_comment",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 3,
+        "engagement_pct": 7.1674,
+        "interactions": 6539,
+        "likes": 5324,
+        "reach": 91232,
+        "saves": 824,
+        "shares": 388,
+        "views": 160332,
+        "follows": 64
+      },
+      "derived": {
+        "saves_plus_shares": 1212,
+        "value_rate_pct": 1.3285,
+        "follow_rate_per_10k_reach": 7.02,
+        "interaction_rate_pct": 7.1674
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 12, 2026. Puede ser una imagen de plano, calendario, póster, crucigrama y texto."
+    },
+    {
+      "shortcode": "DbtLkFJOD1I",
+      "url": "https://www.instagram.com/p/DbtLkFJOD1I/",
+      "published_at": "2026-08-06T16:49:15-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "No todo cambio necesita una gran razón. A veces basta con que ya no quieras seguir igual.",
+      "visual_format": "text_minimal",
+      "topic": "cambio_e_identidad",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.9023,
+        "interactions": 1448,
+        "likes": 1099,
+        "reach": 24533,
+        "saves": 236,
+        "shares": 113,
+        "views": 35588,
+        "follows": 8
+      },
+      "derived": {
+        "saves_plus_shares": 349,
+        "value_rate_pct": 1.4226,
+        "follow_rate_per_10k_reach": 3.26,
+        "interaction_rate_pct": 5.9023
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 06, 2026. Puede ser una imagen de texto que dice \"@jaywrkr Neimple No todo cambio necesita una gran razón.A 'todocanebioecesta A veces basta con que ya no quieras seguir igual. #simple JayHıkr\"."
+    },
+    {
+      "shortcode": "DbbDsmGjlEJ",
+      "url": "https://www.instagram.com/p/DbbDsmGjlEJ/",
+      "published_at": "2026-07-30T15:54:08-05:00",
+      "instagram_type": "FEED_CAROUSEL_ALBUM",
+      "phrase": "Necesito motivación → Necesito cumplir incluso sin ganas.",
+      "visual_format": "tweet_style",
+      "topic": "criterio_y_consciencia",
+      "structure": "transformación_visual",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 8.5741,
+        "interactions": 923,
+        "likes": 649,
+        "reach": 10765,
+        "saves": 201,
+        "shares": 73,
+        "views": 22166,
+        "follows": 3
+      },
+      "derived": {
+        "saves_plus_shares": 274,
+        "value_rate_pct": 2.5453,
+        "follow_rate_per_10k_reach": 2.79,
+        "interaction_rate_pct": 8.5741
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 30, 2026. Puede ser una captura de pantalla de Twitter de texto que dice \"@jaywıkr Nsimple Heeesite-motivación Neeesito motivación Necesito cumplir incluso sin ganas. #simple #3ayblTKT\"."
+    },
+    {
+      "shortcode": "Db-4EvruFCW",
+      "url": "https://www.instagram.com/p/Db-4EvruFCW/",
+      "published_at": "2026-08-14T14:05:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Puedes agradecer profundamente una etapa y no querer regresar jamás.",
+      "visual_format": "eclipse_quote",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 7.5199,
+        "interactions": 1037,
+        "likes": 842,
+        "reach": 13790,
+        "saves": 142,
+        "shares": 53,
+        "views": 22094,
+        "follows": 5
+      },
+      "derived": {
+        "saves_plus_shares": 195,
+        "value_rate_pct": 1.4141,
+        "follow_rate_per_10k_reach": 3.63,
+        "interaction_rate_pct": 7.5199
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 14, 2026. Puede ser un gráfico de eclipse y texto que dice \"Puedes Puedesagradecer agradecer profundamente una y etapaynoquerer yno no querer regresar jamás.\"."
+    },
+    {
+      "shortcode": "DcLZtfooOJ5",
+      "url": "https://www.instagram.com/p/DcLZtfooOJ5/",
+      "published_at": "2026-08-18T10:30:21-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "EL FUTURO NO RESPETA TUS EXCUSAS.",
+      "visual_format": "text_art",
+      "topic": "autoresponsabilidad",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.9611,
+        "interactions": 720,
+        "likes": 535,
+        "reach": 14513,
+        "saves": 103,
+        "shares": 82,
+        "views": 22055,
+        "follows": 6
+      },
+      "derived": {
+        "saves_plus_shares": 185,
+        "value_rate_pct": 1.2747,
+        "follow_rate_per_10k_reach": 4.13,
+        "interaction_rate_pct": 4.9611
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 18, 2026. Puede ser una imagen de plano, crucigrama y texto que dice \"@jaywrkr #simple EL FUTURO NO RESPETA TUS EXCUSAS #simple simple @jaywıkI\"."
+    },
+    {
+      "shortcode": "DbBYAeAO5gC",
+      "url": "https://www.instagram.com/p/DbBYAeAO5gC/",
+      "published_at": "2026-07-20T16:31:23-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Sé duro contigo para ser fuerte con el mundo.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_direct_visual",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 7.4485,
+        "interactions": 1013,
+        "likes": 795,
+        "reach": 13600,
+        "saves": 159,
+        "shares": 59,
+        "views": 21758,
+        "follows": 2
+      },
+      "derived": {
+        "saves_plus_shares": 218,
+        "value_rate_pct": 1.6029,
+        "follow_rate_per_10k_reach": 1.47,
+        "interaction_rate_pct": 7.4485
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 20, 2026. Puede ser una imagen en blanco y negro de texto."
+    },
+    {
+      "shortcode": "Dc1MnM7IadF",
+      "url": "https://www.instagram.com/p/Dc1MnM7IadF/",
+      "published_at": "2026-09-09T16:25:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Necesito → Agradezco.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "transformación_visual",
+      "content_source": "user_supplied_audit",
+      "content_confidence": "medium",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.6764,
+        "interactions": 824,
+        "likes": 643,
+        "reach": 12342,
+        "saves": 89,
+        "shares": 92,
+        "views": 19508,
+        "follows": 4
+      },
+      "derived": {
+        "saves_plus_shares": 181,
+        "value_rate_pct": 1.4665,
+        "follow_rate_per_10k_reach": 3.24,
+        "interaction_rate_pct": 6.6764
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 09, 2026. Puede ser una imagen de texto."
+    },
+    {
+      "shortcode": "DcI2oPEo-4R",
+      "url": "https://www.instagram.com/p/DcI2oPEo-4R/",
+      "published_at": "2026-08-17T10:45:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Hay gente que compra cosas para parecer rica y termina trabajando más precisamente porque las compró.",
+      "visual_format": "text_minimal",
+      "topic": "dinero_y_libertad",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.1781,
+        "interactions": 623,
+        "likes": 523,
+        "reach": 10084,
+        "saves": 73,
+        "shares": 27,
+        "views": 17803,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 100,
+        "value_rate_pct": 0.9917,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.1781
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 17, 2026. Puede ser una imagen de texto que dice \"@jaywıkr #simple Hay gente que compra cosas paTa parecer rica y termina trabajando más precisamente porque las compró. #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "DbWfq8-IL1o",
+      "url": "https://www.instagram.com/p/DbWfq8-IL1o/",
+      "published_at": "2026-07-28T21:22:27-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "El tiempo no avisa cuándo deja de esperar.",
+      "visual_format": "eclipse_quote",
+      "topic": "tiempo_y_prioridades",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.3376,
+        "interactions": 747,
+        "likes": 587,
+        "reach": 13995,
+        "saves": 111,
+        "shares": 49,
+        "views": 16962,
+        "follows": 3
+      },
+      "derived": {
+        "saves_plus_shares": 160,
+        "value_rate_pct": 1.1433,
+        "follow_rate_per_10k_reach": 2.14,
+        "interaction_rate_pct": 5.3376
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 28, 2026. Puede ser una imagen de eclipse y texto que dice \"1 tiempo no avisa cuándo deja de esperar.\"."
+    },
+    {
+      "shortcode": "DcwFt8iolXT",
+      "url": "https://www.instagram.com/p/DcwFt8iolXT/",
+      "published_at": "2026-09-01T16:27:20-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Cada vez tenemos más herramientas para pensar por nosotros. Eso no garantiza que pensemos más.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "observación_con_giro",
+      "content_source": "user_supplied_audit",
+      "content_confidence": "medium",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 6.1454,
+        "interactions": 547,
+        "likes": 472,
+        "reach": 8901,
+        "saves": 49,
+        "shares": 25,
+        "views": 16957,
+        "follows": 2
+      },
+      "derived": {
+        "saves_plus_shares": 74,
+        "value_rate_pct": 0.8314,
+        "follow_rate_per_10k_reach": 2.25,
+        "interaction_rate_pct": 6.1454
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 01, 2026. Puede ser una imagen en blanco y negro de texto."
+    },
+    {
+      "shortcode": "DcZshAfIhwt",
+      "url": "https://www.instagram.com/p/DcZshAfIhwt/",
+      "published_at": "2026-08-23T23:43:48-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "LA MUERTE MEJORA MUCHAS PRIORIDADES.",
+      "visual_format": "text_art",
+      "topic": "tiempo_y_prioridades",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_direct_visual",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.5178,
+        "interactions": 511,
+        "likes": 426,
+        "reach": 9261,
+        "saves": 65,
+        "shares": 20,
+        "views": 16946,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 85,
+        "value_rate_pct": 0.9178,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.5178
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 23, 2026. Puede ser una imagen de crucigrama y texto."
+    },
+    {
+      "shortcode": "Db-3zyauKrq",
+      "url": "https://www.instagram.com/p/Db-3zyauKrq/",
+      "published_at": "2026-08-13T22:05:02-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "ALGUNAS PERSONAS SOLO CONOCEN UNA VERSIÓN ANTIGUA DE TI. SE SORPRENDEN CUANDO DEJAS DE ACTUAR SEGÚN SUS RECUERDOS.",
+      "visual_format": "text_art",
+      "topic": "cambio_e_identidad",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.2055,
+        "interactions": 524,
+        "likes": 417,
+        "reach": 16347,
+        "saves": 74,
+        "shares": 33,
+        "views": 16642,
+        "follows": 5
+      },
+      "derived": {
+        "saves_plus_shares": 107,
+        "value_rate_pct": 0.6546,
+        "follow_rate_per_10k_reach": 3.06,
+        "interaction_rate_pct": 3.2055
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 13, 2026. Puede ser una ilustración de crucigrama y texto que dice \"@jaywıkr #simple ALGUNAS PERSONAS SOLO CONOCEN UNA VERSIÓN ANTIGUA DE TI SE SORPRENDEN CUANDO DEJAS DE ACTUAR SEGÚN SUS RECUERDOS. #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "DbeVTh1o5wX",
+      "url": "https://www.instagram.com/p/DbeVTh1o5wX/",
+      "published_at": "2026-07-31T22:25:50-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "EL PARAÍSO QUE BUSCAS NO SE ENCUENTRA. SE DISEÑA.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_direct_visual",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.2468,
+        "interactions": 330,
+        "likes": 249,
+        "reach": 10164,
+        "saves": 50,
+        "shares": 31,
+        "views": 15890,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 81,
+        "value_rate_pct": 0.7969,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.2468
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 31, 2026. Puede ser una imagen de texto."
+    },
+    {
+      "shortcode": "DbS94veujsy",
+      "url": "https://www.instagram.com/p/DbS94veujsy/",
+      "published_at": "2026-07-27T12:29:31-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "QUIEN RESUELVE GANA TIEMPO. QUIEN SOLO EXPLICA, LO PIERDE JUSTIFICÁNDOSE.",
+      "visual_format": "text_minimal",
+      "topic": "tiempo_y_prioridades",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.9599,
+        "interactions": 595,
+        "likes": 481,
+        "reach": 8549,
+        "saves": 95,
+        "shares": 19,
+        "views": 14702,
+        "follows": 3
+      },
+      "derived": {
+        "saves_plus_shares": 114,
+        "value_rate_pct": 1.3335,
+        "follow_rate_per_10k_reach": 3.51,
+        "interaction_rate_pct": 6.9599
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 27, 2026. Puede ser una imagen de texto que dice \"QUIEN RESUELVE GANA TIEMPO QUIEN SOLO EXPLICA, LO PIERDE JUSTIFICÁNDOSE.\"."
+    },
+    {
+      "shortcode": "Dc1MaDrIMgc",
+      "url": "https://www.instagram.com/p/Dc1MaDrIMgc/",
+      "published_at": "2026-09-07T16:25:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "No necesitas demostrar que tenías razón. Necesitas descubrir si estabas equivocado.",
+      "visual_format": "typewriter",
+      "topic": "criterio_y_consciencia",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 6.4798,
+        "interactions": 534,
+        "likes": 424,
+        "reach": 8241,
+        "saves": 78,
+        "shares": 31,
+        "views": 14129,
+        "follows": 2
+      },
+      "derived": {
+        "saves_plus_shares": 109,
+        "value_rate_pct": 1.3227,
+        "follow_rate_per_10k_reach": 2.43,
+        "interaction_rate_pct": 6.4798
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 07, 2026. Puede ser una imagen de máquina de escribir, crucigrama y texto que dice \"181 No necesitas demostrar que tenias razón. Necesitas descubrir si estabas equivocado. SE Te\"."
+    },
+    {
+      "shortcode": "DbqktxYunUP",
+      "url": "https://www.instagram.com/p/DbqktxYunUP/",
+      "published_at": "2026-08-05T16:31:17-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Cuidar los detalles que nadie ve es lo que, tarde o temprano, todos terminan notando.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 8.2027,
+        "interactions": 670,
+        "likes": 504,
+        "reach": 8168,
+        "saves": 128,
+        "shares": 38,
+        "views": 13578,
+        "follows": 4
+      },
+      "derived": {
+        "saves_plus_shares": 166,
+        "value_rate_pct": 2.0323,
+        "follow_rate_per_10k_reach": 4.9,
+        "interaction_rate_pct": 8.2027
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 05, 2026. Puede ser una imagen de texto que dice \"jaywrkr #simple DETALLE Cuidar los detalles que nadie lo que, tarde temprano, temp terminan notando. ve es todos Simple. #sinple + @jaywik:\"."
+    },
+    {
+      "shortcode": "Dc1L53CIjcM",
+      "url": "https://www.instagram.com/p/Dc1L53CIjcM/",
+      "published_at": "2026-09-04T17:20:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "LA CULPA NO CORRIGE EL PASADO.",
+      "visual_format": "text_meme",
+      "topic": "criterio_y_consciencia",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.3064,
+        "interactions": 454,
+        "likes": 368,
+        "reach": 7199,
+        "saves": 67,
+        "shares": 19,
+        "views": 12898,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 86,
+        "value_rate_pct": 1.1946,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.3064
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 04, 2026. Puede ser un meme de texto que dice \"@jaywrkr Nsimple Neim LA CULPA LACULPANOCORRIGEELPASADO. NO CORRIGE EL PASADO. #simple JayHıkr\"."
+    },
+    {
+      "shortcode": "DbvjODIOeQK",
+      "url": "https://www.instagram.com/p/DbvjODIOeQK/",
+      "published_at": "2026-08-07T14:54:26-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Un día perdido no se recupera, pero sí se puede compensar con la decisión que tomes mañana.",
+      "visual_format": "tweet_style",
+      "topic": "tiempo_y_prioridades",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.4343,
+        "interactions": 401,
+        "likes": 332,
+        "reach": 7379,
+        "saves": 57,
+        "shares": 12,
+        "views": 12159,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 69,
+        "value_rate_pct": 0.9351,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.4343
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 07, 2026. Puede ser una captura de pantalla de Twitter de texto que dice \"@jaywıkr Neimple Un día perdido no se recupera, pero si se puede compensar con la decisión que tomes mañana. #simple nablTKT\"."
+    },
+    {
+      "shortcode": "DcgoiQQO0Gh",
+      "url": "https://www.instagram.com/p/DcgoiQQO0Gh/",
+      "published_at": "2026-08-29T18:45:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "La libertad también exige renuncias.",
+      "visual_format": "text_minimal",
+      "topic": "límites_y_libertad",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.4002,
+        "interactions": 418,
+        "likes": 346,
+        "reach": 6531,
+        "saves": 59,
+        "shares": 13,
+        "views": 12141,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 72,
+        "value_rate_pct": 1.1024,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.4002
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 29, 2026. Puede ser una imagen de texto que dice \"SIMPLE La libertad también Lalibertadtambiénexige exige renuncias. cias.\"."
+    },
+    {
+      "shortcode": "DcgoGlLOiMd",
+      "url": "https://www.instagram.com/p/DcgoGlLOiMd/",
+      "published_at": "2026-08-26T16:19:54-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "LA MAYORÍA DE LAS PERSONAS NO TIENEN MIEDO DE FRACASAR. TIENEN MIEDO DE QUE OTROS LAS VEAN FRACASAR.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.0727,
+        "interactions": 335,
+        "likes": 278,
+        "reach": 6604,
+        "saves": 47,
+        "shares": 10,
+        "views": 11834,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 57,
+        "value_rate_pct": 0.8631,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.0727
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 26, 2026. Puede ser una imagen de sombrero, tarta, al aire libre y texto que dice \"@jaywıkr #simple LA MAYORÍA DE LAS PERSONAS NO TIENEN MIEDO DE FRACASAR. TIENEN MIEDO DE QUE OTROS LAS VEAN FRACASAR. #esimpla: BOAyHTKT\"."
+    },
+    {
+      "shortcode": "DbdkYBiuOqI",
+      "url": "https://www.instagram.com/p/DbdkYBiuOqI/",
+      "published_at": "2026-07-31T15:18:12-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "El que resuelve gana. El que explica, pierde tiempo.",
+      "visual_format": "text_minimal",
+      "topic": "tiempo_y_prioridades",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 3.4314,
+        "interactions": 217,
+        "likes": 181,
+        "reach": 6324,
+        "saves": 28,
+        "shares": 7,
+        "views": 11784,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 35,
+        "value_rate_pct": 0.5534,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.4314
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 31, 2026. Puede ser una imagen de sombrero, fregadero, espejo, tarta, prenda para la parte superior y texto que dice \"jaywikr Neimple EИA que resuelve gana. El que explica, pierde tiempo.\"."
+    },
+    {
+      "shortcode": "DcdmRmyoAv1",
+      "url": "https://www.instagram.com/p/DcdmRmyoAv1/",
+      "published_at": "2026-08-25T12:06:14-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "FUISTE CREADO PARA CREAR, NO PARA COMPLACER.",
+      "visual_format": "text_minimal",
+      "topic": "identidad_y_validación",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.0501,
+        "interactions": 418,
+        "likes": 343,
+        "reach": 6909,
+        "saves": 46,
+        "shares": 29,
+        "views": 11529,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 75,
+        "value_rate_pct": 1.0855,
+        "follow_rate_per_10k_reach": 1.45,
+        "interaction_rate_pct": 6.0501
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 25, 2026. Puede ser una imagen de texto que dice \"FUISTE FUISTECREADO CREADO PARACREAR, PARA CREAR, NO PARA COMPLACER ACOMPLACER. NOPARACOMPLACER. CER.\"."
+    },
+    {
+      "shortcode": "DcgoSNGOyef",
+      "url": "https://www.instagram.com/p/DcgoSNGOyef/",
+      "published_at": "2026-08-27T16:45:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "HAY PERSONAS QUE NO NECESITAN UN AUMENTO. NECESITAN DEJAR DE COMPRAR APROBACIÓN.",
+      "visual_format": "text_meme",
+      "topic": "dinero_y_libertad",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 4.1461,
+        "interactions": 269,
+        "likes": 234,
+        "reach": 6488,
+        "saves": 29,
+        "shares": 5,
+        "views": 11451,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 34,
+        "value_rate_pct": 0.524,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.1461
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 27, 2026. Puede ser un meme de texto que dice \"@jaywrkr #simple HAY PERSONAS QUE NO NECESITAN UN AUMENTO. NECESITAN DEJAR DE COMPRAR APROBACIÓN. #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "DbV0CZCud3b",
+      "url": "https://www.instagram.com/p/DbV0CZCud3b/",
+      "published_at": "2026-07-28T15:01:08-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "TAL VEZ NO ERES QUIEN CREES, SINO QUIEN APRENDISTE A DEFENDER.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.6,
+        "interactions": 345,
+        "likes": 293,
+        "reach": 7500,
+        "saves": 42,
+        "shares": 10,
+        "views": 11278,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 52,
+        "value_rate_pct": 0.6933,
+        "follow_rate_per_10k_reach": 1.33,
+        "interaction_rate_pct": 4.6
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 28, 2026. Puede ser un dibujo de texto que dice \"@jaywıkr Neimple TAL VEZ NO ERES QUIEN CREES, SINO QUIEN APRENDISTE A DEFENDER. #simple Ejayıki\"."
+    },
+    {
+      "shortcode": "Dca5qB4IF6X",
+      "url": "https://www.instagram.com/p/Dca5qB4IF6X/",
+      "published_at": "2026-08-24T14:20:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "No todas las metas necesitan más esfuerzo. Algunas necesitan una pregunta incómoda: ¿por qué quiero esto?",
+      "visual_format": "text_art",
+      "topic": "trabajo_y_ejecución",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.2594,
+        "interactions": 416,
+        "likes": 344,
+        "reach": 6646,
+        "saves": 48,
+        "shares": 24,
+        "views": 11093,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 72,
+        "value_rate_pct": 1.0834,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.2594
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 24, 2026. Puede ser una imagen de crucigrama y texto que dice \"@jaywıkr #simple No todas las metas necesitan más esfuerzo. Algunas necesitan una pregunta incómoda: ¿por qué quiero esto? #simple @jaywıki\"."
+    },
+    {
+      "shortcode": "DbHJVHVI9mt",
+      "url": "https://www.instagram.com/p/DbHJVHVI9mt/",
+      "published_at": "2026-07-22T22:18:37-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Nadie está demasiado ocupado para lo que realmente le importa. Solo tiene otras prioridades y no lo admite.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 7.3006,
+        "interactions": 453,
+        "likes": 364,
+        "reach": 6205,
+        "saves": 69,
+        "shares": 20,
+        "views": 10802,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 89,
+        "value_rate_pct": 1.4343,
+        "follow_rate_per_10k_reach": 1.61,
+        "interaction_rate_pct": 7.3006
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 22, 2026. Puede ser una imagen de texto que dice \"@jaywıkr Nsimple Nadie está demasiado ocupado paTa lo que realmente le importa. Solo tiene otras prioridades y no lo admite. Simple. #simple jaymıkr\"."
+    },
+    {
+      "shortcode": "DcQi4ugoT4z",
+      "url": "https://www.instagram.com/p/DcQi4ugoT4z/",
+      "published_at": "2026-08-20T10:26:29-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "A veces no tienes miedo de tomar la decisión equivocada. Tienes miedo de ser responsable de haber decidido.",
+      "visual_format": "eclipse_quote",
+      "topic": "autoresponsabilidad",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 6.7911,
+        "interactions": 433,
+        "likes": 343,
+        "reach": 6376,
+        "saves": 63,
+        "shares": 26,
+        "views": 10573,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 89,
+        "value_rate_pct": 1.3959,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.7911
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 20, 2026. Puede ser una imagen en blanco y negro de eclipse y texto que dice \"A Avecesnotienesmieddtor veces vecesnotienes no tienes miedo de tomar la decisión equivocada. Tienes miedo de ser responsable de haber decidido.\"."
+    },
+    {
+      "shortcode": "DbDygVyOj-w",
+      "url": "https://www.instagram.com/p/DbDygVyOj-w/",
+      "published_at": "2026-07-21T15:01:28-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Si lo haces sin ganas, ganas respeto propio.",
+      "visual_format": "text_art",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 7.3754,
+        "interactions": 453,
+        "likes": 334,
+        "reach": 6142,
+        "saves": 82,
+        "shares": 36,
+        "views": 10563,
+        "follows": 3
+      },
+      "derived": {
+        "saves_plus_shares": 118,
+        "value_rate_pct": 1.9212,
+        "follow_rate_per_10k_reach": 4.88,
+        "interaction_rate_pct": 7.3754
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 21, 2026. Puede ser un gráfico de plano y texto que dice \"Gjaywrkr Nsimple Si Silohaces lo haces sin ganas ganas MN respeto propio. t @jaywrkr\"."
+    },
+    {
+      "shortcode": "Dcgo2gGIo5i",
+      "url": "https://www.instagram.com/p/Dcgo2gGIo5i/",
+      "published_at": "2026-08-30T16:50:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Quizá el verdadero lujo no sea tener más cosas. Sea poder decir que no sin calcular cuánto te costará.",
+      "visual_format": "text_minimal",
+      "topic": "dinero_y_libertad",
+      "structure": "observación_con_giro",
+      "content_source": "user_supplied_audit",
+      "content_confidence": "medium",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.1221,
+        "interactions": 362,
+        "likes": 299,
+        "reach": 5913,
+        "saves": 56,
+        "shares": 7,
+        "views": 10531,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 63,
+        "value_rate_pct": 1.0654,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.1221
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 30, 2026. Puede ser una imagen de ‎texto que dice \"‎I #simple el no Quizá verdadero lujo cosas. Sea poder decir que cuánto te costará. no sea tener más sin calcular اا H0‎\"‎."
+    },
+    {
+      "shortcode": "Dbk8F1MIXUY",
+      "url": "https://www.instagram.com/p/Dbk8F1MIXUY/",
+      "published_at": "2026-08-03T12:00:09-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "VIVIR MUCHO NO GARANTIZA HABER VIVIDO PROFUNDAMENTE.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.7932,
+        "interactions": 255,
+        "likes": 229,
+        "reach": 5320,
+        "saves": 19,
+        "shares": 7,
+        "views": 9867,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 26,
+        "value_rate_pct": 0.4887,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.7932
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 03, 2026. Puede ser una imagen en blanco y negro de texto que dice \"VIVIR MUCHO NO GARANTIZA VIVIRMUCHONOGARANIIZAABR HABER VIVIDO PROFUNDAMENTE.\"."
+    },
+    {
+      "shortcode": "Db-3taTOYQz",
+      "url": "https://www.instagram.com/p/Db-3taTOYQz/",
+      "published_at": "2026-08-13T13:42:05-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Puedes estar ganando más dinero que nunca y tener menos control sobre tu tiempo que cuando ganabas la mitad.",
+      "visual_format": "tweet_style",
+      "topic": "dinero_y_libertad",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.8978,
+        "interactions": 314,
+        "likes": 264,
+        "reach": 5324,
+        "saves": 41,
+        "shares": 9,
+        "views": 9684,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 50,
+        "value_rate_pct": 0.9391,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.8978
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 13, 2026. Puede ser una captura de pantalla de Twitter de crucigrama y texto que dice \"@jaywıkr Puedes estar ganando más dinero que nunca y tener menos control sobre tu tiempo tienpoquecuandoganabaslamia que cuando ganabas la mitad. #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "DcQi1H9o6ha",
+      "url": "https://www.instagram.com/p/DcQi1H9o6ha/",
+      "published_at": "2026-08-20T10:26:00-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Cada “sí” tiene una lista invisible de cosas a las que acabas de decir “no”.",
+      "visual_format": "text_minimal",
+      "topic": "límites_y_libertad",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 4.8562,
+        "interactions": 260,
+        "likes": 219,
+        "reach": 5354,
+        "saves": 35,
+        "shares": 5,
+        "views": 9493,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 40,
+        "value_rate_pct": 0.7471,
+        "follow_rate_per_10k_reach": 1.87,
+        "interaction_rate_pct": 4.8562
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 20, 2026. Puede ser una imagen de texto que dice \"@jaywıkr #simple Cada \"si\" tiene una lista invisible de cosas a las que acabas de decir Cada\"Ltiena_lista_invisibl \"no\", #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "DaVk-JqojJq",
+      "url": "https://www.instagram.com/p/DaVk-JqojJq/",
+      "published_at": "2026-07-14T20:40:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "La mayoría habla de cambiar el mundo, pero no puede cambiar su rutina de martes.",
+      "visual_format": "text_minimal",
+      "topic": "hábitos_y_decisiones",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.4371,
+        "interactions": 301,
+        "likes": 251,
+        "reach": 5536,
+        "saves": 33,
+        "shares": 17,
+        "views": 9469,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 50,
+        "value_rate_pct": 0.9032,
+        "follow_rate_per_10k_reach": 1.81,
+        "interaction_rate_pct": 5.4371
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 14, 2026. Puede ser una imagen de texto que dice \"@jaywıkr Neimple La mayoría habla de cambiar cambiar su rutina de martes. mundo pero Simple. no puede #simple JayHIkI\"."
+    },
+    {
+      "shortcode": "Db88UHJoFB8",
+      "url": "https://www.instagram.com/p/Db88UHJoFB8/",
+      "published_at": "2026-08-12T19:43:53-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "LA INTELIGENCIA NO ES SABER MÁS. ES CONSEGUIR RESULTADOS.",
+      "visual_format": "text_art",
+      "topic": "trabajo_y_ejecución",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 6.0015,
+        "interactions": 329,
+        "likes": 257,
+        "reach": 5482,
+        "saves": 54,
+        "shares": 17,
+        "views": 9454,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 71,
+        "value_rate_pct": 1.2951,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.0015
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 12, 2026. Puede ser una imagen de póster, crucigrama y texto que dice \"@jaywıkr #simple LA INTELIGENCIA NO ES SABER MÁS. ES CONSEGUIR RESULTADOS #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "DbrPJ4SILBm",
+      "url": "https://www.instagram.com/p/DbrPJ4SILBm/",
+      "published_at": "2026-08-05T22:42:10-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Adaptarte no es rendirte. Es seguir avanzando distinto.",
+      "visual_format": "typewriter",
+      "topic": "cambio_e_identidad",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.997,
+        "interactions": 320,
+        "likes": 270,
+        "reach": 5336,
+        "saves": 44,
+        "shares": 6,
+        "views": 9341,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 50,
+        "value_rate_pct": 0.937,
+        "follow_rate_per_10k_reach": 1.87,
+        "interaction_rate_pct": 5.997
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 05, 2026. Puede ser una ilustración de máquina de escribir y texto que dice \"a no Adaptarte es rendirte. + Es seguir avanzando distinto. Pe\"."
+    },
+    {
+      "shortcode": "DbN67lHO-16",
+      "url": "https://www.instagram.com/p/DbN67lHO-16/",
+      "published_at": "2026-07-25T13:27:27-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "HAY PERSONAS QUE PASAN TANTO TIEMPO INTENTANDO VERSE INTELIGENTES, INTERESANTES O EXITOSAS QUE NUNCA DESARROLLAN VERDADERA PROFUNDIDAD COMO SERES HUMANOS.",
+      "visual_format": "text_art",
+      "topic": "tiempo_y_prioridades",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.6512,
+        "interactions": 345,
+        "likes": 278,
+        "reach": 5187,
+        "saves": 60,
+        "shares": 7,
+        "views": 9306,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 67,
+        "value_rate_pct": 1.2917,
+        "follow_rate_per_10k_reach": 1.93,
+        "interaction_rate_pct": 6.6512
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 25, 2026. Puede ser una imagen de texto que dice \"HAY PERSONAS QUE PASAN TANTO TIEMPO INTENTANDO VERSE INTELIGENTES, INTERESANTES 0 EXITOSAS QUE NUNCA DESARROLLAN VERDADERA PROFUNDIDAD COMO SERES HUMANOS.\"."
+    },
+    {
+      "shortcode": "Db-4ZL2ufYI",
+      "url": "https://www.instagram.com/p/Db-4ZL2ufYI/",
+      "published_at": "2026-08-15T15:10:02-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "REPETIR UNA ELECCIÓN TAMBIÉN ES ELEGIR.",
+      "visual_format": "text_minimal",
+      "topic": "hábitos_y_decisiones",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.0478,
+        "interactions": 248,
+        "likes": 209,
+        "reach": 4913,
+        "saves": 32,
+        "shares": 7,
+        "views": 9148,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 39,
+        "value_rate_pct": 0.7938,
+        "follow_rate_per_10k_reach": 2.04,
+        "interaction_rate_pct": 5.0478
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 15, 2026. Puede ser una ilustración de capacitor, tarta y texto que dice \"@jaywıkr #simple REPETIR UNA ELECCIÓN TAMBIÉN ES ELEGIR #simple simple @jaywıki\"."
+    },
+    {
+      "shortcode": "DaVlce7ocC_",
+      "url": "https://www.instagram.com/p/DaVlce7ocC_/",
+      "published_at": "2026-07-16T20:45:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "TU FORMA DE REACCIONAR AL ERROR DEFINE SI APRENDES O SOLO SUFRES.",
+      "visual_format": "text_meme",
+      "topic": "autoresponsabilidad",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_direct_visual",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.1976,
+        "interactions": 355,
+        "likes": 268,
+        "reach": 5728,
+        "saves": 59,
+        "shares": 28,
+        "views": 8732,
+        "follows": 2
+      },
+      "derived": {
+        "saves_plus_shares": 87,
+        "value_rate_pct": 1.5189,
+        "follow_rate_per_10k_reach": 3.49,
+        "interaction_rate_pct": 6.1976
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 16, 2026. Puede ser un meme de texto."
+    },
+    {
+      "shortcode": "DbJA4uSulzF",
+      "url": "https://www.instagram.com/p/DbJA4uSulzF/",
+      "published_at": "2026-07-23T15:43:17-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Las victorias pequeñas no son menos importantes. Son el modelo que después usas para las grandes.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.1114,
+        "interactions": 214,
+        "likes": 172,
+        "reach": 5205,
+        "saves": 30,
+        "shares": 12,
+        "views": 8678,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 42,
+        "value_rate_pct": 0.8069,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.1114
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 23, 2026. Puede ser una imagen de texto que dice \"Las victorias pequeñas no nosomenos son menos menos importantes. Son el modelo que después usas para las grandes. ld ses arar sess sandsas aud oTapow to uos nncissirs momoss uos ou saansas iniithio\"."
+    },
+    {
+      "shortcode": "Dc1LypEIvWH",
+      "url": "https://www.instagram.com/p/Dc1LypEIvWH/",
+      "published_at": "2026-09-03T15:56:43-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "QUIZÁ NO NECESITAS OTRA OPORTUNIDAD. QUIZÁ NECESITAS DEJAR DE DESPERDICIAR LA QUE YA TIENES.",
+      "visual_format": "photo_overlay",
+      "topic": "criterio_y_consciencia",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 2,
+        "engagement_pct": 3.1696,
+        "interactions": 140,
+        "likes": 127,
+        "reach": 4417,
+        "saves": 11,
+        "shares": 0,
+        "views": 8661,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 11,
+        "value_rate_pct": 0.249,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.1696
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 03, 2026. Puede ser una selfie de fregadero, toallero, iluminación, bombilla, lavabo, espejo y texto que dice \"@jaywıkr Neimple #simple imple QUIZÁ NO NECESITAS OTRA OPORTUNIDAD QUIZÁ NECESITAS DEJAR DE DESPERDICIAR LA QUE YA TIENES. 3ayblΣKT\"."
+    },
+    {
+      "shortcode": "Db-4hejOQnb",
+      "url": "https://www.instagram.com/p/Db-4hejOQnb/",
+      "published_at": "2026-08-15T22:10:02-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Cinco años perdidos no se recuperan perdiendo otros cinco.",
+      "visual_format": "text_meme",
+      "topic": "tiempo_y_prioridades",
+      "structure": "aforismo",
+      "content_source": "instagram_direct_visual",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.5092,
+        "interactions": 209,
+        "likes": 167,
+        "reach": 4635,
+        "saves": 31,
+        "shares": 11,
+        "views": 8336,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 42,
+        "value_rate_pct": 0.9061,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.5092
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 15, 2026. Puede ser un meme de texto."
+    },
+    {
+      "shortcode": "Dc1MF_MoQeg",
+      "url": "https://www.instagram.com/p/Dc1MF_MoQeg/",
+      "published_at": "2026-09-05T16:20:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Tu peor hábito puede parecer completamente normal desde dentro.",
+      "visual_format": "tweet_style",
+      "topic": "hábitos_y_decisiones",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.6158,
+        "interactions": 160,
+        "likes": 140,
+        "reach": 4425,
+        "saves": 17,
+        "shares": 3,
+        "views": 8250,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 20,
+        "value_rate_pct": 0.452,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.6158
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 05, 2026. Puede ser un meme de computadora y texto que dice \"JAY @jaywıkr Tu peor hábito puede parecer completamente completanentnomaldesdedento. normal desde dentro. 1:11 1:11PM· PM• PM 01/08/2027 2027 Simple\"."
+    },
+    {
+      "shortcode": "DcHxMqFuZOM",
+      "url": "https://www.instagram.com/p/DcHxMqFuZOM/",
+      "published_at": "2026-08-17T00:38:20-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Hay personas que no están cansadas de trabajar. Están cansadas de tener que fingir que les importa lo que hacen.",
+      "visual_format": "tweet_style",
+      "topic": "trabajo_y_ejecución",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.6132,
+        "interactions": 195,
+        "likes": 158,
+        "reach": 4227,
+        "saves": 26,
+        "shares": 11,
+        "views": 7912,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 37,
+        "value_rate_pct": 0.8753,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.6132
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 16, 2026. Puede ser una captura de pantalla de Twitter de máquina de escribir y texto que dice \"@jaywrkr #simple Simple Hay personas que no están cansadas de trabajar Están cansadas de tener que fingir que que les importa lo que hacen. #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "Db0iZLPoahH",
+      "url": "https://www.instagram.com/p/Db0iZLPoahH/",
+      "published_at": "2026-08-09T13:23:28-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "HAY GENTE ADICTA A EMPEZAR SIN NUNCA AVANZAR.",
+      "visual_format": "text_art",
+      "topic": "criterio_y_consciencia",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_direct_visual",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.3644,
+        "interactions": 223,
+        "likes": 193,
+        "reach": 4157,
+        "saves": 26,
+        "shares": 4,
+        "views": 7758,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 30,
+        "value_rate_pct": 0.7217,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.3644
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 09, 2026. Puede ser un gráfico de póster y texto."
+    },
+    {
+      "shortcode": "Db5rH3JuqLT",
+      "url": "https://www.instagram.com/p/Db5rH3JuqLT/",
+      "published_at": "2026-08-11T13:15:54-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Tu futuro no es un misterio. Solo mira tus hábitos actuales.",
+      "visual_format": "text_art",
+      "topic": "hábitos_y_decisiones",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.8946,
+        "interactions": 164,
+        "likes": 130,
+        "reach": 4211,
+        "saves": 21,
+        "shares": 13,
+        "views": 7734,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 34,
+        "value_rate_pct": 0.8074,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.8946
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 11, 2026. Puede ser una imagen de ‎crucigrama y ‎texto que dice \"‎@jaywıkr Neimple SIMPLE Tu futuro no es un misterio. Solo mira tus tus hábitos actuales. un lrboy snt Tw OTOs ou נחבחגס sa m1 SLLMEE #simple n3ablTKT‎\"‎‎."
+    },
+    {
+      "shortcode": "Dc1Mt6_IIhl",
+      "url": "https://www.instagram.com/p/Dc1Mt6_IIhl/",
+      "published_at": "2026-09-11T16:25:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "LA VIDA RARA VEZ ANUNCIA QUÉ MOMENTOS VAN A IMPORTAR.",
+      "visual_format": "text_minimal",
+      "topic": "tiempo_y_prioridades",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "user_supplied_audit",
+      "content_confidence": "medium",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.9591,
+        "interactions": 242,
+        "likes": 208,
+        "reach": 4061,
+        "saves": 26,
+        "shares": 8,
+        "views": 7555,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 34,
+        "value_rate_pct": 0.8372,
+        "follow_rate_per_10k_reach": 2.46,
+        "interaction_rate_pct": 5.9591
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 11, 2026. Puede ser una imagen de texto."
+    },
+    {
+      "shortcode": "DbQcKQNofI1",
+      "url": "https://www.instagram.com/p/DbQcKQNofI1/",
+      "published_at": "2026-07-26T12:56:19-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "La mayoría de personas no tiene miedo al fracaso. Tiene miedo al juicio social que viene con intentarlo seriamente y no lograrlo. Por eso muchos prefieren parecer desinteresados antes que arriesgarse a ser vistos esforzándose de verdad.",
+      "visual_format": "text_art",
+      "topic": "autoresponsabilidad",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.3385,
+        "interactions": 264,
+        "likes": 189,
+        "reach": 4165,
+        "saves": 51,
+        "shares": 24,
+        "views": 7487,
+        "follows": 3
+      },
+      "derived": {
+        "saves_plus_shares": 75,
+        "value_rate_pct": 1.8007,
+        "follow_rate_per_10k_reach": 7.2,
+        "interaction_rate_pct": 6.3385
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 26, 2026. Puede ser una imagen de crucigrama y texto que dice \"@jaywıkr Neimple SIMPLEMENTE AVANZA JAY La mayoria de personas no tiene miedo al fracaso. Tiene miedo al juicio social que viene con intentarlo seriamente y no lograrlo. Por eso muchos prefieren paTeceH desinteresados antes que arriesgarse a ser vistos esforzándose de verdad. #simple EJayıkr\"."
+    },
+    {
+      "shortcode": "Dc1M1U8IhCD",
+      "url": "https://www.instagram.com/p/Dc1M1U8IhCD/",
+      "published_at": "2026-09-12T19:25:05-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "No hay nada especialmente noble en sufrir por algo que puedes cambiar.",
+      "visual_format": "photo_overlay",
+      "topic": "cambio_e_identidad",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 2.2312,
+        "interactions": 83,
+        "likes": 72,
+        "reach": 3720,
+        "saves": 10,
+        "shares": 1,
+        "views": 7366,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 11,
+        "value_rate_pct": 0.2957,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 2.2312
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 12, 2026. Puede ser una captura de pantalla de Twitter de una o varias personas, barba, pelo, tarta, pan, prenda para la parte superior y texto que dice \"jaywıkr Nsimplé EИA LE -No hay nada especialmente noble en sufrir por algo que puedes cambiar.\"."
+    },
+    {
+      "shortcode": "Dc1MWKYoTF0",
+      "url": "https://www.instagram.com/p/Dc1MWKYoTF0/",
+      "published_at": "2026-09-06T15:25:05-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "A VECES EL PROBLEMA SÍ ERES TÚ.",
+      "visual_format": "text_minimal",
+      "topic": "autoresponsabilidad",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 6.7721,
+        "interactions": 257,
+        "likes": 227,
+        "reach": 3795,
+        "saves": 24,
+        "shares": 6,
+        "views": 7332,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 30,
+        "value_rate_pct": 0.7905,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 6.7721
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 06, 2026. Puede ser una imagen de texto que dice \"A VECES EL PROBLEMA SÍ VECES EL ERES A TÚ. PROBLEMA SÍ VECES EL ERES τύ. VECES PROBLEMA SÍ ERES EL A τύ. VECES PROBLEMA SÍ ERES EL τύ. A VECES PROBLEMA EL SÍ ERES A τύ. PROBLEMA VECES SÍ EL ERES τύ. A PROBLEMA VECES SI EL ERES TU A VECES PROBLEMA SÍ EL ERES A τύ. PROBLEMA VECES SÍ EL ERES τύ. A VECES PROBLEMA EL SÍ ERES A TÚ. PROBLEMA SI VECES EL ERES A TÚ. VECES PROBLEMA SÍ ERES EL τυ. PROBLEMA Si ERES TÚ.\"."
+    },
+    {
+      "shortcode": "DcQiq_EI88T",
+      "url": "https://www.instagram.com/p/DcQiq_EI88T/",
+      "published_at": "2026-08-20T10:24:37-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Hay gente exitosa viviendo vidas que no quieres.",
+      "visual_format": "text_art",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.7521,
+        "interactions": 185,
+        "likes": 162,
+        "reach": 3893,
+        "saves": 20,
+        "shares": 3,
+        "views": 7099,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 23,
+        "value_rate_pct": 0.5908,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.7521
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 20, 2026. Puede ser un gráfico de plano y texto que dice \"@jaywrkr #simple Hay gente exitosa viviendo vidas que no quieres #simple + @jaywrkr\"."
+    },
+    {
+      "shortcode": "Dc1M5KKIZXL",
+      "url": "https://www.instagram.com/p/Dc1M5KKIZXL/",
+      "published_at": "2026-09-13T16:30:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Puedes tener un título, experiencia, dinero y autoridad y seguir estando completamente equivocado.",
+      "visual_format": "text_minimal",
+      "topic": "dinero_y_libertad",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 3,
+        "engagement_pct": 8.0219,
+        "interactions": 307,
+        "likes": 242,
+        "reach": 3827,
+        "saves": 49,
+        "shares": 13,
+        "views": 7081,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 62,
+        "value_rate_pct": 1.6201,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 8.0219
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 13, 2026. Puede ser una imagen de texto que dice \"jaywrkr #simple Puedes tener un titulo, experiencia, dinero y autoridad y seguir estando completamente equivocado. #sinple + jaywık:\"."
+    },
+    {
+      "shortcode": "Dbauf_Ro6BW",
+      "url": "https://www.instagram.com/p/Dbauf_Ro6BW/",
+      "published_at": "2026-07-30T12:49:00-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Hay verdades que no ignoramos por falta de evidencia, sino porque aceptarían una vida distinta.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.2784,
+        "interactions": 201,
+        "likes": 161,
+        "reach": 3808,
+        "saves": 31,
+        "shares": 9,
+        "views": 7075,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 40,
+        "value_rate_pct": 1.0504,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.2784
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 30, 2026. Puede ser una imagen de texto que dice \"@jaywıkr Neimple Nein Hay verdades que no ignoramos por falta de evidencia, sino porque aceptarian una vida distinta. Simple. #simple EjayMıki\"."
+    },
+    {
+      "shortcode": "DbX-_UyoZuL",
+      "url": "https://www.instagram.com/p/DbX-_UyoZuL/",
+      "published_at": "2026-07-29T11:15:21-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "No todo lo que te hizo fuerte debería seguir acompañándote.",
+      "visual_format": "tweet_style",
+      "topic": "cambio_e_identidad",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.157,
+        "interactions": 179,
+        "likes": 143,
+        "reach": 3471,
+        "saves": 24,
+        "shares": 12,
+        "views": 6860,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 36,
+        "value_rate_pct": 1.0372,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.157
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 29, 2026. Puede ser una captura de pantalla de Twitter de crucigrama y texto que dice \"Gjaywrker Nsimple Recordatorio No todo lo que te hizo fuerte debería seguir acompañándote.\"."
+    },
+    {
+      "shortcode": "DcgpY_CIxTc",
+      "url": "https://www.instagram.com/p/DcgpY_CIxTc/",
+      "published_at": "2026-09-02T16:55:02-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "No todas las puertas cerradas son oportunidades perdidas. Algunas son problemas que nunca tendrás que resolver.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "contraste_reencuadre",
+      "content_source": "user_supplied_audit",
+      "content_confidence": "medium",
+      "metrics": {
+        "comments": 2,
+        "engagement_pct": 4.7263,
+        "interactions": 177,
+        "likes": 136,
+        "reach": 3745,
+        "saves": 26,
+        "shares": 13,
+        "views": 6576,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 39,
+        "value_rate_pct": 1.0414,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.7263
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 02, 2026. Puede ser una imagen de texto."
+    },
+    {
+      "shortcode": "DcgpeLBIdpM",
+      "url": "https://www.instagram.com/p/DcgpeLBIdpM/",
+      "published_at": "2026-09-03T22:55:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "La gente dice que el tiempo vuela. No vuela. Se acumula silenciosamente hasta que un día miras atrás y ya fueron diez años.",
+      "visual_format": "text_art",
+      "topic": "tiempo_y_prioridades",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.479,
+        "interactions": 199,
+        "likes": 163,
+        "reach": 4443,
+        "saves": 23,
+        "shares": 13,
+        "views": 6331,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 36,
+        "value_rate_pct": 0.8103,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.479
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 03, 2026. Puede ser una imagen de plano, crucigrama y texto que dice \"@jaywıkr #simple SIMPLE La gente dice que el tiempo vuela. No vuela Se acumula silenciosamente hasta que un día miras atrás y ya fueron diez años. #simple @jaywıkr\"."
+    },
+    {
+      "shortcode": "Dcgo9hLoMt_",
+      "url": "https://www.instagram.com/p/Dcgo9hLoMt_/",
+      "published_at": "2026-08-31T15:50:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Hay problemas que desaparecen cuando ganas más dinero. Otros aparecen precisamente porque lo ganaste.",
+      "visual_format": "text_minimal",
+      "topic": "dinero_y_libertad",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.6705,
+        "interactions": 185,
+        "likes": 151,
+        "reach": 3961,
+        "saves": 25,
+        "shares": 9,
+        "views": 6301,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 34,
+        "value_rate_pct": 0.8584,
+        "follow_rate_per_10k_reach": 2.52,
+        "interaction_rate_pct": 4.6705
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 31, 2026. Puede ser una imagen de texto que dice \"Hay problemas que desaparecen cuando ganas más dinero. Otrosaparecenprecisamente Otros aparecen precisamente porque lo ganaste. Simple.\"."
+    },
+    {
+      "shortcode": "Db-4NZfuQvm",
+      "url": "https://www.instagram.com/p/Db-4NZfuQvm/",
+      "published_at": "2026-08-14T23:10:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Tener potencial durante demasiado tiempo deja de ser un cumplido.",
+      "visual_format": "tweet_style",
+      "topic": "tiempo_y_prioridades",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 4.5847,
+        "interactions": 138,
+        "likes": 116,
+        "reach": 3010,
+        "saves": 15,
+        "shares": 6,
+        "views": 6035,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 21,
+        "value_rate_pct": 0.6977,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.5847
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 14, 2026. Puede ser una captura de pantalla de Twitter de crucigrama y texto que dice \"@jaywrkr #simple Recordatorio Tener potencial durante demasiado tiempo deja de de ser un cumplido.\"."
+    },
+    {
+      "shortcode": "DbRhqr3oVnY",
+      "url": "https://www.instagram.com/p/DbRhqr3oVnY/",
+      "published_at": "2026-07-26T23:03:41-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Adaptarte no es lo mismo que rendirte. Es seguir avanzando aunque el camino cambie de forma.",
+      "visual_format": "text_minimal",
+      "topic": "cambio_e_identidad",
+      "structure": "contraste_reencuadre",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.7876,
+        "interactions": 122,
+        "likes": 100,
+        "reach": 3221,
+        "saves": 18,
+        "shares": 4,
+        "views": 5976,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 22,
+        "value_rate_pct": 0.683,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.7876
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 26, 2026. Puede ser una imagen de texto que dice \"@jaywrkr Neimple SIMPLE Adaptarte no es lo mismo que rendirte. Es seguir avanzando aunque el camino cambie de forma. Εwл ao 3p Tawex oиTweю to anbune aaazaann sas SS imtiit aub mmsmm ot sa ou 3AAeάερΗ SLLMEE #simple B3abl4T\"."
+    },
+    {
+      "shortcode": "DcgoXJKOA-K",
+      "url": "https://www.instagram.com/p/DcgoXJKOA-K/",
+      "published_at": "2026-08-28T17:45:02-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Ser confiable no significa estar disponible para todo el mundo todo el tiempo.",
+      "visual_format": "text_minimal",
+      "topic": "tiempo_y_prioridades",
+      "structure": "aforismo",
+      "content_source": "user_supplied_audit",
+      "content_confidence": "medium",
+      "metrics": {
+        "comments": 1,
+        "engagement_pct": 4.2735,
+        "interactions": 135,
+        "likes": 107,
+        "reach": 3159,
+        "saves": 23,
+        "shares": 4,
+        "views": 5935,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 27,
+        "value_rate_pct": 0.8547,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.2735
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 28, 2026. Puede ser una imagen de texto."
+    },
+    {
+      "shortcode": "DbG8EBVIMJB",
+      "url": "https://www.instagram.com/p/DbG8EBVIMJB/",
+      "published_at": "2026-07-22T20:22:42-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "NADIE RECUERDA LAS EXCUSAS POR MÁS BUENAS QUE HAYAN SIDO EN SU MOMENTO.",
+      "visual_format": "text_minimal",
+      "topic": "autoresponsabilidad",
+      "structure": "sentencia_mayúsculas",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.2356,
+        "interactions": 96,
+        "likes": 87,
+        "reach": 2967,
+        "saves": 7,
+        "shares": 2,
+        "views": 5881,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 9,
+        "value_rate_pct": 0.3033,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.2356
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 22, 2026. Puede ser una imagen de iluminación, sala de estar, en interiores, puerta corrediza, al aire libre y texto que dice \"@jaywıkr Nsimple 1 NADIE RECUERDA LAS EXCUSAS POR MÁS BUENAS QUE HAYAN SIDO EN ENSU SU MOMENTO. #simple n3ayblTKT\"."
+    },
+    {
+      "shortcode": "DcgpNiloot_",
+      "url": "https://www.instagram.com/p/DcgpNiloot_/",
+      "published_at": "2026-09-01T19:50:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Si necesitas cinco aplicaciones para organizar una tarea que toma diez minutos, quizá tu problema ya no es la productividad.",
+      "visual_format": "text_art",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.9078,
+        "interactions": 122,
+        "likes": 111,
+        "reach": 3122,
+        "saves": 9,
+        "shares": 2,
+        "views": 5530,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 11,
+        "value_rate_pct": 0.3523,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.9078
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 01, 2026. Puede ser una imagen de texto que dice \"Si necesitas cinco aplicaciones para organizar una tarea que toma diez minutos quizá tu problema ya no yano noes es productividad.\"."
+    },
+    {
+      "shortcode": "Dc1Md3horDy",
+      "url": "https://www.instagram.com/p/Dc1Md3horDy/",
+      "published_at": "2026-09-08T20:25:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "Ser capaz de generar cien ideas en segundos vuelve más importante, no menos, saber reconocer una buena.",
+      "visual_format": "tweet_style",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 4.8336,
+        "interactions": 138,
+        "likes": 120,
+        "reach": 2855,
+        "saves": 14,
+        "shares": 4,
+        "views": 5515,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 18,
+        "value_rate_pct": 0.6305,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 4.8336
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 08, 2026. Puede ser una captura de pantalla de Twitter de texto que dice \"@jaywıkr Neimple Ser c de generar cien ideas en segundos vuelve más importante, no menos, saber reconocer una buena. #simple ayblTKT\"."
+    },
+    {
+      "shortcode": "Dc1M9RbIOTU",
+      "url": "https://www.instagram.com/p/Dc1M9RbIOTU/",
+      "published_at": "2026-09-14T14:30:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "El miedo prefiere problemas conocidos.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "aforismo",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.7739,
+        "interactions": 144,
+        "likes": 114,
+        "reach": 2494,
+        "saves": 26,
+        "shares": 4,
+        "views": 4594,
+        "follows": 1
+      },
+      "derived": {
+        "saves_plus_shares": 30,
+        "value_rate_pct": 1.2029,
+        "follow_rate_per_10k_reach": 4.01,
+        "interaction_rate_pct": 5.7739
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 14, 2026. Puede ser una imagen de texto que dice \"@jaywıkr Neimple El miedo prefiere problemas conocidos. #simple simple + #3abl4KT\"."
+    },
+    {
+      "shortcode": "Dca5mG0IJGV",
+      "url": "https://www.instagram.com/p/Dca5mG0IJGV/",
+      "published_at": "2026-08-24T10:57:20-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "La rutina es peligrosa precisamente porque puede convertir decisiones extraordinarias en cosas que dejas de cuestionar.",
+      "visual_format": "text_art",
+      "topic": "hábitos_y_decisiones",
+      "structure": "aforismo",
+      "content_source": "instagram_direct_visual",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 5.2654,
+        "interactions": 121,
+        "likes": 94,
+        "reach": 2298,
+        "saves": 23,
+        "shares": 4,
+        "views": 4278,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 27,
+        "value_rate_pct": 1.1749,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 5.2654
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on August 24, 2026. Puede ser una imagen de texto."
+    },
+    {
+      "shortcode": "DaVlTp3IPJY",
+      "url": "https://www.instagram.com/p/DaVlTp3IPJY/",
+      "published_at": "2026-07-15T17:45:04-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "No hay secretos para el éxito. Este se alcanza preparándose, trabajando arduamente y aprendiendo del fracaso.",
+      "visual_format": "text_meme",
+      "topic": "autoresponsabilidad",
+      "structure": "observación_con_giro",
+      "content_source": "instagram_alt_ocr",
+      "content_confidence": "high",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 3.2158,
+        "interactions": 62,
+        "likes": 52,
+        "reach": 1928,
+        "saves": 9,
+        "shares": 1,
+        "views": 3876,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 10,
+        "value_rate_pct": 0.5187,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 3.2158
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on July 15, 2026. Puede ser un meme de pan y texto que dice \"@jaywrkr Nsimple Hoy las 11:11 secretos se Nohay No hay para el éxito. Este alcanza preparándose, trabajando arduamente y aprendiendo del fracaso. SIMPLE Responder Visto\"."
+    },
+    {
+      "shortcode": "Dc1Mqdkoqiw",
+      "url": "https://www.instagram.com/p/Dc1Mqdkoqiw/",
+      "published_at": "2026-09-10T13:25:03-05:00",
+      "instagram_type": "FEED_IMAGE",
+      "phrase": "UNA FRASE SUBRAYADA NO CAMBIA UNA VIDA. UNA DECISIÓN SÍ PUEDE.",
+      "visual_format": "text_minimal",
+      "topic": "criterio_y_consciencia",
+      "structure": "contraste_reencuadre",
+      "content_source": "user_supplied_audit",
+      "content_confidence": "medium",
+      "metrics": {
+        "comments": 0,
+        "engagement_pct": 2.9431,
+        "interactions": 44,
+        "likes": 40,
+        "reach": 1495,
+        "saves": 3,
+        "shares": 1,
+        "views": 3008,
+        "follows": 0
+      },
+      "derived": {
+        "saves_plus_shares": 4,
+        "value_rate_pct": 0.2676,
+        "follow_rate_per_10k_reach": 0,
+        "interaction_rate_pct": 2.9431
+      },
+      "raw_instagram_alt": "Photo by Jay Jaramillo on September 10, 2026. Puede ser una imagen en blanco y negro de nube y texto que dice \"UN FRASE SUBRAYADA NO A UNA 1 UNA DECISIÓN ៣ PUEDE\"."
+    }
+  ],
+  "coverage": {
+    "posts_total": 67,
+    "phrase_recovered": 67,
+    "high_confidence": 60,
+    "medium_confidence": 7,
+    "unavailable": 0
+  }
+}
+
