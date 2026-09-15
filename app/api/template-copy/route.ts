@@ -37,6 +37,7 @@ const anthropic = createAnthropic({
 const requestWindows = new Map<string, { count: number; resetAt: number }>();
 const blockedProfessional = /\b(cliente|clientes|empresa|empresas|equipo|equipos|liderazgo|salario|ascenso|networking|mentor|industria|ventas|marketing|empleabilidad|certificaci[oó]n|freelanc\w*|coaching|roi|impuestos|delegaci[oó]n|carrera profesional|marca personal)\b/i;
 const foreignLeak = /\b(after|before|because|actually|however|though|maybe|still|work|job|business|career|team|client|meeting|deadline|feedback|growth|leadership)\b/i;
+const voseoLeak = /\b(notás|respondés|decís|sentís|podés|tenés|querés|hacés|sabés|elegís|seguís|dejás|mirás|pensás|creés|ganás|perdés|vivís|cumplís|evitás|cambiás|esperás|buscás|encontrás|llegás|usás|dás|sos)\b/i;
 const trailingConnector = /\b(que|de|del|la|el|los|las|un|una|con|sin|por|para|sobre|porque|aunque|cuando|como|si|y|o)$/i;
 
 const normalize = (value: unknown, max = 500) => typeof value === "string"
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
         model: anthropic(model),
         providerOptions: { anthropic: { thinking: { type: "disabled" } } },
         maxOutputTokens: 1200,
-        system: `Eres el editor de JAY POST STUDIO. Escribe únicamente en español latino neutro y con tú. JAY habla de decisiones privadas que forman una vida ordinaria: cumplir la palabra sin aplausos, hábitos tolerados, conversaciones aplazadas, atención, tiempo, dinero como margen de libertad, identidad, comodidad, responsabilidad y consecuencias de seguir igual. JAY no es CoreSolutions: prohíbe clientes, empresas, equipos, liderazgo, ventas, marketing, carreras y productividad profesional. La claridad importa más que sonar profundo. Cada texto debe describir una conducta, decisión o escena reconocible; mostrar una tensión; y dejar una consecuencia o criterio concreto. No uses motivación genérica, terapia, clickbait, metáforas apiladas, emojis, hashtags ni llamadas a la acción. ${jayPerformanceEvidence} ${jayWinningMechanism} No reutilices ni parafrasees frases históricas. Devuelve solo JSON válido con title, copy, caption, optional counterpoint y optional segments. El caption debe tener exactamente dos párrafos separados por \\n\\n, entre 70 y 115 palabras, y desarrollar la idea sin repetir el copy.`,
+        system: `Eres el editor de JAY POST STUDIO. Escribe únicamente en español latino neutro y usa conjugaciones de tú. Nunca uses voseo ni formas como notás, respondés, decís, sentís, podés, tenés, querés, hacés, sabés o sos. JAY habla de decisiones privadas que forman una vida ordinaria: cumplir la palabra sin aplausos, hábitos tolerados, conversaciones aplazadas, atención, tiempo, dinero como margen de libertad, identidad, comodidad, responsabilidad y consecuencias de seguir igual. JAY no es CoreSolutions: prohíbe clientes, empresas, equipos, liderazgo, ventas, marketing, carreras y productividad profesional. La claridad importa más que sonar profundo. Cada texto debe describir una conducta, decisión o escena reconocible; mostrar una tensión; y dejar una consecuencia o criterio concreto. No uses motivación genérica, terapia, clickbait, metáforas apiladas, emojis, hashtags ni llamadas a la acción. ${jayPerformanceEvidence} ${jayWinningMechanism} No reutilices ni parafrasees frases históricas. Devuelve solo JSON válido con title, copy, caption, optional counterpoint y optional segments. El caption debe tener exactamente dos párrafos separados por \\n\\n, entre 70 y 115 palabras, y desarrollar la idea sin repetir el copy.`,
         prompt: `Crea una idea JAY completamente nueva para la plantilla ${profile.name}. El copy debe medir entre ${profile.min} y ${profile.max} caracteres, contar una idea completa y no terminar en un conector. ${splitInstruction} ${segmentInstruction} El título debe describir la idea en 4 a 9 palabras. Semilla creativa: ${Date.now()}-${attempt}. No uses estas ideas recientes ni variaciones cercanas:\n${exclude.join("\n") || "Ninguna."}${attempt ? "\nLa respuesta anterior no pasó la validación. Reescribe desde cero, cuenta caracteres y revisa claridad, gramática y estructura antes de responder." : ""}`,
       });
       raw = result.text;
@@ -122,7 +123,7 @@ export async function POST(request: Request) {
       const segments = profile.kind === "segments" && Array.isArray(parsed.segments)
         ? parsed.segments.map((item) => normalize(item, (profile.segmentMax || 28) + 1))
         : [];
-      const combined = [title, copy, counterpoint, ...segments].join(" ");
+      const combined = [title, copy, counterpoint, ...segments, caption].join(" ");
       const duplicate = exclude.some((item) => comparable(item) === comparable(copy));
       const paragraphs = caption.split(/\n\n+/).filter(Boolean);
       const captionWords = caption.split(/\s+/).filter(Boolean).length;
@@ -130,7 +131,7 @@ export async function POST(request: Request) {
         segments.length === 3 && segments.every((segment) => segment.length >= 3 && segment.length <= (profile.segmentMax || 28))
       );
       if (!copy || !title || captionWords < 70 || captionWords > 115 || paragraphs.length !== 2 || !segmentsValid || (profile.kind === "split" && !counterpoint)) continue;
-      if (blockedProfessional.test(combined) || foreignLeak.test(combined) || duplicate || isTooCloseToJayHistory(combined)) continue;
+      if (blockedProfessional.test(combined) || foreignLeak.test(combined) || voseoLeak.test(combined) || duplicate || isTooCloseToJayHistory([title, copy, counterpoint, ...segments].join(" "))) continue;
       return Response.json({
         title,
         copy,
